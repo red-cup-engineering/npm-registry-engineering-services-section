@@ -1,0 +1,22 @@
+{
+  "name": "@red-cup-engineering/npm-registry-services-section",
+  "version": "0.1.0",
+  "description": "Holds the services for npm registries. Use when working on the private npm registry or reading any npm registry's packages, versions, and dependencies.",
+  "dependencies": {
+    "@red-cup-engineering/file-services": "workspace:*",
+    "@red-cup-engineering/inspect-installed-npm-package-service": "workspace:*",
+    "@red-cup-engineering/javascript-node-services-section": "workspace:*",
+    "@red-cup-engineering/json-services-section": "workspace:*",
+    "@red-cup-engineering/jsonl-services-section": "workspace:*",
+    "@red-cup-engineering/read-javascript-file-export-documentation-service": "workspace:*"
+  },
+  "exports": {
+    "./check-npm-registry-package-installations": "./scripts/check-npm-registry-package-installations.mjs",
+    "./npm-artifact-integrity-service": "./scripts/npm-artifact-integrity-service.mjs",
+    "./read-npm-registry-resource": "./scripts/read-npm-registry-resource.mjs",
+    "./select-npm-registry-packages": "./scripts/select-npm-registry-packages.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
