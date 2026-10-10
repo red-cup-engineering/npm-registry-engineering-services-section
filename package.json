@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Holds the services for npm registries. Use when working on the private npm registry or reading any npm registry's packages, versions, and dependencies.",
   "dependencies": {
-    "@red-cup-engineering/file-services": "workspace:*",
+    "@red-cup-engineering/computer-file-engineering-services-section": "workspace:*",
     "@red-cup-engineering/inspect-installed-npm-package-service": "workspace:*",
     "@red-cup-engineering/javascript-node-services-section": "workspace:*",
     "@red-cup-engineering/json-services-section": "workspace:*",

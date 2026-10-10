@@ -1,6 +1,6 @@
 import { join, resolve } from "node:path";
 
-import { readFileBytes } from "@red-cup-engineering/file-services/read-file";
+import { readFileBytes } from "@red-cup-engineering/computer-file-engineering-services-section/read-file";
 
 function registryFace(registryUrl) {
   const url = new URL(registryUrl);
