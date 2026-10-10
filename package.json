@@ -17,6 +17,10 @@
     "./select-npm-registry-packages": "./scripts/select-npm-registry-packages.mjs"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs"
+    "test": "run-package-tests",
+    "check": "check-package-syntax"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/package-test-plan": "workspace:*"
   }
 }
