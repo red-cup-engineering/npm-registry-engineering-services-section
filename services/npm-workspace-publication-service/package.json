@@ -18,7 +18,7 @@
     "@red-cup-engineering/uri-services-section": "workspace:*",
     "semver": "7.7.2",
     "@red-cup-engineering/agent-organization-engine": "workspace:*",
-    "@red-cup-engineering/feltos": "0.18.3"
+    "@red-cup-engineering/feltos": "workspace:*"
   },
   "private": false,
   "license": "MIT",
@@ -104,6 +104,6 @@
   },
   "devDependencies": {
     "@red-cup-engineering/agent-organization-engine": "workspace:*",
-    "@red-cup-engineering/feltos": "0.18.3"
+    "@red-cup-engineering/feltos": "workspace:*"
   }
 }
