@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { Message, Role } from "@a2a-js/sdk";
 import { extractRmnPart, rmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
-import { decodeSemanticEnvelope } from "@red-cup-engineering/computer-content-engineering-services-section/semantic-content-identity";
+import { decodeSemanticEnvelope } from "@red-cup-engineering/computer-content-address-engineering-services-section/semantic-content-identity";
 import { executeA2aMessage } from "../scripts/execute-a2a-task.mjs";
 import { registrySnapshotProtocol } from "../src/protocol.mjs";
 import { obtainRegistrySnapshot } from "../src/snapshot.mjs";
