@@ -1,0 +1,32 @@
+{
+  "name": "@red-cup-engineering/npm-registry-custody-assay-service",
+  "version": "0.0.0",
+  "description": "Measures a verdaccio registry's own storage against its published index and each package's attachment catalog, and quarantines the custody defects it finds — packages the index claims that storage never received, tarball addresses that resolve to no attachment, and attachments whose bytes no longer hash to their recorded digest — into an append-only ledger.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "exports": "./src/index.mjs",
+  "bin": {
+    "assay-registry-custody": "./scripts/assay-registry-custody.mjs"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "package.json"
+  ],
+  "dependencies": {
+    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "workspace:*",
+    "@red-cup-engineering/javascript-node-services-section": "workspace:*"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

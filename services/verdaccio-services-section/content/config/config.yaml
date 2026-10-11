@@ -1,0 +1,47 @@
+storage: /home/emsenn/.local/state/verdaccio/storage
+
+auth:
+  htpasswd:
+    file: /home/emsenn/.local/state/verdaccio/htpasswd
+    max_users: 1
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+  canonical:
+    url: https://registry.561.group/
+
+# This laptop instance is a read-through cache of the canonical registry
+# at https://registry.561.group (cold-red-gate). Publishes go to the
+# canonical; anything still pointed here (stale lockfiles) passes through.
+packages:
+  '@561-group/*': &private_packages
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+    proxy: canonical
+  '@causeway-services/*': *private_packages
+  '@coesite-operations/*': *private_packages
+  '@emsenn/*': *private_packages
+  '@lenticule-science/*': *private_packages
+  '@red-cup-engineering/*': *private_packages
+  'ephemeral-computer-machine-services-section': *private_packages
+  'persistent-computer-machine-services-section': *private_packages
+  '**':
+    access: $all
+    proxy: npmjs
+
+web:
+  enable: true
+  title: 561 Group Package Registry
+
+listen: 127.0.0.1:4873
+
+# Section packages carry their content trees; the default 10mb PUT limit
+# refuses any tarball over ~7mb once base64-wrapped in the publish payload,
+# and the largest content-bearing sections wrap to over 100mb.
+max_body_size: 512mb
+
+middlewares:
+  audit:
+    enabled: true
