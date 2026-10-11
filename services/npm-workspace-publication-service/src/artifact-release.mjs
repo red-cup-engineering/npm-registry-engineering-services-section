@@ -1,4 +1,4 @@
-import { semanticId } from "@red-cup-engineering/computer-content-engineering-services-section/semiotic-content-address";
+import { semanticId } from "@red-cup-engineering/computer-content-address-engineering-services-section/semiotic-content-address";
 
 function inventory(value, name) {
   if (!Array.isArray(value) || value.some((path) => typeof path !== "string" || path === "")) {
