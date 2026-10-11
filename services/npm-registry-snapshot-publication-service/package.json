@@ -1,0 +1,35 @@
+{
+  "name": "@red-cup-engineering/npm-registry-snapshot-publication-service",
+  "version": "0.0.0",
+  "description": "Builds an immutable npm registry snapshot and atomically activates it through snapshot pointers.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "exports": "./src/publish-npm-registry-snapshot.mjs",
+  "files": [
+    "src",
+    "scripts",
+    "package.json",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "bin": {
+    "publish-npm-registry-snapshot": "./scripts/publish-npm-registry-snapshot.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@red-cup-engineering/npm-package-services-section": "workspace:*",
+    "@red-cup-engineering/npm-registry-snapshot-services-section": "workspace:*",
+    "@red-cup-engineering/semiotic-npm-registry-services-section": "workspace:*",
+    "@red-cup-engineering/javascript-file-services-section": "workspace:*"
+  }
+}
