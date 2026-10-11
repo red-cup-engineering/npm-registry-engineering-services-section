@@ -1,0 +1,31 @@
+{
+  "name": "@red-cup-engineering/npm-registry-read-service",
+  "version": "0.1.0",
+  "description": "Serves a built npm registry over its read-only HTTP face, including npm health checks, packuments, and tarballs, and deploys that face as a standalone process.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "exports": "./src/npm-registry-read-service.mjs",
+  "files": [
+    "src",
+    "scripts",
+    "deploy",
+    "README.md",
+    "package.json"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "bin": {
+    "serve-npm-registry-read": "./scripts/serve-npm-registry-read.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {}
+}

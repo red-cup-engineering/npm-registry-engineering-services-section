@@ -1,0 +1,33 @@
+{
+  "name": "@red-cup-engineering/npm-registry-drift-observation-service",
+  "version": "0.0.0",
+  "description": "Walks a source tree against a live npm registry packument-by-packument to report, per package, whether the published release matches the current source version and dependencies. Use before a fleet republish to size the stale-manifest set and catch packages the registry never got or the source tree no longer carries.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "exports": "./src/observe-registry-drift.mjs",
+  "files": [
+    "src",
+    "scripts",
+    "package.json"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "bin": {
+    "observe-registry-drift": "./scripts/observe-registry-drift.mjs"
+  },
+  "scripts": {
+    "check": "node --check src/observe-registry-drift.mjs && node --check scripts/observe-registry-drift.mjs",
+    "test": "node --test test/*.test.mjs",
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@red-cup-engineering/disk-package-observation-app": "workspace:*",
+    "@red-cup-engineering/npm-registry-read-service": "workspace:*"
+  }
+}

@@ -1,0 +1,14 @@
+[Unit]
+Description=561 Group private npm registry (Verdaccio)
+Documentation=file:///home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-engineering-services-section/services/computer-code-engineering-services-section/services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/verdaccio-services-section/README.md
+After=network.target
+
+[Service]
+WorkingDirectory=/home/emsenn/info/lib/emsenn/services/561-group/services/engineering-services-section/services/computer-engineering-services-section/services/computer-code-engineering-services-section/services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/verdaccio-services-section
+ExecStartPre=/home/emsenn/.config/nvm/versions/node/v24.13.1/bin/node scripts/configure-npm-scope-routing.mjs
+ExecStart=/home/emsenn/.config/nvm/versions/node/v24.13.1/bin/node node_modules/verdaccio/build/lib/cli/cli.mjs --config content/config/config.yaml
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

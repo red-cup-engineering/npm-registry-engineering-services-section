@@ -1,0 +1,41 @@
+{
+  "name": "@red-cup-engineering/npm-package-tree-discovery-service",
+  "version": "0.0.0",
+  "description": "Walks a directory tree for package.json files and reports explicitly declared npm release candidates and deliberate skip reasons. Use when a registry build needs a policy-governed package list without hand-maintenance.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "exports": {
+    ".": "./src/discover-npm-packages.mjs",
+    "./decommissioned-package-candidates": "./src/decommissioned-package-candidates.mjs",
+    "./package-manifests": "./src/package-manifests.mjs",
+    "./replicated-package-copies": "./src/replicated-package-copies.mjs"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "package.json"
+  ],
+  "dependencies": {
+    "@red-cup-engineering/javascript-node-services-section": "workspace:*"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "bin": {
+    "discover-npm-packages": "./scripts/discover-npm-packages.mjs",
+    "discover-decommissioned-npm-packages": "./scripts/discover-decommissioned-npm-packages.mjs",
+    "derive-set-of-replicated-package-copies": "./scripts/derive-set-of-replicated-package-copies.mjs",
+    "purge-set-of-identical-package-replicas": "./scripts/purge-set-of-identical-package-replicas.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "check": "for f in src/*.mjs scripts/*.mjs; do node --check \"$f\" || exit 1; done",
+    "verify": "npm run check && npm test",
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

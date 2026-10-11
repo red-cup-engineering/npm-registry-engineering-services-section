@@ -1,0 +1,28 @@
+{
+  "name": "@red-cup-engineering/npm-registry-a2a-projection-service",
+  "version": "0.1.0",
+  "description": "Translates between npm registry data and A2A message shapes: builds the A2A request/response protocol for asking a registry for its snapshot, and answers one such request given a registry root and URL. Has no server and does not listen on a port — a web server that wants to serve a registry over A2A composes this with @red-cup-engineering/a2a-contracted-agent-service.",
+  "type": "module",
+  "private": true,
+  "license": "MIT",
+  "exports": {
+    ".": "./src/protocol.mjs",
+    "./snapshot": "./src/snapshot.mjs",
+    "./execute-a2a-task": "./scripts/execute-a2a-task.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "verify": "node --check src/protocol.mjs && node --check src/snapshot.mjs && node --check scripts/execute-a2a-task.mjs && node --test test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@red-cup-engineering/a2a-sovereign-operation-boundary-service": "1.0.1"
+  },
+  "devDependencies": {
+    "@a2a-js/sdk": "1.0.0-beta.0",
+    "@red-cup-engineering/a2a-rmn-part-service": "1.0.1",
+    "@red-cup-engineering/rmn-semantic-conformance": "6.0.2"
+  }
+}

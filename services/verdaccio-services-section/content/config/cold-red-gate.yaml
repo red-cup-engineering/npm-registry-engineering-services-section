@@ -1,0 +1,50 @@
+storage: ../../data/storage
+
+auth:
+  htpasswd:
+    file: ../../data/htpasswd
+    max_users: 1
+
+uplinks:
+  npmjs:
+    url: https://registry.npmjs.org/
+
+# Cold Red Gate is the durable house-package mirror. House scopes remain
+# private; ordinary public dependencies are a read-through cache of npmjs so
+# every canonical lockfile can be installed on a fresh receiver.
+packages:
+  '@561-group/*': &private_packages
+    access: $all
+    publish: $authenticated
+    unpublish: $authenticated
+  '@causeway-services/*': *private_packages
+  '@coesite-operations/*': *private_packages
+  '@emsenn/*': *private_packages
+  '@emsweb/*': *private_packages
+  '@foundry-rs/*':
+    access: $all
+    proxy: npmjs
+  '@harmonious-union/*': *private_packages
+  '@koios-news/*': *private_packages
+  '@lenticule-science/*': *private_packages
+  '@red-cup-engineering/*': *private_packages
+  '@red-cup-science/*': *private_packages
+  '@rsc-quiescent/*': *private_packages
+  '@turntide-islands/*': *private_packages
+  '@union-officer-academy/*': *private_packages
+  'ephemeral-computer-machine-services-section': *private_packages
+  'persistent-computer-machine-services-section': *private_packages
+  '**':
+    access: $all
+    proxy: npmjs
+
+web:
+  enable: true
+  title: 561 Group Package Registry
+
+listen: 127.0.0.1:4873
+max_body_size: 512mb
+
+middlewares:
+  audit:
+    enabled: true
