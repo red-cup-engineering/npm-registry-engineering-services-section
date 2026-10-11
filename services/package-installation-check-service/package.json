@@ -1,0 +1,22 @@
+{
+  "name": "@red-cup-engineering/package-installation-check-service",
+  "version": "1.0.0",
+  "description": "Installs packages from an npm registry into a clean temporary directory and checks that everything they ship actually resolves and runs. Use when verifying that published packages really install and import cleanly.",
+  "type": "module",
+  "license": "MIT",
+  "exports": "./src/check-package-installation.mjs",
+  "bin": {
+    "check-package-installation": "./scripts/check-package-installation.mjs"
+  },
+  "scripts": {
+    "test": "run-package-tests",
+    "verify": "node --check src/check-package-installation.mjs && node --check scripts/check-package-installation.mjs && node --test test/*.test.mjs",
+    "check": "check-package-syntax"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
+  }
+}

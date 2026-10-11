@@ -1,0 +1,31 @@
+{
+  "name": "@red-cup-engineering/verdaccio-services-section",
+  "version": "0.2.0",
+  "type": "module",
+  "description": "Runs the ordinary private npm registry for 561 Group packages using Verdaccio.",
+  "keywords": [
+    "verdaccio",
+    "npm-registry",
+    "private-registry",
+    "package-management"
+  ],
+  "scripts": {
+    "configure-client": "node scripts/configure-npm-scope-routing.mjs",
+    "check-client": "node scripts/configure-npm-scope-routing.mjs --check",
+    "serve": "npm run configure-client && node scripts/harden-htpasswd-permissions.mjs && verdaccio --config content/config/config.yaml",
+    "configure-client:cold-red-gate": "node scripts/configure-npm-scope-routing.mjs --config content/config/cold-red-gate.yaml",
+    "check-client:cold-red-gate": "node scripts/configure-npm-scope-routing.mjs --check --config content/config/cold-red-gate.yaml",
+    "serve:cold-red-gate": "npm run configure-client:cold-red-gate && node scripts/harden-htpasswd-permissions.mjs && verdaccio --config content/config/cold-red-gate.yaml",
+    "ping": "node scripts/ping-verdaccio.mjs",
+    "check": "node --check scripts/configure-npm-scope-routing.mjs && node --check scripts/ping-verdaccio.mjs && node --check scripts/harden-htpasswd-permissions.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "@red-cup-engineering/computer-file-engineering-services-section": "workspace:*",
+    "@red-cup-engineering/javascript-node-services-section": "workspace:*",
+    "verdaccio": "6.9.2"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

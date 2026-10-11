@@ -1,0 +1,27 @@
+{
+  "name": "@red-cup-engineering/npm-registry-service",
+  "version": "0.2.0",
+  "description": "Temporary compatibility facade for the npm registry release coordinator and read/graph command surfaces.",
+  "type": "module",
+  "license": "MIT",
+  "dependencies": {
+    "@red-cup-engineering/npm-registry-graph-services-section": "workspace:*",
+    "@red-cup-engineering/npm-registry-snapshot-publication-service": "workspace:*"
+  },
+  "bin": {
+    "build-npm-registry": "./scripts/build-npm-registry.mjs",
+    "publish-local-npm-package": "./scripts/publish-local-npm-package.mjs",
+    "serve-npm-registry": "./scripts/serve-npm-registry.mjs",
+    "render-npm-registry-graph": "./scripts/render-npm-registry-graph.mjs"
+  },
+  "scripts": {
+    "check": "check-package-syntax",
+    "test": "run-package-tests"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "name": "@red-cup-engineering/npm-registry-query-service",
+  "version": "0.3.0",
+  "description": "Answers whether a package exists in a built or live npm registry, searches package names, and reads direct dependencies, dependents, and standard package interfaces without deriving a whole graph.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "exports": {
+    ".": "./src/query-npm-registry.mjs",
+    "./obtain-registry-snapshot": "./src/obtain-registry-snapshot.mjs"
+  },
+  "bin": {
+    "query-npm-registry": "./scripts/query-npm-registry.mjs"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "package.json"
+  ],
+  "scripts": {
+    "test": "run-package-tests",
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts",
+    "check": "check-package-syntax"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "workspace:*",
+    "@red-cup-engineering/npm-registry-services-section": "workspace:*"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
+  }
+}

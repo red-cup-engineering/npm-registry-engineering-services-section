@@ -1,0 +1,14 @@
+{
+  "name": "publish-package-build-failure-fixture",
+  "version": "0.1.0",
+  "description": "A fixture package whose build script exits 1, for the publish-package gate's build-failed refusal test.",
+  "type": "module",
+  "private": true,
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test test/*.test.mjs"
+  }
+}
