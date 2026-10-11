@@ -5,7 +5,7 @@ import { join } from "node:path";
 import test from "node:test";
 import { Message, Role } from "@a2a-js/sdk";
 import { extractRmnPart, rmnPart } from "@red-cup-engineering/a2a-rmn-part-service";
-import { decodeSemantic, semanticBytes } from "@red-cup-engineering/rmn-semantic-conformance";
+import { decodeSemanticEnvelope } from "@red-cup-engineering/computer-content-engineering-services-section/semantic-content-identity";
 import { executeA2aMessage } from "../scripts/execute-a2a-task.mjs";
 import { registrySnapshotProtocol } from "../src/protocol.mjs";
 import { obtainRegistrySnapshot } from "../src/snapshot.mjs";
@@ -66,7 +66,7 @@ test("supplies a current snapshot only at its exact private registry face", asyn
       contextId: "",
       taskId: "",
       role: Role.ROLE_USER,
-      parts: [rmnPart(semanticBytes(request.term))],
+      parts: [rmnPart(request.bytes)],
       metadata: {},
       extensions: [],
       referenceTaskIds: [],
@@ -74,7 +74,7 @@ test("supplies a current snapshot only at its exact private registry face", asyn
       REGISTRY_ROOT: root,
       REGISTRY_URL: "http://registry.example.test/",
     });
-    const response = registrySnapshotProtocol.decodeResponse(decodeSemantic(extractRmnPart(Message.fromJSON(responseMessage).parts).bytes));
+    const response = registrySnapshotProtocol.decodeResponse(decodeSemanticEnvelope(extractRmnPart(Message.fromJSON(responseMessage).parts).bytes).envelope.settledBody);
     assert.equal(response.disposition, "accepted");
     assert.deepEqual(response.result.packages[0]["x-semiotic-voxel"], snapshot.packages[0]["x-semiotic-voxel"]);
     assert.deepEqual(response.result.packages[0]["x-agentic-metro-enterprise"], snapshot.packages[0]["x-agentic-metro-enterprise"]);

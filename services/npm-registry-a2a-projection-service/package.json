@@ -18,11 +18,11 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@red-cup-engineering/a2a-sovereign-operation-boundary-service": "1.0.1"
+    "@red-cup-engineering/a2a-sovereign-operation-boundary-service": "workspace:*"
   },
   "devDependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",
-    "@red-cup-engineering/a2a-rmn-part-service": "1.0.1",
-    "@red-cup-engineering/rmn-semantic-conformance": "6.0.2"
+    "@red-cup-engineering/a2a-rmn-part-service": "workspace:*",
+    "@red-cup-engineering/computer-content-engineering-services-section": "workspace:*"
   }
 }
