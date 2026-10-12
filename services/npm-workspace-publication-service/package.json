@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-workspace-publication-service",
-  "version": "0.11.3",
+  "version": "0.12.0-dev.0",
   "description": "Verifies exact registry dependency specifications, orders a package estate into leaf-first tiers, and publishes with npm; dry-run by default.",
   "type": "module",
   "dependencies": {
@@ -96,7 +96,8 @@
     "reset-package-versions": "scripts/reset-package-versions.mjs",
     "reset-python-package-versions": "scripts/reset-python-package-versions.py",
     "cache-verdaccio-upstream-release": "scripts/cache-verdaccio-upstream-release.mjs",
-    "recover-demanded-versions": "scripts/recover-demanded-versions.mjs"
+    "recover-demanded-versions": "scripts/recover-demanded-versions.mjs",
+    "receive-packed-registry-artifact": "scripts/receive-packed-registry-artifact.mjs"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs",
