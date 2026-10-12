@@ -16,8 +16,6 @@
     "@red-cup-engineering/npm-registry-snapshot-services-section": "workspace:*",
     "@red-cup-engineering/uri-services-section": "workspace:*",
     "semver": "7.7.2",
-    "@red-cup-engineering/agent-organization-engine": "workspace:*",
-    "@red-cup-engineering/feltos": "workspace:*",
     "@red-cup-engineering/computer-content-address-engineering-services-section": "workspace:*"
   },
   "private": false,
@@ -102,9 +100,5 @@
   "scripts": {
     "test": "node --test test/*.test.mjs",
     "pack:dry-run": "npm pack --dry-run --ignore-scripts"
-  },
-  "devDependencies": {
-    "@red-cup-engineering/agent-organization-engine": "workspace:*",
-    "@red-cup-engineering/feltos": "workspace:*"
   }
 }
