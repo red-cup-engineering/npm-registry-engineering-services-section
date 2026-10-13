@@ -185,7 +185,7 @@ async function configuredNpmCommand(command, arguments_, { registry, npmEnvironm
 export async function readConfiguredNpmRegistryPackageVersion(registry, name, version, { execFileImpl = execFile, npmEnvironment = {} } = {}) {
   const authority = configuredRegistryAuthority(registry), identity = exactNpmIdentity(name, version);
   try {
-    const { stdout } = await configuredNpmCommand("pnpm", ["view", identity, "--json", "--fetch-retries=0", "--fetch-timeout=5000", "--registry", authority], { registry: authority, npmEnvironment, execFileImpl, options: { maxBuffer: 8 * 1024 * 1024, timeout: 10_000 } });
+    const { stdout } = await configuredNpmCommand("pnpm", ["view", identity, "--json", "--config.fetch-retries=0", "--config.fetch-timeout=5000", "--registry", authority], { registry: authority, npmEnvironment, execFileImpl, options: { maxBuffer: 8 * 1024 * 1024, timeout: 10_000 } });
     const manifest = JSON.parse(stdout);
     if (!manifest || manifest.name !== name || manifest.version !== version) throw new Error("registry returned another package or version");
     return Object.freeze({ found: true, reachable: true, manifest: Object.freeze(manifest) });
