@@ -9,7 +9,7 @@ import { writeFileText } from "@red-cup-engineering/computer-file-engineering-se
 import { dirname, resolve } from "node:path";
 import { statPath } from "@red-cup-engineering/computer-file-engineering-services-section/stat-path";
 import semver from "semver";
-import { createSemanticRecordJournal } from "@red-cup-engineering/semiotic-eavt-services-section/record-semantic-record";
+import { put } from "@red-cup-engineering/semiotic-eavt-services-section/store";
 import { packageExportSurfacePaths } from "../src/carrier-surface.mjs";
 import { classifyDistStaleness } from "../src/dist-staleness.mjs";
 import { packageLockRootIdentityViolations, publicationManifest, WORKSPACE_SPECIFICATION } from "../src/dependency-policy.mjs";
@@ -709,12 +709,11 @@ function finish({ outcome, packageName, packageDir, startedAt, steps, refusal, s
   });
 }
 
+/** The store type the publish gate's receipts are held under. */
+const PUBLISH_RECEIPT_TYPE = "package-publish-receipt";
+
 async function writeReceipt({ packageDir, manifestName, action, state, toVersion, extra = {} }) {
   const sectionRoot = await nearestServicesSectionWithData(packageDir);
-  const journal = createSemanticRecordJournal({
-    root: sectionRoot,
-    objectKind: "red-cup-engineering.package-publish-service-record",
-  });
   const record = buildPublishGateReceipt({
     package: manifestName,
     action,
@@ -726,13 +725,9 @@ async function writeReceipt({ packageDir, manifestName, action, state, toVersion
     tarballDiffClassification: state.tarballDiffClassification ?? "first-publish",
     extra,
   });
-  const outcome = journal.record({
-    category: action,
-    record,
-    recordedAt: new Date().toISOString(),
-    told: { for: action === "publish", against: action === "refusal" },
-  });
-  return { id: outcome.id, objectKind: outcome.objectKind, appended: outcome.appended, sectionRoot };
+  // A receipt is told for when the package was published and against when it was refused; `told` is a member only when it is not plainly for.
+  const held = action === "publish" ? record : { ...record, told: { for: false, against: action === "refusal" } };
+  return { id: put(sectionRoot, PUBLISH_RECEIPT_TYPE, held), sectionRoot };
 }
 
 async function nearestServicesSectionWithData(startDir) {
