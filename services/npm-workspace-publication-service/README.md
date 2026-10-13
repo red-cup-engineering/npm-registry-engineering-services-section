@@ -201,7 +201,7 @@ reconcile-package-locks \
 ### Receive one packed artifact
 
 `receive-packed-registry-artifact before|after` reads `PACKAGE`, `VERSION`,
-`PACKAGE_ARCHIVE` and `REGISTRY` from the environment. npm receives authentication
+`PACKAGE_ARCHIVE` and `REGISTRY` from the environment. pnpm receives authentication
 through its configured environment or user configuration; the command carries
 no credential in its arguments. The before observation permits publication only
 when the exact metadata read establishes absence. An occupied identity must match

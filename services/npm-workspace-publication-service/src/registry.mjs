@@ -153,7 +153,7 @@ function configuredRegistryAuthority(registry) {
 }
 
 function exactNpmIdentity(name, version) {
-  if (typeof name !== "string" || !/^@?[a-z0-9][a-z0-9._@/~-]*$/iu.test(name) || name.includes("//") || typeof version !== "string" || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.test(version)) {
+  if (typeof name !== "string" || !/^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$/u.test(name) || typeof version !== "string" || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.test(version)) {
     throw new TypeError("name and version must identify one exact npm package");
   }
   return `${name}@${version}`;
@@ -175,7 +175,7 @@ async function configuredNpmCommand(command, arguments_, { registry, npmEnvironm
 }
 
 /**
- * Reads exact package metadata through npm's configured authentication.
+ * Reads exact npm package metadata through pnpm's configured authentication.
  * @param {string} registry
  * @param {string} name
  * @param {string} version
@@ -185,7 +185,7 @@ async function configuredNpmCommand(command, arguments_, { registry, npmEnvironm
 export async function readConfiguredNpmRegistryPackageVersion(registry, name, version, { execFileImpl = execFile, npmEnvironment = {} } = {}) {
   const authority = configuredRegistryAuthority(registry), identity = exactNpmIdentity(name, version);
   try {
-    const { stdout } = await configuredNpmCommand("npm", ["view", identity, "--json", "--fetch-retries=0", "--fetch-timeout=5000", "--registry", authority], { registry: authority, npmEnvironment, execFileImpl, options: { maxBuffer: 8 * 1024 * 1024, timeout: 10_000 } });
+    const { stdout } = await configuredNpmCommand("pnpm", ["view", identity, "--json", "--fetch-retries=0", "--fetch-timeout=5000", "--registry", authority], { registry: authority, npmEnvironment, execFileImpl, options: { maxBuffer: 8 * 1024 * 1024, timeout: 10_000 } });
     const manifest = JSON.parse(stdout);
     if (!manifest || manifest.name !== name || manifest.version !== version) throw new Error("registry returned another package or version");
     return Object.freeze({ found: true, reachable: true, manifest: Object.freeze(manifest) });
