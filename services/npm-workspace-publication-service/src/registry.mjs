@@ -153,7 +153,7 @@ function configuredRegistryAuthority(registry) {
 }
 
 function exactNpmIdentity(name, version) {
-  if (typeof name !== "string" || !/^(?:@[a-z0-9][a-z0-9._-]*/)?[a-z0-9][a-z0-9._-]*$/u.test(name) || typeof version !== "string" || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.test(version)) {
+  if (typeof name !== "string" || !/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/u.test(name) || typeof version !== "string" || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.test(version)) {
     throw new TypeError("name and version must identify one exact npm package");
   }
   return `${name}@${version}`;
