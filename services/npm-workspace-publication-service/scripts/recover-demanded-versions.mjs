@@ -92,6 +92,7 @@ for (const [name, version] of demanded) {
     continue;
   }
   const already = await isVersionPublished(registry, name, version);
+  if (!already.reachable) throw new Error(`registry is unread while receiving ${key}; preserve the source and retry observation before publication`);
   if (already.published) {
     results.push({ name, version, outcome: "already-published" });
     continue;
