@@ -6,6 +6,32 @@ MetroPlat application. The same manifest projection answers packuments, exact
 versions, and version selectors through dist-tags; all advertise one canonical
 tarball URL on the configured origin.
 
+## Metadata receiving
+
+Root package GET/HEAD routes negotiate npm's
+`application/vnd.npm.install-v1+json` representation when explicitly requested
+with at least the preference of ordinary JSON. They return `Vary: Accept`;
+an absent Accept header or a wildcard-only request retains the full document.
+Unsupported media parameters do not match these parameterless representations;
+quoted parameter syntax conservatively retains full JSON.
+The abbreviated projection includes the recorded package modification time,
+installation dependencies and platform constraints, lifecycle-script presence,
+and the complete dist object, including integrity, signatures and attestations.
+Unknown timestamps and shrinkwrap status are not invented.
+
+The uplink is still fetched as full JSON and stored in full. Abbreviation
+does not rewrite history, release times or manifests. Full metadata and
+exact-version/tag selectors remain available for consumers needing those
+contracts. Concurrent public reads for one name share their in-flight
+read/refresh, parse and cache commit across representations and selectors.
+Settled work is discarded on success or failure; existing freshness and
+stale-on-uplink-error behavior remains. Private names stay local, and client
+authorization is never forwarded to the public uplink. This is process-local
+in-flight sharing, not a new persistent cache or cross-process coordinator.
+
+Protocol reference:
+https://github.com/npm/registry/blob/main/docs/responses/package-metadata.md
+
 ## Publication and storage contract
 
 The npm client publishes a package manifest and attached bytes. For scoped
@@ -44,6 +70,8 @@ responsible for whether the artifact's contents implement its declared API.
 `npm test` runs the declared receiving file. It checks complete-transaction
 refusal, occupied-byte and version immutability, concurrent publications,
 failed-write preservation, retained leaf storage, and public uplink reads.
+In-process metadata cases exercise Accept preferences, full-history and dist
+preservation, private-name boundaries, shared refreshes and failure recovery.
 Two tests start the real standalone entrypoint and use the installed npm
 client to publish scoped and unscoped fixture packages, verify advertised
 artifact digests, install into empty consumers, and import their shipped API.

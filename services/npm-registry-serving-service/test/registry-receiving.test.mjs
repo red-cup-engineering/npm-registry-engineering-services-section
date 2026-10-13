@@ -11,6 +11,30 @@ import { fileURLToPath } from "node:url";
 import bcrypt from "bcryptjs";
 import { createNpmRegistry } from "../src/registry.mjs";
 
+const installAccept = "application/vnd.npm.install-v1+json";
+function metadataDocument(packageName = "metadata-fixture") {
+  return {
+    name: packageName, readme: "retained history ".repeat(1024),
+    time: { created: "2020-01-01T00:00:00.000Z", modified: "2026-01-02T00:00:00.000Z", "1.0.0": "2020-01-01T00:00:00.000Z" },
+    "dist-tags": { latest: "1.0.0" },
+    versions: { "1.0.0": {
+      name: packageName, version: "1.0.0", description: "full manifest only",
+      dependencies: { required: "^1.0.0" }, optionalDependencies: { optional: "^2.0.0" },
+      peerDependencies: { peer: "*" }, peerDependenciesMeta: { peer: { optional: true } },
+      acceptDependencies: { required: "^2.0.0" }, devDependencies: { development: "^1.0.0" },
+      bundleDependencies: ["bundled"], bin: { command: "cli.js" }, directories: { bin: "bin" },
+      engines: { node: ">=20" }, os: ["linux"], cpu: ["x64"], libc: ["glibc"],
+      deprecated: "fixture warning", funding: "https://fixture.invalid/funding",
+      _hasShrinkwrap: true, scripts: { preinstall: "fixture-only" },
+      dist: { tarball: "https://uplink.invalid/" + packageName + "-1.0.0.tgz",
+        shasum: "a".repeat(40), integrity: "sha512-fixture-only",
+        signatures: [{ keyid: "fixture", sig: "fixture-only" }],
+        attestations: { url: "https://uplink.invalid/fixture-attestation", provenance: { predicateType: "fixture" } },
+      },
+    } },
+  };
+}
+
 const run = promisify(execFile);
 const name = "@registry-fixture/capability";
 const password = "local-disposable-test-only";
@@ -190,4 +214,146 @@ for (const packageName of [name, "registry-fixture-capability"]) test(`real npm 
   assert.equal(received.stdout, "exact packed carrier");
   const tags = await run("npm", ["dist-tag", "ls", packageName, "--registry", origin], { cwd: consumer, env });
   assert.match(tags.stdout, /latest: 1\.0\.0/u);
+});
+// These tests call only the request handler. Every uplink is injected; no socket,
+// subprocess, package manager, real credential, or network request is used.
+test("metadata receiving: abbreviated projection preserves installation identity and full history", async (t) => {
+  const source = metadataDocument();
+  const calls = [];
+  const f = await fixture(t, { fetch: async (url, options) => {
+    calls.push({ url, options }); return Response.json(source);
+  } });
+  const response = await f.request("/metadata-fixture", { headers: { accept: installAccept + "; q=1.0, application/json; q=0.8, */*", authorization } });
+  assert.equal(response.headers.get("content-type"), installAccept);
+  assert.equal(response.headers.get("vary"), "Accept");
+  const abbreviated = await response.json();
+  assert.equal(abbreviated.modified, source.time.modified);
+  assert.equal(abbreviated.readme, undefined);
+  assert.equal(abbreviated.time, undefined);
+  const manifest = abbreviated.versions["1.0.0"];
+  for (const field of ["name", "version", "dependencies", "optionalDependencies", "peerDependencies", "peerDependenciesMeta", "acceptDependencies", "devDependencies", "bundleDependencies", "bin", "directories", "engines", "os", "cpu", "libc", "deprecated", "funding", "_hasShrinkwrap"]) {
+    assert.deepEqual(manifest[field], source.versions["1.0.0"][field], field);
+  }
+  assert.equal(manifest.hasInstallScript, true);
+  assert.equal(manifest.description, undefined);
+  assert.equal(manifest.scripts, undefined);
+  assert.deepEqual(manifest.dist, { ...source.versions["1.0.0"].dist, tarball: "http://registry.invalid/metadata-fixture/-/metadata-fixture-1.0.0.tgz" });
+  const fullResponse = await f.request("/metadata-fixture", { headers: { accept: "application/json" } });
+  assert.equal(fullResponse.headers.get("vary"), "Accept");
+  const full = await fullResponse.json();
+  assert.equal(full.readme, source.readme);
+  assert.deepEqual(full.time, source.time);
+  assert.deepEqual(full.versions["1.0.0"], { ...source.versions["1.0.0"], dist: manifest.dist });
+  assert.deepEqual(await (await f.request("/metadata-fixture/1.0.0", { headers: { accept: installAccept } })).json(), full.versions["1.0.0"]);
+  assert.ok(JSON.stringify(abbreviated).length < JSON.stringify(full).length / 4);
+  const stored = JSON.parse(await readFile(join(f.storage, "metadata-fixture", "package.json"), "utf8"));
+  assert.deepEqual(stored.time, source.time);
+  assert.deepEqual(stored.versions, source.versions);
+  assert.equal(stored.readme, source.readme);
+  assert.equal(calls.length, 1);
+  assert.deepEqual(calls[0].options.headers, { accept: "application/json" }, "the authoritative cache remains full; no client authentication is forwarded");
+});
+
+test("metadata receiving: explicit Accept preference controls only packument representation", async (t) => {
+  const f = await fixture(t, { fetch: async () => Response.json(metadataDocument()) });
+  for (const [accept, abbreviated] of [
+    [undefined, false], ["*/*", false], ["application/json", false],
+    [installAccept, true], [installAccept + ";q=0, */*", false],
+    [installAccept + ";q=0.4, application/json;q=0.9", false],
+    [installAccept + ";q=0.9, application/json;q=0.4", true],
+    [installAccept + ";q=0.9, application/*;q=0.4", true],
+    [installAccept.toUpperCase() + "; Q=1, application/json;q=0.8", true],
+    [installAccept + ";q=0, " + installAccept + ";profile=unprovided;q=1, application/json;q=0.8", false],
+    ['application/json;profile="x, application/vnd.npm.install-v1+json;q=1, x"', false],
+    [installAccept + ";q=1e0, application/json;q=0.8", false],
+    [installAccept + ";q=0x1, application/json;q=0.8", false],
+  ]) {
+    const response = await f.request("/metadata-fixture", { headers: accept ? { accept } : {} });
+    const body = await response.json();
+    assert.equal(body.readme === undefined, abbreviated, accept ?? "no Accept");
+    assert.equal(response.headers.get("content-type"), abbreviated ? installAccept : "application/json", accept);
+    assert.equal(response.headers.get("vary"), "Accept");
+  }
+  const head = await f.request("/metadata-fixture", { method: "HEAD", headers: { accept: installAccept } });
+  assert.equal(head.headers.get("content-type"), installAccept);
+  assert.equal(await head.text(), "");
+});
+
+test("metadata receiving: private names stay local and unknown timestamps stay unknown", async (t) => {
+  const f = await fixture(t, { privateNames: ["private-metadata-fixture"], fetch: async () => { throw new Error("private metadata must not contact uplink"); } });
+  const source = metadataDocument("private-metadata-fixture");
+  delete source.time;
+  delete source.versions["1.0.0"]._hasShrinkwrap;
+  delete source.versions["1.0.0"].scripts;
+  await mkdir(join(f.storage, source.name), { recursive: true });
+  await writeFile(join(f.storage, source.name, "package.json"), JSON.stringify(source));
+  const before = await readFile(join(f.storage, source.name, "package.json"));
+  const body = await (await f.request("/" + source.name, { headers: { accept: installAccept } })).json();
+  assert.equal(body.modified, undefined);
+  assert.equal(body.versions["1.0.0"]._hasShrinkwrap, undefined);
+  assert.equal(body.versions["1.0.0"].hasInstallScript, false);
+  assert.equal(body.readme, undefined);
+  assert.deepEqual(await readFile(join(f.storage, source.name, "package.json")), before);
+  assert.equal((await f.request("/@registry-fixture/missing", { headers: { accept: installAccept } })).status, 404);
+  assert.equal((await f.request("/" + name, { method: "PUT", body: JSON.stringify(publication()) })).status, 401);
+});
+
+async function overlappingReads(f, paths, headers) {
+  return Promise.all(paths.map(path => f.request(path, { headers })));
+}
+
+test("metadata receiving: overlapping public representations and selectors share one refresh", async (t) => {
+  let calls = 0, release, started;
+  const began = new Promise(resolve => { started = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  const f = await fixture(t, { uplinkMaxAgeMs: 0, fetch: async () => {
+    calls++; started(); await gate; return Response.json(metadataDocument());
+  } });
+  const pending = overlappingReads(f, ["/metadata-fixture", "/metadata-fixture/1.0.0", "/metadata-fixture/latest", "/-/package/metadata-fixture/dist-tags", "/metadata-fixture"], { accept: installAccept });
+  await began;
+  // Hold the injected response open while all concurrent filesystem reads start.
+  await new Promise(resolve => setTimeout(resolve, 25));
+  release();
+  const responses = await pending;
+  assert.deepEqual(responses.map(response => response.status), [200, 200, 200, 200, 200]);
+  assert.equal(calls, 1, "one fetch/parse/store refresh must serve overlapping requests for one public name");
+  await f.request("/metadata-fixture");
+  assert.equal(calls, 2, "settled work is removed and a later stale request refreshes again");
+});
+
+test("metadata receiving: failed shared refresh preserves stale full metadata and permits retry", async (t) => {
+  let calls = 0, release, started;
+  const began = new Promise(resolve => { started = resolve; });
+  const gate = new Promise(resolve => { release = resolve; });
+  const f = await fixture(t, { uplinkMaxAgeMs: 0, fetch: async () => {
+    calls++; started(); await gate; throw new Error("fixture uplink unavailable");
+  } });
+  const source = metadataDocument();
+  await mkdir(join(f.storage, source.name), { recursive: true });
+  await writeFile(join(f.storage, source.name, "package.json"), JSON.stringify(source));
+  const before = await readFile(join(f.storage, source.name, "package.json"));
+  const pending = overlappingReads(f, ["/metadata-fixture", "/metadata-fixture", "/metadata-fixture"], { accept: installAccept });
+  await began; await new Promise(resolve => setTimeout(resolve, 25)); release();
+  const responses = await pending;
+  for (const response of responses) assert.equal((await response.json()).modified, source.time.modified);
+  assert.equal(calls, 1);
+  assert.deepEqual(await readFile(join(f.storage, source.name, "package.json")), before);
+  await f.request("/metadata-fixture");
+  assert.equal(calls, 2);
+});
+
+test("metadata receiving: an uncached failed refresh is released and package identities stay separate", async (t) => {
+  const calls = [];
+  let fail = true;
+  const f = await fixture(t, { fetch: async url => {
+    const packageName = decodeURIComponent(new URL(url).pathname.slice(1)); calls.push(packageName);
+    if (fail) throw new Error("fixture first fetch failed");
+    return Response.json(metadataDocument(packageName));
+  } });
+  await assert.rejects(f.request("/metadata-fixture"), /fixture first fetch failed/u);
+  fail = false;
+  const responses = await overlappingReads(f, ["/metadata-fixture", "/other-metadata-fixture"], { accept: installAccept });
+  assert.deepEqual(await Promise.all(responses.map(async response => (await response.json()).name)), ["metadata-fixture", "other-metadata-fixture"]);
+  assert.equal(calls.filter(value => value === "metadata-fixture").length, 2);
+  assert.equal(calls.filter(value => value === "other-metadata-fixture").length, 1);
 });

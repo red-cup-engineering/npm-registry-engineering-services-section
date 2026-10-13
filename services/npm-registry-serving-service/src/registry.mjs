@@ -96,6 +96,62 @@ export function createNpmRegistry({
     return { ...shown, versions };
   }
 
+  const installType = "application/vnd.npm.install-v1+json";
+  const installFields = [
+    "name", "version", "deprecated", "dependencies", "acceptDependencies", "optionalDependencies",
+    "devDependencies", "bundleDependencies", "bundledDependencies", "peerDependencies", "peerDependenciesMeta",
+    "bin", "directories", "dist", "engines", "_hasShrinkwrap", "funding", "cpu", "os", "libc",
+  ];
+  // Keep the authoritative document full. Only the outgoing packument is
+  // abbreviated; complete dist identity and installation constraints survive.
+  function abbreviated(name, packument) {
+    const versions = {};
+    for (const [version, manifest] of Object.entries(packument.versions ?? {})) {
+      const selected = Object.fromEntries(installFields.filter(field => Object.hasOwn(manifest, field)).map(field => [field, manifest[field]]));
+      selected.hasInstallScript = manifest.hasInstallScript === true || manifest.gypfile === true
+        || ["preinstall", "install", "postinstall"].some(script => Boolean(manifest.scripts?.[script]));
+      versions[version] = presentedManifest(name, version, selected);
+    }
+    return { name: packument.name, modified: packument.time?.modified ?? packument.modified, "dist-tags": packument["dist-tags"], versions };
+  }
+
+  function wantsAbbreviated(accept = "") {
+    // Quoted media parameters are outside these parameterless representations.
+    // Keep the full-document fallback rather than split a quoted comma into a
+    // false install-v1 range.
+    if (accept.includes('"')) return false;
+    const ranges = accept.toLowerCase().split(",").map(entry => {
+      const [type, ...parameters] = entry.trim().split(";").map(value => value.trim());
+      // Both offered media types are parameterless. A range requiring another
+      // parameter does not match either representation (RFC 9110, 12.5.1).
+      if (parameters.some(value => value && !/^q\s*=/u.test(value))) return null;
+      const q = parameters.find(value => /^q\s*=/u.test(value));
+      const weight = q === undefined ? "1" : q.slice(q.indexOf("=") + 1).trim();
+      const quality = /^(?:0(?:\.[0-9]{0,3})?|1(?:\.0{0,3})?)$/u.test(weight) ? Number(weight) : 0;
+      return { type, quality };
+    }).filter(Boolean);
+    // Wildcards alone preserve the historical full-document default. For each
+    // representation a specific media range takes precedence over a wildcard.
+    if (!ranges.some(range => range.type === installType)) return false;
+    const qualityOf = type => {
+      let specificity = -1, quality = 0;
+      for (const range of ranges) {
+        const rank = range.type === type ? 2 : range.type === "application/*" ? 1 : range.type === "*/*" ? 0 : -1;
+        if (rank > specificity) { specificity = rank; quality = range.quality; }
+        else if (rank >= 0 && rank === specificity) quality = Math.max(quality, range.quality);
+      }
+      return quality;
+    };
+    const quality = qualityOf(installType);
+    return quality > 0 && quality >= qualityOf("application/json");
+  }
+
+  function packumentResponse(request, name, packument) {
+    const install = wantsAbbreviated(request.headers.get("accept") ?? "");
+    const headers = { "content-type": install ? installType : "application/json", vary: "Accept" };
+    return new Response(request.method === "HEAD" ? null : JSON.stringify(install ? abbreviated(name, packument) : presented(name, packument)), { headers });
+  }
+
   async function fresh(path) {
     try { return now().getTime() - (await stat(path)).mtimeMs < uplinkMaxAgeMs; }
     catch (error) { if (error.code === "ENOENT") return false; throw error; }
@@ -108,11 +164,23 @@ export function createNpmRegistry({
     return response.json();
   }
 
-  /** The stored packument, refreshed from the uplink when the name is the uplink's and the copy is stale. */
-  async function packumentOf(name) {
+  const inflightPackuments = new Map();
+  /** One transient public read/refresh per name, shared across representations and selectors. */
+  function packumentOf(name) {
     const path = packumentPath(name);
+    if (isPrivate(name)) return readJson(path);
+    if (inflightPackuments.has(name)) return inflightPackuments.get(name);
+    const pending = refreshPackument(name, path);
+    inflightPackuments.set(name, pending);
+    const settled = () => { if (inflightPackuments.get(name) === pending) inflightPackuments.delete(name); };
+    pending.then(settled, settled);
+    return pending;
+  }
+
+  /** The full stored packument, retaining the existing freshness and stale-on-error policy. */
+  async function refreshPackument(name, path) {
     const local = await readJson(path);
-    if (isPrivate(name) || (local && await fresh(path))) return local;
+    if (local && await fresh(path)) return local;
     let remote;
     try { remote = await uplinkPackument(name); }
     catch (error) { if (local) return local; throw error; }
@@ -296,7 +364,7 @@ export function createNpmRegistry({
     if (rest.length === 0) {
       if (method === "GET" || method === "HEAD") {
         const packument = await packumentOf(name);
-        return packument ? json(presented(name, packument)) : refusal(404, `${name} is not in this registry`);
+        return packument ? packumentResponse(request, name, packument) : refusal(404, `${name} is not in this registry`);
       }
       if (method === "PUT") {
         const user = await authenticated(request);
