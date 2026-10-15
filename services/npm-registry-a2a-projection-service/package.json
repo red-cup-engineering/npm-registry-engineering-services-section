@@ -11,8 +11,9 @@
     "./execute-a2a-task": "./scripts/execute-a2a-task.mjs"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs",
-    "verify": "node --check src/protocol.mjs && node --check src/snapshot.mjs && node --check scripts/execute-a2a-task.mjs && node --test test/*.test.mjs"
+    "test": "run-package-tests",
+    "verify": "node --check src/protocol.mjs && node --check src/snapshot.mjs && node --check scripts/execute-a2a-task.mjs && node --test test/*.test.mjs",
+    "check": "check-package-syntax"
   },
   "engines": {
     "node": ">=22"
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",
-    "@red-cup-engineering/a2a-rmn-part-service": "workspace:*"
+    "@red-cup-engineering/a2a-rmn-part-service": "workspace:*",
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
   }
 }

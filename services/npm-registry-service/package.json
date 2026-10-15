@@ -15,10 +15,13 @@
     "render-npm-registry-graph": "./scripts/render-npm-registry-graph.mjs"
   },
   "scripts": {
-    "check": "node --check scripts/build-npm-registry.mjs && node --check scripts/publish-local-npm-package.mjs && node --check scripts/render-npm-registry-graph.mjs && node --check scripts/serve-npm-registry.mjs",
-    "test": "node --test test/*.test.mjs"
+    "check": "check-package-syntax",
+    "test": "run-package-tests"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
   }
 }
