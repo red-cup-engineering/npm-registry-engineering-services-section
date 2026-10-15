@@ -95,20 +95,38 @@ function readPackument(url) {
   });
 }
 
-/** Read all versions known for one package name. */
-export async function readRegistryPackage(registry, name) {
-  const base = registry.endsWith("/") ? registry : `${registry}/`;
-  const url = `${base}${name.replace("/", "%2F")}`;
+// Only HTTP 404 proves absence. Authentication and server failures must stop
+// release planning instead of authorizing a new immutable identity.
+async function readRegistryDocument(url, request = readPackument) {
   for (let attempt = 0; attempt < 4; attempt += 1) {
+    let response;
     try {
-      const response = await readPackument(url);
-      if (!response.ok) return Object.freeze({ found: false, reachable: true, packument: null });
-      return Object.freeze({ found: true, reachable: true, packument: Object.freeze(await response.json()) });
+      response = await request(url);
     } catch {
       if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 100 * (attempt + 1)));
+      continue;
     }
+    if (response.status === 404) return Object.freeze({ found: false, reachable: true, value: null });
+    if (!response.ok) {
+      const error = new Error(`npm registry refused metadata: HTTP ${response.status}`);
+      error.code = "ERR_NPM_REGISTRY_HTTP";
+      error.status = response.status;
+      throw error;
+    }
+    const value = await response.json();
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("registry returned malformed package metadata");
+    return Object.freeze({ found: true, reachable: true, value });
   }
-  return Object.freeze({ found: false, reachable: false, packument: null });
+  return Object.freeze({ found: false, reachable: false, value: null });
+}
+
+/** Read all versions known for one package name; only 404 means absent. */
+export async function readRegistryPackage(registry, name) {
+  const result = await readRegistryDocument(`${configuredRegistryAuthority(registry)}${encodeURIComponent(name)}`);
+  if (result.found && (result.value.name !== name || !result.value.versions || typeof result.value.versions !== "object" || Array.isArray(result.value.versions))) {
+    throw new Error("registry returned another package or malformed version index");
+  }
+  return Object.freeze({ found: result.found, reachable: result.reachable, packument: result.value && Object.freeze(result.value) });
 }
 
 export async function readRegistryDistTag(registry, name, tag) {
@@ -116,20 +134,12 @@ export async function readRegistryDistTag(registry, name, tag) {
   return Object.freeze({ reachable: result.reachable, found: result.found, version: result.packument?.["dist-tags"]?.[tag] ?? null });
 }
 
-/** Read the immutable manifest Verdaccio serves for one exact package identity. */
+/** Read an immutable exact identity; failed HTTP reads do not prove absence. */
 export async function readRegistryPackageVersion(registry, name, version) {
-  const base = registry.endsWith("/") ? registry : `${registry}/`;
-  const url = `${base}${name.replace("/", "%2F")}/${encodeURIComponent(version)}`;
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    try {
-      const response = await readPackument(url);
-      if (!response.ok) return Object.freeze({ found: false, reachable: true, manifest: null });
-      return Object.freeze({ found: true, reachable: true, manifest: Object.freeze(await response.json()) });
-    } catch {
-      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 100 * (attempt + 1)));
-    }
-  }
-  return Object.freeze({ found: false, reachable: false, manifest: null });
+  exactNpmIdentity(name, version);
+  const result = await readRegistryDocument(`${configuredRegistryAuthority(registry)}${encodeURIComponent(name)}/${encodeURIComponent(version)}`);
+  if (result.found && (result.value.name !== name || result.value.version !== version)) throw new Error("registry returned another package or version");
+  return Object.freeze({ found: result.found, reachable: result.reachable, manifest: result.value && Object.freeze(result.value) });
 }
 
 function commandText(error) {
@@ -143,7 +153,7 @@ function configuredRegistryAuthority(registry) {
 }
 
 function exactNpmIdentity(name, version) {
-  if (typeof name !== "string" || !/^@?[a-z0-9][a-z0-9._@/~-]*$/iu.test(name) || name.includes("//") || typeof version !== "string" || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.test(version)) {
+  if (typeof name !== "string" || !/^(?:@[a-z0-9][a-z0-9._-]*\/)?[a-z0-9][a-z0-9._-]*$/u.test(name) || typeof version !== "string" || !/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/u.test(version)) {
     throw new TypeError("name and version must identify one exact npm package");
   }
   return `${name}@${version}`;
@@ -151,7 +161,7 @@ function exactNpmIdentity(name, version) {
 
 async function configuredNpmCommand(command, arguments_, { registry, npmEnvironment, execFileImpl, options }) {
   const environment = { ...process.env, ...npmEnvironment };
-  if (environment.NODE_AUTH_TOKEN === undefined) return execFileImpl(command, arguments_, { ...options, env: environment });
+  if (environment.NPM_CONFIG_USERCONFIG !== undefined || environment.NODE_AUTH_TOKEN === undefined) return execFileImpl(command, arguments_, { ...options, env: environment });
   const configuration = await mkdtemp(join(tmpdir(), "npm-configured-registry-"));
   const npmrc = join(configuration, ".npmrc");
   const url = new URL(registry);
@@ -165,7 +175,7 @@ async function configuredNpmCommand(command, arguments_, { registry, npmEnvironm
 }
 
 /**
- * Reads exact package metadata through npm's configured authentication.
+ * Reads exact npm package metadata through pnpm's configured authentication.
  * @param {string} registry
  * @param {string} name
  * @param {string} version
@@ -175,15 +185,16 @@ async function configuredNpmCommand(command, arguments_, { registry, npmEnvironm
 export async function readConfiguredNpmRegistryPackageVersion(registry, name, version, { execFileImpl = execFile, npmEnvironment = {} } = {}) {
   const authority = configuredRegistryAuthority(registry), identity = exactNpmIdentity(name, version);
   try {
-    const { stdout } = await configuredNpmCommand("npm", ["view", identity, "--json", "--fetch-retries=0", "--fetch-timeout=5000", "--registry", authority], { registry: authority, npmEnvironment, execFileImpl, options: { maxBuffer: 8 * 1024 * 1024, timeout: 10_000 } });
+    const { stdout } = await configuredNpmCommand("pnpm", ["view", identity, "--json", "--registry", authority], { registry: authority, npmEnvironment, execFileImpl, options: { maxBuffer: 8 * 1024 * 1024, timeout: 10_000 } });
     const manifest = JSON.parse(stdout);
+    if (!manifest || manifest.name !== name || manifest.version !== version) throw new Error("registry returned another package or version");
     return Object.freeze({ found: true, reachable: true, manifest: Object.freeze(manifest) });
   } catch (error) {
     const detail = commandText(error);
     if (/\b(?:e401|e403)\b|(?:authorization|authentication)\s+(?:required|failed)|(?:access|permission)\s+denied|forbidden/u.test(detail)) {
       return Object.freeze({ found: false, reachable: true, authorizationFailed: true, manifest: null });
     }
-    if (/\be404\b|not found/u.test(detail)) return Object.freeze({ found: false, reachable: true, manifest: null });
+    if (/\be404\b/u.test(detail)) return Object.freeze({ found: false, reachable: true, manifest: null });
     return Object.freeze({ found: false, reachable: false, manifest: null });
   }
 }
@@ -229,23 +240,10 @@ export async function downloadConfiguredNpmRegistryTarball({ registry, name, ver
 
 /** True when the registry already serves exactly this name@version. */
 export async function isVersionPublished(registry, name, version, fetcher = fetch) {
-  const base = registry.endsWith("/") ? registry : `${registry}/`;
-  const packumentUrl = `${base}${name.replace("/", "%2F")}`;
-  const useNativeTransport = fetcher === fetch;
-  for (let attempt = 0; attempt < 4; attempt += 1) {
-    try {
-      const response = useNativeTransport
-        ? await readPackument(packumentUrl)
-        : await fetcher(packumentUrl, { signal: AbortSignal.timeout(5_000) });
-      if (!response.ok) return Object.freeze({ published: false, reachable: true });
-      const packument = await response.json();
-      return Object.freeze({
-        published: Boolean(packument?.versions?.[version]),
-        reachable: true,
-      });
-    } catch {
-      if (attempt < 3) await new Promise((resolve) => setTimeout(resolve, 100 * (attempt + 1)));
-    }
-  }
-  return Object.freeze({ published: false, reachable: false });
+  exactNpmIdentity(name, version);
+  const url = `${configuredRegistryAuthority(registry)}${encodeURIComponent(name)}`;
+  const result = await readRegistryDocument(url, fetcher === fetch ? readPackument : (address) => fetcher(address, { signal: AbortSignal.timeout(5_000) }));
+  const packument = result.value;
+  if (result.found && (packument.name !== name || !packument.versions || typeof packument.versions !== "object" || Array.isArray(packument.versions))) throw new Error("registry returned another package or malformed version index");
+  return Object.freeze({ published: Boolean(packument?.versions?.[version]), reachable: result.reachable });
 }

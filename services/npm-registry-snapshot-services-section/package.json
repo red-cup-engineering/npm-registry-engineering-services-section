@@ -16,7 +16,7 @@
     "@red-cup-engineering/npm-registry-services-section": "workspace:*"
   },
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-services-section": "workspace:*",
-    "@red-cup-engineering/npm-registry-read-service": "workspace:*"
+    "@red-cup-engineering/npm-registry-read-service": "workspace:*",
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
   }
 }

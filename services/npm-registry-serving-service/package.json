@@ -1,0 +1,24 @@
+{
+  "name": "@red-cup-engineering/npm-registry-serving-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Serves immutable npm package versions over the existing authenticated house package store, independently or as a MetroPlat application.",
+  "exports": {
+    ".": "./src/registry.mjs",
+    "./application": "./src/application.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "2.4.3"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "receivingTests": [
+    "test/registry-receiving.test.mjs"
+  ],
+  "softwareKind": "service",
+  "bin": {
+    "serve-house-registry": "./bin/serve.mjs"
+  }
+}

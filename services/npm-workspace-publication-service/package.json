@@ -1,11 +1,10 @@
 {
   "name": "@red-cup-engineering/npm-workspace-publication-service",
-  "version": "0.11.3",
+  "version": "0.12.0-dev.0",
   "description": "Verifies exact registry dependency specifications, orders a package estate into leaf-first tiers, and publishes with npm; dry-run by default.",
   "type": "module",
   "dependencies": {
     "@red-cup-engineering/semiotic-eavt-services-section": "workspace:*",
-    "@red-cup-engineering/computer-content-engineering-services-section": "workspace:*",
     "@red-cup-engineering/computer-filepath-engineering-services-section": "workspace:*",
     "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "workspace:*",
     "@red-cup-engineering/execute-javascript-node-command-service": "workspace:*",
@@ -17,8 +16,7 @@
     "@red-cup-engineering/npm-registry-snapshot-services-section": "workspace:*",
     "@red-cup-engineering/uri-services-section": "workspace:*",
     "semver": "7.7.2",
-    "@red-cup-engineering/agent-organization-engine": "workspace:*",
-    "@red-cup-engineering/feltos": "workspace:*"
+    "@red-cup-engineering/computer-content-address-engineering-services-section": "workspace:*"
   },
   "private": false,
   "license": "MIT",
@@ -96,7 +94,8 @@
     "reset-package-versions": "scripts/reset-package-versions.mjs",
     "reset-python-package-versions": "scripts/reset-python-package-versions.py",
     "cache-verdaccio-upstream-release": "scripts/cache-verdaccio-upstream-release.mjs",
-    "recover-demanded-versions": "scripts/recover-demanded-versions.mjs"
+    "recover-demanded-versions": "scripts/recover-demanded-versions.mjs",
+    "receive-packed-registry-artifact": "scripts/receive-packed-registry-artifact.mjs"
   },
   "scripts": {
     "test": "run-package-tests",
@@ -104,8 +103,6 @@
     "check": "check-package-syntax"
   },
   "devDependencies": {
-    "@red-cup-engineering/agent-organization-engine": "workspace:*",
-    "@red-cup-engineering/feltos": "workspace:*",
     "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
   }
 }

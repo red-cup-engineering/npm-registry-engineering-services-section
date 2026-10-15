@@ -197,3 +197,19 @@ reconcile-package-locks \
   --roots /admission/package-roots.json \
   --registry https://us-central1-npm.pkg.dev/project/repository/
 ```
+
+### Receive one packed artifact
+
+`receive-packed-registry-artifact before|after` reads `PACKAGE`, `VERSION`,
+`PACKAGE_ARCHIVE` and `REGISTRY` from the environment. pnpm receives authentication
+through its configured environment or user configuration; the command carries
+no credential in its arguments. The before observation permits publication only
+when the exact metadata read establishes absence. An occupied identity must match
+the packed SHA-512 (or its legacy SHA-1 when no integrity is advertised); the after
+observation requires those same bytes. This receives registry metadata about a
+packed artifact, not installed closure or machine promotion. Shared CI hires this
+declared bin from the mounted publication owner.
+
+Registry metadata readers treat only HTTP 404 as absence. Other HTTP failures
+refuse the read, malformed identities are refused, and transport failure stays
+unread. Recovery refuses publication when its prior observation is unread.
