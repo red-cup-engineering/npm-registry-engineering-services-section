@@ -200,6 +200,7 @@ export async function readConfiguredNpmRegistryPackageVersion(registry, name, ve
     // index through the same configured client before treating that as absence.
     let failure;
     try { failure = JSON.parse(error.stdout)?.error; } catch {}
+    if (failure?.code === "ERR_PNPM_FETCH_404") return Object.freeze({ found: false, reachable: true, manifest: null });
     if (failure?.code === "ERR_PNPM_PACKAGE_NOT_FOUND") {
       try {
         const { stdout } = await configuredNpmCommand("pnpm", ["view", name, "versions", "--json", "--registry", authority], { registry: authority, npmEnvironment, execFileImpl, options: { maxBuffer: 8 * 1024 * 1024, timeout: 10_000 } });
