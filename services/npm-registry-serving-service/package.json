@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-registry-serving-service",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "Serves immutable npm package versions over the existing authenticated house package store, independently or as a MetroPlat application.",
