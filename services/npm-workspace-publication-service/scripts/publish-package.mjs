@@ -433,6 +433,8 @@ export async function publishPackageGate({ packageDir, bump, apply = false, repi
 
     const nonPackageReason = nonPackageOperationPublicationReason(manifest.name);
     if (nonPackageReason) throw new GateRefusal(-1, nonPackageReason, { packageName: manifest.name, operation: manifest.name.split("/").at(-1), requiredAction: "migrate-and-remove-package-boundary" });
+    // npm refuses to publish a private package (EPRIVATE), so the gate says so before it bumps or builds anything.
+    if (manifest.private === true) throw new GateRefusal(-1, `${manifest.name} is marked private, and npm publishes no private package`, { packageName: manifest.name, private: true });
 
     const repinPreflight = await preflightRepinConsumers({ repin, packageName: manifest.name });
     if (!repinPreflight.ok) throw new GateRefusal(-2, "consumer preflight refused one or more requested repins", repinPreflight);
