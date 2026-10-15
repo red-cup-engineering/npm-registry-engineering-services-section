@@ -7,7 +7,7 @@ import { dirname, join, resolve } from "node:path";
 import { createHash, randomUUID } from "node:crypto";
 import { promisify } from "node:util";
 import { correctedTarballURL } from "./tarball-guard.mjs";
-import { writeFileText } from "@red-cup-engineering/computer-file-engineering-services-section/write-file";
+import { npmPublicationArguments } from "./npm-publication-command.mjs";
 
 const execFile = promisify(execFileCallback);
 const SHA512_INTEGRITY = /^sha512-[A-Za-z0-9+/]+={0,2}$/u;
@@ -60,7 +60,7 @@ export async function repairStorageTarballURL(storageRoot, name, version) {
   const corrected = correctedTarballURL(manifest.dist?.tarball, name);
   if (corrected === null) return Object.freeze({ changed: false });
   manifest.dist.tarball = corrected;
-  await writeFileText(path, `${JSON.stringify(packument, null, 2)}\n`);
+  await writeFile(path, `${JSON.stringify(packument, null, 2)}\n`, "utf8");
   return Object.freeze({ changed: true, tarball: corrected });
 }
 
@@ -197,6 +197,19 @@ export async function readConfiguredNpmRegistryPackageVersion(registry, name, ve
     if (/\be404\b/u.test(detail)) return Object.freeze({ found: false, reachable: true, manifest: null });
     return Object.freeze({ found: false, reachable: false, manifest: null });
   }
+}
+
+/** Publish one already-fabricated immutable tarball through the same configured authority as receiving. */
+export async function publishConfiguredNpmRegistryArtifact({ registry, name, version, artifact, execFileImpl = execFile, npmEnvironment = {} }) {
+  const authority = configuredRegistryAuthority(registry);
+  exactNpmIdentity(name, version);
+  const { stdout } = await execFileImpl("tar", ["-xOf", artifact, "package/package.json"], { encoding: "utf8", maxBuffer: 1024 * 1024 });
+  const manifest = JSON.parse(stdout);
+  if (manifest.name !== name || manifest.version !== version) throw new Error("publication artifact identity differs from the requested release");
+  return configuredNpmCommand("npm", npmPublicationArguments(manifest, authority, undefined, { artifact }), {
+    registry: authority, npmEnvironment, execFileImpl,
+    options: { encoding: "utf8", maxBuffer: 8 * 1024 * 1024, timeout: 60_000 },
+  });
 }
 
 /**
