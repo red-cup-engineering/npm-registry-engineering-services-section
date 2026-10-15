@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFile } from "node:child_process";
+import { createServer } from "node:http";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
@@ -28,6 +29,27 @@ test("plan mode against a dead registry port refuses at step 0 with a refusal da
       return true;
     },
   );
+});
+
+test("an applying run outside any services section refuses before it touches the registry", async () => {
+  const requests = [];
+  const registry = createServer((request, response) => { requests.push(request.url); response.writeHead(503).end(); });
+  await new Promise((done) => registry.listen(0, "127.0.0.1", done));
+  const outside = mkdtempSync(join(tmpdir(), "publish-package-outside-"));
+  try {
+    writeFileSync(join(outside, "package.json"), readFileSync(join(FIXTURE, "package.json")));
+    await assert.rejects(
+      run(process.execPath, [SCRIPT, "--package", outside, "--apply", "--registry", `http://127.0.0.1:${registry.address().port}`], { maxBuffer: 8 * 1024 * 1024 }),
+      (error) => {
+        assert.match(error.stderr, /no ancestor \*-services-section carrying data\/ was found/);
+        return true;
+      },
+    );
+    assert.deepEqual(requests, []);
+  } finally {
+    registry.close();
+    rmSync(outside, { recursive: true, force: true });
+  }
 });
 
 test("--package is required", async () => {

@@ -403,6 +403,9 @@ export async function publishPackageGate({ packageDir, bump, apply = false, repi
   const steps = [];
   let refusal = null;
   const state = { sourceVersion: manifest.version, toVersion: null };
+  // An applying run finds the section that holds its receipt before anything is written: a run
+  // that could not record its outcome must not publish an immutable version first.
+  const receiptSection = apply ? await nearestServicesSectionWithData(resolvedPackageDir) : null;
 
   const scratchRoot = resolve(tmpdir(), `publish-package-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`);
   await mkdir(scratchRoot, { recursive: true });
@@ -422,7 +425,7 @@ export async function publishPackageGate({ packageDir, bump, apply = false, repi
       if (pinOnly) {
         const testCount = await testSummaryOrRefuse(-3, resolvedPackageDir);
         const pinned = (testCount.fail ?? 1) === 0;
-        const receipt = await writeReceipt({ packageDir: resolvedPackageDir, manifestName: manifest.name, action: "pin", state, toVersion: manifest.version, extra: { pins: pinResults, testCount } });
+        const receipt = await writeReceipt({ sectionRoot: receiptSection, manifestName: manifest.name, action: "pin", state, toVersion: manifest.version, extra: { pins: pinResults, testCount } });
         steps.push({ step: 8, name: "receipt", ok: true, evidence: receipt });
         return finish({ outcome: pinned ? "pinned" : "pinned-with-test-failures", packageName: manifest.name, packageDir: resolvedPackageDir, startedAt, steps, refusal: null, state: { ...state, testCount } });
       }
@@ -605,7 +608,7 @@ export async function publishPackageGate({ packageDir, bump, apply = false, repi
     steps.push({ step: 7, name: "fresh-install-verify", ok: true, evidence: { imported: importedExports } });
 
     // Step 8: receipt.
-    const receipt = await writeReceipt({ packageDir: resolvedPackageDir, manifestName: manifest.name, action: "publish", state, toVersion });
+    const receipt = await writeReceipt({ sectionRoot: receiptSection, manifestName: manifest.name, action: "publish", state, toVersion });
     steps.push({ step: 8, name: "receipt", ok: true, evidence: receipt });
 
     // Step 9: re-pin each requested consumer.
@@ -645,7 +648,7 @@ export async function publishPackageGate({ packageDir, bump, apply = false, repi
     refusal = { step: error.step, reason: error.message, evidence: error.evidence };
     steps.push({ step: error.step, name: stepName(error.step), ok: false, evidence: error.evidence, reason: error.message });
     if (apply) {
-      const receipt = await writeReceipt({ packageDir: resolvedPackageDir, manifestName: manifest.name, action: "refusal", state, toVersion: state.toVersion, extra: { refusalStep: error.step, refusalReason: error.message } });
+      const receipt = await writeReceipt({ sectionRoot: receiptSection, manifestName: manifest.name, action: "refusal", state, toVersion: state.toVersion, extra: { refusalStep: error.step, refusalReason: error.message } });
       steps.push({ step: 8, name: "receipt", ok: true, evidence: receipt });
     }
     return finish({ outcome: "refused", packageName: manifest.name, packageDir: resolvedPackageDir, startedAt, steps, refusal, state });
@@ -712,8 +715,7 @@ function finish({ outcome, packageName, packageDir, startedAt, steps, refusal, s
 /** The store type the publish gate's receipts are held under. */
 const PUBLISH_RECEIPT_TYPE = "package-publish-receipt";
 
-async function writeReceipt({ packageDir, manifestName, action, state, toVersion, extra = {} }) {
-  const sectionRoot = await nearestServicesSectionWithData(packageDir);
+async function writeReceipt({ sectionRoot, manifestName, action, state, toVersion, extra = {} }) {
   const record = buildPublishGateReceipt({
     package: manifestName,
     action,
