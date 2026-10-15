@@ -1,22 +1,22 @@
 {
   "name": "@red-cup-engineering/npm-workspace-publication-service",
-  "version": "0.12.0-dev.0",
+  "version": "0.13.0",
   "description": "Verifies exact registry dependency specifications, orders a package estate into leaf-first tiers, and publishes with npm; dry-run by default.",
   "type": "module",
   "dependencies": {
-    "@red-cup-engineering/semiotic-eavt-services-section": "workspace:*",
-    "@red-cup-engineering/computer-filepath-engineering-services-section": "workspace:*",
-    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "workspace:*",
-    "@red-cup-engineering/execute-javascript-node-command-service": "workspace:*",
-    "@red-cup-engineering/computer-file-engineering-services-section": "workspace:*",
-    "@red-cup-engineering/git-services-section": "workspace:*",
-    "@red-cup-engineering/javascript-node-services-section": "workspace:*",
-    "@red-cup-engineering/metrologic": "workspace:*",
-    "@red-cup-engineering/npm-registry-read-service": "workspace:*",
-    "@red-cup-engineering/npm-registry-snapshot-services-section": "workspace:*",
-    "@red-cup-engineering/uri-services-section": "workspace:*",
     "semver": "7.7.2",
-    "@red-cup-engineering/computer-content-address-engineering-services-section": "workspace:*"
+    "@red-cup-engineering/semiotic-eavt-services-section": "0.1.0",
+    "@red-cup-engineering/computer-filepath-engineering-services-section": "0.1.0",
+    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "0.3.1",
+    "@red-cup-engineering/execute-javascript-node-command-service": "0.3.0",
+    "@red-cup-engineering/computer-file-engineering-services-section": "0.4.0",
+    "@red-cup-engineering/git-services-section": "0.1.1",
+    "@red-cup-engineering/javascript-node-services-section": "0.3.1",
+    "@red-cup-engineering/metrologic": "0.3.0",
+    "@red-cup-engineering/npm-registry-read-service": "0.1.1",
+    "@red-cup-engineering/npm-registry-snapshot-services-section": "0.1.0",
+    "@red-cup-engineering/uri-services-section": "0.1.1",
+    "@red-cup-engineering/computer-content-address-engineering-services-section": "0.2.0"
   },
   "private": false,
   "license": "MIT",
@@ -63,7 +63,8 @@
     "./tarball-guard": "./src/tarball-guard.mjs",
     "./test-run-summary": "./src/test-run-summary.mjs",
     "./text-tail": "./src/text-tail.mjs",
-    "./verification-copy": "./src/verification-copy.mjs"
+    "./verification-copy": "./src/verification-copy.mjs",
+    "./source-registry-closure": "./src/source-registry-closure.mjs"
   },
   "files": [
     "src",
@@ -95,7 +96,11 @@
     "reset-python-package-versions": "scripts/reset-python-package-versions.py",
     "cache-verdaccio-upstream-release": "scripts/cache-verdaccio-upstream-release.mjs",
     "recover-demanded-versions": "scripts/recover-demanded-versions.mjs",
-    "receive-packed-registry-artifact": "scripts/receive-packed-registry-artifact.mjs"
+    "receive-packed-registry-artifact": "scripts/receive-packed-registry-artifact.mjs",
+    "plan-source-registry-closure": "scripts/plan-source-registry-closure.mjs",
+    "pack-source-registry-closure": "scripts/pack-source-registry-closure.mjs",
+    "publish-source-registry-closure": "scripts/publish-source-registry-closure.mjs",
+    "receive-source-registry-consumers": "scripts/receive-source-registry-consumers.mjs"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs",

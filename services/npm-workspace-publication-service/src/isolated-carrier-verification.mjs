@@ -60,6 +60,7 @@ async function resolvePackedEntrypoints({ root, artifact, manifest }) {
  * packing. Neighboring source versions never replace dependency declarations.
  */
 export async function verifyIsolatedCarrier({ sourceDir, manifest, registry, dependencyArtifacts = new Map(), npmEnvironment = {} }) {
+  if (dependencyArtifacts.size > 0) throw new Error("Publish provider artifacts to the configured registry before consumer fabrication; local dependency substitution is refused");
   const root = await mkdtemp(join(publicationTemporaryRoot(), "npm-publication-"));
   const trace = (phase) => { if (process.env.NPM_PUBLICATION_TRACE === "1") process.stderr.write(`${manifest.name}@${manifest.version}: carrier-${phase}\n`); };
   const publicationDir = join(root, "package");
@@ -72,41 +73,9 @@ export async function verifyIsolatedCarrier({ sourceDir, manifest, registry, dep
     const contract = dependencySpecificationViolations(published, { published: true });
     if (contract.length > 0) throw Object.assign(new Error(`published contract is not exact: ${contract.map(({ name, specification }) => `${name}@${specification}`).join(", ")}`), { evidence: contract });
     await writeFile(manifestPath, `${JSON.stringify(published, null, 2)}\n`);
-    const manifestBytes = await readFile(manifestPath);
-    const installationManifest = JSON.parse(manifestBytes);
-    let hasPendingDependency = false;
-    let requiresRegistry = false;
-    const declaredNames = new Set();
-    for (const field of ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]) {
-      for (const [name, version] of Object.entries(installationManifest[field] ?? {})) {
-        declaredNames.add(name);
-        const artifact = dependencyArtifacts.get(`${name}\u0000${version}`);
-        if (artifact === undefined) { requiresRegistry = true; continue; }
-        installationManifest[field][name] = `file:${artifact}`;
-        hasPendingDependency = true;
-      }
-    }
-    // A retained lower-tier tarball may itself name another pending identity.
-    // Bind those transitive identities to their already-verified artifacts as
-    // installation-only overrides. Merely adding them as root dev dependencies
-    // does not constrain npm's nested resolution and can still trigger a remote
-    // lookup for an identity that lawfully has not been published yet. The
-    // original source manifest is restored before lifecycle and packing.
-    for (const [identity, artifact] of dependencyArtifacts) {
-      const [name] = identity.split("\u0000");
-      if (declaredNames.has(name)) continue;
-      installationManifest.overrides ??= {};
-      installationManifest.overrides[name] = `file:${artifact}`;
-      hasPendingDependency = true;
-    }
-    if (hasPendingDependency) await writeFile(manifestPath, `${JSON.stringify(installationManifest, null, 2)}\n`);
-    // The registry is an explicit admitted dependency. Do not let npm's default
-    // exponential fetch retries turn one unavailable identity into an unbounded
-    // carrier assay; the release coordinator can rerun after liveness returns.
     trace("install-started");
-    await run("npm", ["install", "--ignore-scripts", "--no-package-lock", "--no-audit", "--no-fund", "--no-update-notifier", "--fetch-retries=0", "--fetch-timeout=5000", ...(!requiresRegistry ? ["--offline"] : []), "--registry", registry], commandOptions);
+    await run("npm", ["install", "--ignore-scripts", "--no-package-lock", "--no-audit", "--no-fund", "--no-update-notifier", "--fetch-retries=0", "--fetch-timeout=5000", "--registry", registry], commandOptions);
     trace("install-completed");
-    if (hasPendingDependency) await writeFile(manifestPath, manifestBytes);
     for (const script of lifecycleScripts(manifest)) {
       trace(`lifecycle-${script}-started`);
       await run("npm", ["run", script], commandOptions);

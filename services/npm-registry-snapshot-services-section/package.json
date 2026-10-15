@@ -12,9 +12,16 @@
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@red-cup-engineering/npm-registry-services-section": "workspace:*"
+    "@red-cup-engineering/npm-registry-services-section": "0.1.0"
   },
   "devDependencies": {
-    "@red-cup-engineering/npm-registry-read-service": "workspace:*"
-  }
+    "@red-cup-engineering/npm-registry-read-service": "0.1.1"
+  },
+  "private": false,
+  "files": [
+    "package.json",
+    "README*",
+    "LICENSE*",
+    "scripts"
+  ]
 }

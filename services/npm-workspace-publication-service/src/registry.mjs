@@ -142,6 +142,31 @@ export async function readRegistryPackageVersion(registry, name, version) {
   return Object.freeze({ found: result.found, reachable: result.reachable, manifest: result.value && Object.freeze(result.value) });
 }
 
+/** Receive advertised bytes directly from the same registry authority, bounded
+ * and SHA512 checked. This does not invoke npm's package lifecycle or inspect
+ * the calling checkout's installation. Configured-npm receiving remains the
+ * entrance for registries whose authentication is carried only by npmrc. */
+export async function receiveRegistryTarball({ registry, tarball, integrity, destination }) {
+  const authority = new URL(configuredRegistryAuthority(registry)), url = new URL(tarball);
+  if (url.origin !== authority.origin || url.protocol !== "https:" || url.username || url.password || !/^sha512-[A-Za-z0-9+/]+=*$/u.test(integrity)) throw new TypeError("same-authority HTTPS artifact and SHA512 required");
+  const bytes = await new Promise((resolve, reject) => {
+    const token = process.env.NODE_AUTH_TOKEN;
+    const request = httpsGet(url, { agent: false, headers: { connection: "close", ...(token ? { authorization: `Bearer ${token}` } : {}) } }, response => {
+      if (response.statusCode !== 200) { response.resume(); reject(new Error(`registry artifact refused: HTTP ${response.statusCode}`)); return; }
+      const chunks = []; let size = 0;
+      response.on("data", chunk => { size += chunk.length; if (size > 64 * 1024 * 1024) request.destroy(new Error("registry artifact exceeds 64 MiB")); else chunks.push(chunk); });
+      response.on("error", reject);
+      response.on("end", () => resolve(Buffer.concat(chunks)));
+    });
+    request.setTimeout(5_000, () => request.destroy(new Error("registry artifact request timed out")));
+    request.on("error", reject);
+  });
+  if (`sha512-${createHash("sha512").update(bytes).digest("base64")}` !== integrity) throw new Error("registry artifact differs from advertised SHA512");
+  await mkdir(dirname(destination), { recursive: true });
+  await writeFile(destination, bytes, { flag: "wx" });
+  return { integrity, bytes: bytes.length, artifactDownloaded: true };
+}
+
 function commandText(error) {
   return [error?.stdout, error?.stderr, error?.message].filter((value) => typeof value === "string").join("\n").toLowerCase();
 }

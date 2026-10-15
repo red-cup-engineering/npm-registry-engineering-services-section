@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "description": "Holds the services for npm registries. Use when working on the private npm registry or reading any npm registry's packages, versions, and dependencies.",
   "dependencies": {
-    "@red-cup-engineering/computer-file-engineering-services-section": "workspace:*",
-    "@red-cup-engineering/inspect-installed-npm-package-service": "workspace:*",
-    "@red-cup-engineering/javascript-node-services-section": "workspace:*",
-    "@red-cup-engineering/json-services-section": "workspace:*",
-    "@red-cup-engineering/jsonl-services-section": "workspace:*",
-    "@red-cup-engineering/read-javascript-file-export-documentation-service": "workspace:*"
+    "@red-cup-engineering/computer-file-engineering-services-section": "0.4.0",
+    "@red-cup-engineering/inspect-installed-npm-package-service": "0.3.1",
+    "@red-cup-engineering/javascript-node-services-section": "0.3.1",
+    "@red-cup-engineering/json-services-section": "0.4.0",
+    "@red-cup-engineering/jsonl-services-section": "0.1.0",
+    "@red-cup-engineering/read-javascript-file-export-documentation-service": "0.1.4"
   },
   "exports": {
     "./check-npm-registry-package-installations": "./scripts/check-npm-registry-package-installations.mjs",
@@ -18,5 +18,12 @@
   },
   "scripts": {
     "test": "node --test test/*.test.mjs"
-  }
+  },
+  "private": false,
+  "files": [
+    "package.json",
+    "README*",
+    "LICENSE*",
+    "scripts"
+  ]
 }

@@ -13,7 +13,9 @@ const run = promisify(execFile);
  * the publish scripts judge flagged .pem/.key contents before refusing, so a
  * public certificate chain can still ship while key material never does.
  */
-export const SECRET_PATH = /(^|\/)(\.env(\.(?!example$)[^/]*)?|[^/]*\.pem|[^/]*\.p12|[^/]*\.pfx|id_rsa[^/]*|id_ed25519[^/]*|[^/]*secret(?!ary)[^/]*|[^/]*credential[^/]*\.(json|ya?ml|env)|[^/]*private-key[^/]*|[^/]*keystore[^/]*)$/i;
+// Executable source implements secret handling without itself being a secret
+// carrier. Its bytes still pass the private-key and token content inspection.
+export const SECRET_PATH = /(?!.*\.[cm]?[jt]s$)(^|\/)(\.env(\.(?!example$)[^/]*)?|[^/]*\.pem|[^/]*\.p12|[^/]*\.pfx|id_rsa[^/]*|id_ed25519[^/]*|[^/]*secret(?!ary)[^/]*|[^/]*credential[^/]*\.(json|ya?ml|env)|[^/]*private-key[^/]*|[^/]*keystore[^/]*)$/i;
 
 /** List the files `npm pack` would ship from a package directory. */
 export async function packedFiles(dir) {
