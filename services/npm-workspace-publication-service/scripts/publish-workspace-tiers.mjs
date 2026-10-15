@@ -31,7 +31,7 @@ const opt = (name, fallback) => {
 const opts = (name) => args.flatMap((argument, index) => argument === name && args[index + 1] !== undefined ? [args[index + 1]] : []);
 
 const root = opt("--root", process.cwd());
-const registry = opt("--registry", "http://127.0.0.1:4873/");
+const registry = opt("--registry", "https://registry.561.group/");
 const publishRegistry = opt("--publish-registry", registry);
 const registryStorage = opt("--registry-storage", null);
 const repairStorageRoot = registryStorage ?? DEFAULT_STORAGE_ROOT;
@@ -61,9 +61,6 @@ if (flag("--help")) {
 
 const sites = await scanWorkspaceManifests(root);
 const packages = await scanWorkspacePackages(root);
-// A workspace sibling's version, for resolving `workspace:*` in what is published; an absent or
-// duplicated name resolves to nothing and the published contract refuses it.
-const workspaceVersion = (name) => { const sites = packages.filter((entry) => entry.name === name); return sites.length === 1 ? sites[0].version : undefined; };
 if (filter !== null && packageNames.length > 0) throw new Error("--filter and --package are mutually exclusive");
 const selected = packageNames.length > 0
   ? workspaceDependencyClosure(packages, packageNames)
@@ -143,7 +140,7 @@ async function preflightManifestEntry(entry) {
   const source = byName.get(entry.name);
   if (!source || source.version !== entry.version) throw new Error(`publication source disappeared for ${entry.name}@${entry.version}`);
   // The source names siblings as workspace:*; what is published names exact versions only.
-  const published = publicationManifest(source.manifest, workspaceVersion);
+  const published = publicationManifest(source.manifest);
   const violations = dependencySpecificationViolations(published, { published: true });
   if (violations.length > 0) {
     const error = new Error(`manifest has ${violations.length} non-exact dependency specification(s)`);
@@ -249,7 +246,7 @@ if (preflightFailures.length === 0) {
   for (const entry of pending) {
     try {
       const source = byName.get(entry.name);
-      const verified = await verifyIsolatedCarrier({ sourceDir: entry.dir, manifest: source.manifest, registry, versionOf: workspaceVersion, dependencyArtifacts: pendingDependencyArtifacts });
+      const verified = await verifyIsolatedCarrier({ sourceDir: entry.dir, manifest: source.manifest, registry, dependencyArtifacts: pendingDependencyArtifacts });
       verifiedArtifacts.set(entry.name, verified);
       pendingDependencyArtifacts.set(`${entry.name}\u0000${entry.version}`, verified.artifact);
       process.stderr.write(`${entry.name}@${entry.version}: lifecycle-preflight-passed\n`);

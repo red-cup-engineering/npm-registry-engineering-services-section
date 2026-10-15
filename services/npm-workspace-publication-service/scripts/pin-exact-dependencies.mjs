@@ -14,9 +14,10 @@ const optAll = (name) => args.flatMap((value, index) => (value === name && args[
 const packageDirs = optAll("--package");
 const rootArg = opt("--root");
 const apply = args.includes("--apply");
+const migrateWorkspace = args.includes("--migrate-workspace");
 
 if (packageDirs.length === 0 && rootArg === undefined) {
-  process.stderr.write("usage: pin-exact-dependencies (--package <dir>)... | --root <repoRoot> [--plan|--apply]\n");
+  process.stderr.write("usage: pin-exact-dependencies (--package <dir>)... | --root <repoRoot> [--plan|--apply] [--migrate-workspace]\n");
   process.exit(2);
 }
 
@@ -33,6 +34,6 @@ if (rootArg !== undefined) {
   }
 }
 
-const report = await pinExactDependencies({ sites, apply });
+const report = await pinExactDependencies({ sites, apply, migrateWorkspace });
 process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 process.exitCode = report.ok ? 0 : 1;

@@ -2,8 +2,8 @@ import { createGraph, topologicalTiers } from "@red-cup-engineering/metrologic/m
 
 const DEPENDENCY_FIELDS = Object.freeze(["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]);
 
-/** Whether a dependency specification names this workspace site: its exact version, or the sibling itself (workspace:*). */
-const namesSite = (specification, site) => specification === "workspace:*" || site?.version === specification;
+/** A coordinated release edge names the provider's declared exact identity. */
+const namesSite = (specification, site) => site?.version === specification;
 
 export function dependencyEntries(manifest) {
   const entries = new Map();

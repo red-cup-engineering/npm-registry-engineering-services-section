@@ -11,38 +11,25 @@ export function isExactSemver(value) {
   return typeof value === "string" && EXACT_SEMVER.test(value);
 }
 
-/**
- * A source manifest names a sibling in this workspace as `workspace:*` (pnpm's workspace protocol):
- * the sibling itself, whatever version it carries, so a sibling's release never strands the packages
- * that use it. Every published contract still names one exact version: `publicationManifest`
- * resolves each `workspace:*` to the sibling's version when a package leaves the workspace.
- */
+/** Recognize the rejected legacy protocol when reporting or migrating source. */
 export const WORKSPACE_SPECIFICATION = "workspace:*";
 
-/** The exact version a source specification of `name` names: itself when exact; a sibling's version for `workspace:*`; else null. */
-export function resolvedDependencyVersion(name, specification, versionOf) {
-  if (isExactSemver(specification)) return specification;
-  if (specification !== WORKSPACE_SPECIFICATION) return null;
-  const version = versionOf(name);
-  if (!isExactSemver(version)) throw new Error(`${name} is named as a workspace sibling but no workspace package of that name carries an exact version`);
-  return version;
+/** A source dependency names an immutable registry version, without checkout substitution. */
+export function resolvedDependencyVersion(name, specification) {
+  return isExactSemver(specification) ? specification : null;
 }
 
-/** The manifest a package is published with: every `workspace:*` resolved to its sibling's exact version. */
-export function publicationManifest(manifest, versionOf) {
-  const published = structuredClone(manifest);
-  for (const field of DEPENDENCY_FIELDS) {
-    for (const [name, specification] of Object.entries(published[field] ?? {})) {
-      if (specification === WORKSPACE_SPECIFICATION) published[field][name] = resolvedDependencyVersion(name, specification, versionOf);
-    }
+/** Publication preserves the source contract and refuses local dependency protocols. */
+export function publicationManifest(manifest) {
+  const violations = dependencySpecificationViolations(manifest, { published: true });
+  if (violations.length > 0) {
+    throw Object.assign(new Error("Publication requires exact registry dependency declarations"), { evidence: violations });
   }
-  return published;
+  return structuredClone(manifest);
 }
 
 /**
- * A manifest's dependency specifications against the house policy: each names one exact semver, or,
- * in a source manifest (not `published`), a workspace sibling as `workspace:*`. A published contract
- * names exact versions only.
+ * Source and published manifests obey the same exact registry dependency contract.
  */
 export function dependencySpecificationViolations(manifest, { published = false } = {}) {
   const violations = [];
@@ -63,9 +50,8 @@ export function dependencySpecificationViolations(manifest, { published = false 
       continue;
     }
     for (const [name, specification] of Object.entries(dependencies)) {
-      if (specification === WORKSPACE_SPECIFICATION && !published) continue;
       if (!isExactSemver(specification)) {
-        violations.push({ field, name, specification, reason: published ? "a published dependency specification must be one exact semver" : "dependency specification must be one exact semver or a workspace sibling (workspace:*)" });
+        violations.push({ field, name, specification, reason: "dependency specification must be one exact registry semver" });
       } else if (isExactSemver(manifest.version) && !/^\d+\.\d+\.\d+-/u.test(manifest.version) && /^\d+\.\d+\.\d+-/u.test(specification)) {
         violations.push({ field, name, specification, reason: "a stable package must not depend on a prerelease package" });
       }

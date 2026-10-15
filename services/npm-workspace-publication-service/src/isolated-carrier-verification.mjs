@@ -56,11 +56,10 @@ async function resolvePackedEntrypoints({ root, artifact, manifest }) {
 }
 
 /**
- * `versionOf(name)` is a workspace sibling's version: the carrier is the package as it is published,
- * so its manifest names every `workspace:*` sibling by that exact version (dependency-policy
- * `publicationManifest`) before anything is installed, verified or packed from it.
+ * Verify the source's exact registry dependency contract before installing or
+ * packing. Neighboring source versions never replace dependency declarations.
  */
-export async function verifyIsolatedCarrier({ sourceDir, manifest, registry, versionOf = () => undefined, dependencyArtifacts = new Map(), npmEnvironment = {} }) {
+export async function verifyIsolatedCarrier({ sourceDir, manifest, registry, dependencyArtifacts = new Map(), npmEnvironment = {} }) {
   const root = await mkdtemp(join(publicationTemporaryRoot(), "npm-publication-"));
   const trace = (phase) => { if (process.env.NPM_PUBLICATION_TRACE === "1") process.stderr.write(`${manifest.name}@${manifest.version}: carrier-${phase}\n`); };
   const publicationDir = join(root, "package");
@@ -69,7 +68,7 @@ export async function verifyIsolatedCarrier({ sourceDir, manifest, registry, ver
     await cp(sourceDir, publicationDir, { recursive: true, filter: verificationCopyFilter });
     const commandOptions = { cwd: publicationDir, maxBuffer: 64 * 1024 * 1024, env: { ...process.env, ...npmEnvironment } };
     const manifestPath = join(publicationDir, "package.json");
-    const published = publicationManifest(JSON.parse(await readFile(manifestPath, "utf8")), versionOf);
+    const published = publicationManifest(JSON.parse(await readFile(manifestPath, "utf8")));
     const contract = dependencySpecificationViolations(published, { published: true });
     if (contract.length > 0) throw Object.assign(new Error(`published contract is not exact: ${contract.map(({ name, specification }) => `${name}@${specification}`).join(", ")}`), { evidence: contract });
     await writeFile(manifestPath, `${JSON.stringify(published, null, 2)}\n`);

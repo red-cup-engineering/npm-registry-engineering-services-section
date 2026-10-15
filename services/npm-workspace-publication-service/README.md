@@ -4,6 +4,16 @@ This service plans and executes immutable, leaf-first npm publication waves.
 Publication is a proof about one exact source graph, not merely a sequence of
 successful `npm publish` processes.
 
+Source and released manifests require exact registry versions. Local dependency
+protocols are refused before construction or publication. The selected root is
+one independent package; its neighbors are never implicit release inputs.
+`pin-exact-dependencies --package <dir> --migrate-workspace --plan` can propose
+exact `latest` identities and artifact integrity from the canonical registry for
+legacy `workspace:*` declarations. Inspect provider compatibility before applying.
+An absent or unread release refuses that package's entire write; it does not
+authorize a checkout fallback. This implements the Leader's 2026-10-15 correction:
+"WE DO NOT WANT TO BE USING WORKSPACE SHIT LIKE THIS WE HAVE A REGISTRY!?!??".
+
 ## Release identities and npm channels
 
 Stable carriers use `MAJOR.MINOR.PATCH` and publish only with the npm dist-tag

@@ -245,10 +245,8 @@ export async function formNodeRuntimeProviderCatalog({
   const npmEnvironment = { NPM_CONFIG_REGISTRY: registryAuthority, NPM_CONFIG_CACHE: join(output, ".npm-cache"), TMPDIR: "/tmp", TEMP: "/tmp", TMP: "/tmp" };
   const sources = (await scanWorkspaceManifests(root))
     .filter(({ manifest }) => typeof manifest?.name === "string" && manifest.name && typeof manifest.version === "string");
-  // A runtime carrier is built from packages as they are published: each local manifest is read with
-  // its workspace:* siblings at their exact versions (dependency-policy publicationManifest).
-  const siblingVersion = (name) => { const sites = sources.filter(({ manifest }) => manifest.name === name); return sites.length === 1 ? sites[0].manifest.version : undefined; };
-  const packages = sources.map(({ dir, manifest }) => ({ name: manifest.name, version: manifest.version, dir, manifest: publicationManifest(manifest, siblingVersion) }));
+  // Source custody does not replace the exact registry dependency contract.
+  const packages = sources.map(({ dir, manifest }) => ({ name: manifest.name, version: manifest.version, dir, manifest: publicationManifest(manifest) }));
   const byName = new Map();
   for (const item of packages) {
     if (!byName.has(item.name)) byName.set(item.name, []);

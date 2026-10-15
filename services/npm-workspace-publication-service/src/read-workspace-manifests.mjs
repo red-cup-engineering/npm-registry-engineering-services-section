@@ -1,6 +1,5 @@
 import { readFile, readdir } from "node:fs/promises";
-import { basename, join, relative, resolve } from "node:path";
-import { executeJavascriptNodeCommand } from "@red-cup-engineering/execute-javascript-node-command-service";
+import { basename, join, resolve } from "node:path";
 import { packagesFromManifests } from "./workspace-graph.mjs";
 
 const SKIP_DIRS = new Set(["node_modules", ".git", "dist", ".tmp"]);
@@ -43,33 +42,7 @@ async function readManifests(paths) {
 }
 
 export async function scanWorkspaceManifests(root) {
-  const resolvedRoot = resolve(root);
-  const receipt = executeJavascriptNodeCommand({
-    type: "JavascriptNodeCommandExecutionRequest",
-    version: 1,
-    command: "pnpm",
-    arguments: ["list", "--recursive", "--depth", "-1", "--json"],
-    directory: resolvedRoot,
-    environment: null,
-    input: null,
-  });
-  const { result } = receipt;
-  if (result.status !== 0 || result.signal !== null || result.error) {
-    throw new Error(result.error || `Unable to enumerate pnpm workspace members: ${result.stderr}`);
-  }
-
-  const projects = JSON.parse(result.stdout);
-  if (!Array.isArray(projects)) throw new TypeError("pnpm workspace listing must be a JSON array");
-  const paths = projects.map(({ path }) => {
-    if (typeof path !== "string" || path.length === 0) throw new TypeError("pnpm workspace project must declare a path");
-    const projectPath = resolve(path);
-    const fromRoot = relative(resolvedRoot, projectPath);
-    if (fromRoot === ".." || fromRoot.startsWith(`..${process.platform === "win32" ? "\\" : "/"}`) || resolve(resolvedRoot, fromRoot) !== projectPath) {
-      throw new Error(`pnpm workspace project escapes the requested root: ${path}`);
-    }
-    return join(projectPath, "package.json");
-  });
-  return readManifests(paths);
+  return readManifests([join(resolve(root), "package.json")]);
 }
 
 export async function scanRepositoryManifests(root) {

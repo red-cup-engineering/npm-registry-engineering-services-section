@@ -19,7 +19,7 @@ const checkLocks = args.includes("--check-locks");
 const registryAt = args.indexOf("--registry");
 const registry = registryAt >= 0 && args[registryAt + 1]
   ? args[registryAt + 1]
-  : "http://127.0.0.1:4873/";
+  : "https://registry.561.group/";
 const checkRegistryClosure = args.includes("--check-registry-closure");
 const checkRegistry = args.includes("--check-registry") || checkRegistryClosure;
 const activeOnly = args.includes("--active-only");

@@ -5,9 +5,12 @@ import {
   isExactSemver,
   packageLockRootDependencyViolations,
   resolvePackageLockDependency,
-  WORKSPACE_SPECIFICATION,
 } from "./dependency-policy.mjs";
-import { readRegistryPackage } from "./registry.mjs";
+
+async function readRegistryPackage(registry, name) {
+  const reader = await import("./registry.mjs");
+  return reader.readRegistryPackage(registry, name);
+}
 
 const DEPENDENCY_FIELDS = Object.freeze(["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"]);
 
@@ -67,7 +70,7 @@ function hasNpmPackagesGraph(packageLock) {
  * @param {{packageLock?: object|null, readRegistryPackageImpl?: Function}} [options]
  * @returns {Promise<{rewrites: Array<{field: string, name: string, from: string, to: string, source: string}>, refusals: Array<{name: string, spec: string, reason: string}>, removeFields: string[]}>}
  */
-export async function planExactDependencyPins(manifest, { packageLock = null, readRegistryPackageImpl = readRegistryPackage } = {}) {
+export async function planExactDependencyPins(manifest, { packageLock = null, readRegistryPackageImpl = readRegistryPackage, migrateWorkspace = false } = {}) {
   const rewrites = [];
   const refusals = [];
   const removeFields = [];
@@ -80,8 +83,19 @@ export async function planExactDependencyPins(manifest, { packageLock = null, re
     const dependencies = manifest[field];
     if (!dependencies || Object.getPrototypeOf(dependencies) !== Object.prototype) continue;
     for (const [name, specification] of Object.entries(dependencies)) {
-      // Exact pins and workspace siblings (workspace:*, resolved exactly at publication) are the policy's own forms.
-      if (isExactSemver(specification) || specification === WORKSPACE_SPECIFICATION) continue;
+      if (isExactSemver(specification)) continue;
+      if (migrateWorkspace && specification === "workspace:*") {
+        const registry = registryForPackageName(name);
+        const result = await readRegistryPackageImpl(registry, name);
+        const version = result.packument?.["dist-tags"]?.latest;
+        const release = result.packument?.versions?.[version];
+        if (!result.reachable || !result.found || !isExactSemver(version) || release?.name !== name || release?.version !== version || typeof release.dist?.integrity !== "string" || typeof release.dist?.tarball !== "string") {
+          refusals.push({ name, spec: specification, reason: result.reachable ? "registry has no exact latest release with artifact integrity" : "registry metadata is unread" });
+          continue;
+        }
+        rewrites.push({ field, name, from: specification, to: version, source: `registry:${registry}`, integrity: release.dist.integrity, tarball: release.dist.tarball });
+        continue;
+      }
       if (isNonRegistrySpecifier(specification)) {
         refusals.push({ name, spec: specification, reason: "non-registry specifier (workspace/file/link/git/URL) is never rewritten" });
         continue;
@@ -162,6 +176,7 @@ export async function pinExactDependencies({
   readFileImpl = readFile,
   writeFileImpl = writeFile,
   readRegistryPackageImpl = readRegistryPackage,
+  migrateWorkspace = false,
 }) {
   const packages = [];
   for (const site of sites) {
@@ -172,12 +187,12 @@ export async function pinExactDependencies({
       if (error?.code !== "ENOENT") throw error;
     }
 
-    const plan = await planExactDependencyPins(site.manifest, { packageLock, readRegistryPackageImpl });
+    const plan = await planExactDependencyPins(site.manifest, { packageLock, readRegistryPackageImpl, migrateWorkspace });
     const simulated = applyExactDependencyPinPlan(site.manifest, plan);
 
     const synchronized = synchronizePackageLockRootDependencies(simulated, packageLock);
     let violationsAfter;
-    if (apply) {
+    if (apply && plan.refusals.length === 0) {
       if (JSON.stringify(site.manifest) !== JSON.stringify(simulated)) {
         await writeFileImpl(site.path, `${JSON.stringify(simulated, null, 2)}\n`, "utf8");
       }
@@ -201,10 +216,11 @@ export async function pinExactDependencies({
       lockRootRewrites: synchronized.rewrites,
       refusals: plan.refusals,
       violationsAfter,
+      applied: apply && plan.refusals.length === 0,
     });
   }
 
-  const ok = !apply || packages.every((entry) => entry.violationsAfter === 0);
+  const ok = packages.every((entry) => entry.violationsAfter === 0 && entry.refusals.length === 0);
   return {
     kind: "npm-workspace-publication.exact-pin-repair",
     packages,
