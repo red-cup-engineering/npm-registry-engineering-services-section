@@ -223,3 +223,9 @@ declared bin from the mounted publication owner.
 Registry metadata readers treat only HTTP 404 as absence. Other HTTP failures
 refuse the read, malformed identities are refused, and transport failure stays
 unread. Recovery refuses publication when its prior observation is unread.
+
+For raw-source artifact receiving, supply SOURCE_GIT_DIR (absolute), SOURCE_REVISION
+(exact commit), and SOURCE_PACKAGE_PATH (canonical path, empty for repository root)
+to receive-packed-registry-artifact. It compares every packed file with that
+selection before registry effects and reports sourceReceiving separately from
+metadata/digest receiving. Compiled products require their generation receiving.
