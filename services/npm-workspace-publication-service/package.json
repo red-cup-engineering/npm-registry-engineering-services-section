@@ -30,7 +30,6 @@
     "./verdaccio-upstream-cache": "./src/verdaccio-upstream-cache.mjs",
     "./pin-exact-dependencies": "./src/pin-exact-dependencies.mjs",
     "./dependency-policy": "./src/dependency-policy.mjs",
-    "./publish-package-gate-fixture": "./scripts/publish-package-gate-fixture.mjs",
     "./workspace-graph": "./src/workspace-graph.mjs",
     "./read-workspace-manifests": "./src/read-workspace-manifests.mjs",
     "./owner-namespace-debt": "./src/owner-namespace-debt.mjs",
