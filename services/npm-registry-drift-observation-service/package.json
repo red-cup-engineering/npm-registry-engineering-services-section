@@ -19,8 +19,8 @@
     "observe-registry-drift": "./scripts/observe-registry-drift.mjs"
   },
   "scripts": {
-    "check": "node --check src/observe-registry-drift.mjs && node --check scripts/observe-registry-drift.mjs",
-    "test": "node --test test/*.test.mjs",
+    "check": "check-package-syntax",
+    "test": "run-package-tests",
     "pack:dry-run": "npm pack --dry-run --ignore-scripts"
   },
   "engines": {
@@ -29,5 +29,8 @@
   "dependencies": {
     "@red-cup-engineering/disk-package-observation-app": "workspace:*",
     "@red-cup-engineering/npm-registry-read-service": "workspace:*"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
   }
 }

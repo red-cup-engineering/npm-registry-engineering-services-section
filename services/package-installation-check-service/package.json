@@ -9,10 +9,14 @@
     "check-package-installation": "./scripts/check-package-installation.mjs"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs",
-    "verify": "node --check src/check-package-installation.mjs && node --check scripts/check-package-installation.mjs && node --test test/*.test.mjs"
+    "test": "run-package-tests",
+    "verify": "node --check src/check-package-installation.mjs && node --check scripts/check-package-installation.mjs && node --test test/*.test.mjs",
+    "check": "check-package-syntax"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "name": "publish-package-gate-fixture",
+  "version": "0.1.0",
+  "description": "A minimal package for the publish-package gate's refusal tests: they run the gate against it without reaching a registry.",
+  "type": "module",
+  "main": "index.mjs",
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}

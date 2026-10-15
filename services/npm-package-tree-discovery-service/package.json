@@ -30,12 +30,15 @@
     "purge-set-of-identical-package-replicas": "./scripts/purge-set-of-identical-package-replicas.mjs"
   },
   "scripts": {
-    "test": "node --test test/*.test.mjs",
-    "check": "for f in src/*.mjs scripts/*.mjs; do node --check \"$f\" || exit 1; done",
+    "test": "run-package-tests",
+    "check": "check-package-syntax && for f in src/*.mjs scripts/*.mjs; do node --check \"$f\" || exit 1; done",
     "verify": "npm run check && npm test",
     "pack:dry-run": "npm pack --dry-run --ignore-scripts"
   },
   "engines": {
     "node": ">=22"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
   }
 }

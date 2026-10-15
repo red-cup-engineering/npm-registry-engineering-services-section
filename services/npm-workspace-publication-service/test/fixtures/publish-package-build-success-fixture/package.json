@@ -3,7 +3,6 @@
   "version": "0.1.0",
   "description": "A fixture package whose build script writes dist/x.mjs, for the publish-package gate's build-step test.",
   "type": "module",
-  "private": true,
   "files": [
     "dist"
   ],
