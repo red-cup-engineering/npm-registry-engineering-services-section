@@ -195,6 +195,18 @@ export async function readConfiguredNpmRegistryPackageVersion(registry, name, ve
       return Object.freeze({ found: false, reachable: true, authorizationFailed: true, manifest: null });
     }
     if (/\be404\b/u.test(detail)) return Object.freeze({ found: false, reachable: true, manifest: null });
+    // pnpm 11 reports an absent exact version of an existing package with a
+    // structured PACKAGE_NOT_FOUND error. Read the package's actual version
+    // index through the same configured client before treating that as absence.
+    let failure;
+    try { failure = JSON.parse(error.stdout)?.error; } catch {}
+    if (failure?.code === "ERR_PNPM_PACKAGE_NOT_FOUND") {
+      try {
+        const { stdout } = await configuredNpmCommand("pnpm", ["view", name, "versions", "--json", "--registry", authority], { registry: authority, npmEnvironment, execFileImpl, options: { maxBuffer: 8 * 1024 * 1024, timeout: 10_000 } });
+        const versions = JSON.parse(stdout);
+        if (Array.isArray(versions) && versions.every((entry) => typeof entry === "string") && !versions.includes(version)) return Object.freeze({ found: false, reachable: true, manifest: null });
+      } catch {}
+    }
     return Object.freeze({ found: false, reachable: false, manifest: null });
   }
 }
