@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-registry-read-service",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Serves a built npm registry over its read-only HTTP face, including npm health checks, packuments, and tarballs, and deploys that face as a standalone process.",
   "type": "module",
   "private": false,
