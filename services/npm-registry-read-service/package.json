@@ -30,6 +30,6 @@
   },
   "dependencies": {},
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
+    "@red-cup-engineering/jsnode-package-services-section": "0.2.4"
   }
 }

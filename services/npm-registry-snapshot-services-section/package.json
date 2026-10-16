@@ -16,7 +16,7 @@
     "@red-cup-engineering/npm-registry-services-section": "0.1.1"
   },
   "devDependencies": {
-    "@red-cup-engineering/npm-registry-read-service": "workspace:*",
-    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
+    "@red-cup-engineering/npm-registry-read-service": "0.1.2",
+    "@red-cup-engineering/jsnode-package-services-section": "0.2.4"
   }
 }
