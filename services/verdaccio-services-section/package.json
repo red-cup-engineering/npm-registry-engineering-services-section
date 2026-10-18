@@ -3,6 +3,11 @@
   "version": "0.2.0",
   "type": "module",
   "description": "Runs the ordinary private npm registry for 561 Group packages using Verdaccio.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/computer-code-engineering-services-section.git",
+    "directory": "services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/verdaccio-services-section"
+  },
   "keywords": [
     "verdaccio",
     "npm-registry",

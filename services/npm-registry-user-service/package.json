@@ -2,6 +2,11 @@
   "name": "@red-cup-engineering/npm-registry-user-service",
   "version": "0.1.0",
   "description": "Manages the private registry's htpasswd users: list, add ({SHA} scheme, dependency-free), verify, and remove — independent of Verdaccio's max_users signup gate.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/computer-code-engineering-services-section.git",
+    "directory": "services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/npm-registry-user-service"
+  },
   "type": "module",
   "private": false,
   "license": "MIT",
