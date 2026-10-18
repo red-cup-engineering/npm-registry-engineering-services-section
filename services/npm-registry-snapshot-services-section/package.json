@@ -3,6 +3,11 @@
   "version": "0.1.1",
   "type": "module",
   "description": "Holds the registry snapshot services: assembly, verification, and activation of immutable registry snapshots. Use when producing or promoting a registry snapshot.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/computer-code-engineering-services-section.git",
+    "directory": "services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/npm-registry-snapshot-services-section"
+  },
   "exports": {
     "./activate-verified-package-registry-snapshot": "./scripts/activate-verified-package-registry-snapshot.mjs",
     "./assemble-package-registry-snapshot": "./scripts/assemble-package-registry-snapshot.mjs",
