@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-registry-query-service",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Answers whether a package exists in a built or live npm registry, searches package names, and reads direct dependencies, dependents, and standard package interfaces without deriving a whole graph.",
   "repository": {
     "type": "git",
@@ -35,10 +35,10 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "workspace:*",
-    "@red-cup-engineering/npm-registry-services-section": "workspace:*"
+    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "0.3.1",
+    "@red-cup-engineering/npm-registry-services-section": "0.1.2"
   },
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
+    "@red-cup-engineering/jsnode-package-services-section": "0.3.0"
   }
 }

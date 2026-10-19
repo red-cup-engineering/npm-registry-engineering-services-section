@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/verdaccio-services-section",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "type": "module",
   "description": "Runs the ordinary private npm registry for 561 Group packages using Verdaccio.",
   "repository": {
@@ -26,8 +26,8 @@
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "@red-cup-engineering/computer-file-engineering-services-section": "workspace:*",
-    "@red-cup-engineering/javascript-node-services-section": "workspace:*",
+    "@red-cup-engineering/computer-file-engineering-services-section": "0.6.4",
+    "@red-cup-engineering/javascript-node-services-section": "0.4.1",
     "verdaccio": "6.9.2"
   },
   "engines": {
