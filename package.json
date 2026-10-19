@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-registry-services-section",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Holds the services for npm registries. Use when working on the private npm registry or reading any npm registry's packages, versions, and dependencies.",
   "repository": {
     "type": "git",
@@ -27,5 +27,11 @@
   },
   "devDependencies": {
     "@red-cup-engineering/jsnode-package-services-section": "0.2.4"
-  }
+  },
+  "files": [
+    "README.md",
+    "data",
+    "scripts",
+    "test"
+  ]
 }
