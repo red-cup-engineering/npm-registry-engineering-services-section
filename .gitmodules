@@ -1,0 +1,59 @@
+[submodule "services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/npm-workspace-publication-service"]
+	path = services/npm-workspace-publication-service
+	url = https://github.com/red-cup-engineering/npm-workspace-publication-service.git
+[submodule "services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/npm-registry-serving-service"]
+	path = services/npm-registry-serving-service
+	url = https://github.com/red-cup-engineering/npm-registry-serving-service.git
+	branch = main
+[submodule "verdaccio-storage-release-projection-service"]
+	path = services/verdaccio-storage-release-projection-service
+	url = https://github.com/red-cup-engineering/verdaccio-storage-release-projection-service.git
+	branch = main
+[submodule "verdaccio-services-section"]
+	path = services/verdaccio-services-section
+	url = https://github.com/red-cup-engineering/verdaccio-services-section.git
+	branch = main
+[submodule "package-installation-check-service"]
+	path = services/package-installation-check-service
+	url = https://github.com/red-cup-engineering/package-installation-check-service.git
+	branch = main
+[submodule "npm-registry-user-service"]
+	path = services/npm-registry-user-service
+	url = https://github.com/red-cup-engineering/npm-registry-user-service.git
+	branch = main
+[submodule "npm-registry-snapshot-services-section"]
+	path = services/npm-registry-snapshot-services-section
+	url = https://github.com/red-cup-engineering/npm-registry-snapshot-services-section.git
+	branch = main
+[submodule "npm-registry-snapshot-publication-service"]
+	path = services/npm-registry-snapshot-publication-service
+	url = https://github.com/red-cup-engineering/npm-registry-snapshot-publication-service.git
+	branch = main
+[submodule "npm-registry-service"]
+	path = services/npm-registry-service
+	url = https://github.com/red-cup-engineering/npm-registry-service.git
+	branch = main
+[submodule "npm-registry-read-service"]
+	path = services/npm-registry-read-service
+	url = https://github.com/red-cup-engineering/npm-registry-read-service.git
+	branch = main
+[submodule "npm-registry-query-service"]
+	path = services/npm-registry-query-service
+	url = https://github.com/red-cup-engineering/npm-registry-query-service.git
+	branch = main
+[submodule "npm-registry-drift-observation-service"]
+	path = services/npm-registry-drift-observation-service
+	url = https://github.com/red-cup-engineering/npm-registry-drift-observation-service.git
+	branch = main
+[submodule "npm-registry-custody-assay-service"]
+	path = services/npm-registry-custody-assay-service
+	url = https://github.com/red-cup-engineering/npm-registry-custody-assay-service.git
+	branch = main
+[submodule "npm-registry-a2a-projection-service"]
+	path = services/npm-registry-a2a-projection-service
+	url = https://github.com/red-cup-engineering/npm-registry-a2a-projection-service.git
+	branch = main
+[submodule "npm-package-tree-discovery-service"]
+	path = services/npm-package-tree-discovery-service
+	url = https://github.com/red-cup-engineering/npm-package-tree-discovery-service.git
+	branch = main
