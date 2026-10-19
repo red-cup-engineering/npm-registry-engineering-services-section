@@ -1,5 +1,0 @@
-# npm-registry-a2a-projection-service
-
-Translation only, no server. Given a registry root and URL, `obtainRegistrySnapshot` (`src/snapshot.mjs`) reads that registry's receipt and metadata and returns the current snapshot as plain data. `registrySnapshotProtocol` (`src/protocol.mjs`) declares the A2A request/response message shapes for asking for that snapshot. `scripts/execute-a2a-task.mjs` decodes one incoming A2A message, calls the snapshot function, and encodes the response — it reads `REGISTRY_ROOT` and `REGISTRY_URL` and refuses to guess at either.
-
-Nothing here opens a port or starts listening. If you actually want to serve a registry over A2A, compose this package's `execute-a2a-task.mjs` as the executor for `@red-cup-engineering/a2a-contracted-agent-service`'s `serveContractedAgent` — that's the piece that runs a web server. `content/agent-card.template.json` is a starting point for the Agent Card such a server would publish; it has no real URL in it because this package doesn't know where, or whether, anyone deploys one.
