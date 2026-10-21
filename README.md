@@ -9,6 +9,17 @@ because it lives beside one in the workspace. This distinction keeps a clean
 release artifact—not a checkout or a workspace link—as the unit future agents
 test and depend on.
 
+## The house registry
+
+`npm-registry-serving-service` is registry.561.group: the npm registry
+protocol as npm and pnpm speak it (conditional requests, login tokens, search,
+audit), served from each house package's facts. Those facts are an
+append-only EAVT journal per package, with tarballs stored by RFC 6920 NI
+address. It runs as an application of Cold Red Gate's MetroPlat instance,
+with its standalone process as the ingress's fallback over the same store.
+It owns the live publish and install boundary for every house package; see
+its README.
+
 ## Extracted capabilities
 
 | Package | Present responsibility | Release status |
@@ -79,12 +90,14 @@ fallbacks.
 
 ## Verdaccio
 
-`verdaccio-services-section` is the ordinary private npm registry currently
-used by the repository. The root `.npmrc` and root registry commands address
-it at `http://127.0.0.1:4873/`; it owns the active publish/install boundary
-for versioned packages.
+`verdaccio-services-section` is the earlier private registry. Its store layout
+(`<name>/package.json` beside the tarballs) is the one
+`npm-registry-serving-service` received as facts and still writes as a
+projection, so a Verdaccio pointed at that store serves it. Nothing publishes
+through Verdaccio.
 
 The immutable-snapshot, receipt, graph, query, and verification services in
-this section are additional and potentially competing registry capabilities.
-All may coexist. Keep each service's read state, guarantees, and package
+this section are additional registry capabilities over registry artifacts.
+They read registry.561.group or its snapshots, or publish to it; none of them
+is another registry. Keep each service's read state, guarantees, and package
 population explicit.
