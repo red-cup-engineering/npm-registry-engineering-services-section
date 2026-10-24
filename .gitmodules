@@ -11,7 +11,7 @@
 	branch = main
 [submodule "verdaccio-services-section"]
 	path = services/verdaccio-services-section
-	url = https://github.com/red-cup-engineering/verdaccio-services-section.git
+	url = https://github.com/red-cup-engineering/verdaccio-engineering-services-section.git
 	branch = main
 [submodule "package-installation-check-service"]
 	path = services/package-installation-check-service
@@ -23,7 +23,7 @@
 	branch = main
 [submodule "npm-registry-snapshot-services-section"]
 	path = services/npm-registry-snapshot-services-section
-	url = https://github.com/red-cup-engineering/npm-registry-snapshot-services-section.git
+	url = https://github.com/red-cup-engineering/npm-registry-snapshot-engineering-services-section.git
 	branch = main
 [submodule "npm-registry-snapshot-publication-service"]
 	path = services/npm-registry-snapshot-publication-service
