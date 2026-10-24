@@ -1,5 +1,5 @@
 {
-  "name": "@red-cup-engineering/npm-registry-engineering-services-section",
+  "name": "@red-cup-engineering/npm-registry-services-section",
   "version": "0.1.2",
   "description": "Holds the services for npm registries. Use when working on the private npm registry or reading any npm registry's packages, versions, and dependencies.",
   "repository": {
@@ -8,10 +8,10 @@
   },
   "dependencies": {
     "@red-cup-engineering/computer-file-engineering-services-section": "0.4.0",
-    "@red-cup-engineering/json-engineering-services-section": "0.4.0",
-    "@red-cup-engineering/jsonl-engineering-services-section": "0.1.0",
+    "@red-cup-engineering/json-services-section": "0.4.0",
+    "@red-cup-engineering/jsonl-services-section": "0.1.0",
     "@red-cup-engineering/inspect-installed-npm-package-service": "0.3.2",
-    "@red-cup-engineering/javascript-node-engineering-services-section": "0.3.2",
+    "@red-cup-engineering/javascript-node-services-section": "0.3.2",
     "@red-cup-engineering/read-javascript-file-export-documentation-service": "0.1.5"
   },
   "exports": {
@@ -25,7 +25,7 @@
     "check": "check-package-syntax"
   },
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-engineering-services-section": "0.2.4"
+    "@red-cup-engineering/jsnode-package-services-section": "0.2.4"
   },
   "files": [
     "README.md",
