@@ -1,10 +1,10 @@
 {
-  "name": "@red-cup-engineering/npm-registry-services-section",
+  "name": "@red-cup-engineering/npm-registry-engineering-services-section",
   "version": "0.1.2",
   "description": "Holds the services for npm registries. Use when working on the private npm registry or reading any npm registry's packages, versions, and dependencies.",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/red-cup-engineering/npm-registry-services-section.git"
+    "url": "git+https://github.com/red-cup-engineering/npm-registry-engineering-services-section.git"
   },
   "dependencies": {
     "@red-cup-engineering/computer-file-engineering-services-section": "0.4.0",
