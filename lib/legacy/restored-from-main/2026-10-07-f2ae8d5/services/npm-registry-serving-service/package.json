@@ -1,0 +1,18 @@
+{
+  "name": "@red-cup-engineering/npm-registry-serving-service",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Serves the 561 Group's npm registry (registry.561.group) as an application of a MetroPlat instance: packuments, tarballs, publish and dist-tags over the house package store, with npmjs as the uplink for every non-house name.",
+  "exports": {
+    ".": "./src/registry.mjs",
+    "./application": "./src/application.mjs"
+  },
+  "dependencies": {
+    "bcryptjs": "2.4.3"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "softwareKind": "service"
+}
