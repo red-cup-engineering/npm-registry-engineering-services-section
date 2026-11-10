@@ -1,6 +1,3 @@
-[submodule "services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/npm-workspace-publication-service"]
-	path = services/npm-workspace-publication-service
-	url = https://github.com/red-cup-engineering/npm-workspace-publication-service.git
 [submodule "services/javascript-engineering-services-section/services/javascript-node-services-section/services/jsnode-packaging-services-section/services/npm-services-section/services/npm-registry-services-section/services/npm-registry-serving-service"]
 	path = services/npm-registry-serving-service
 	url = https://github.com/red-cup-engineering/npm-registry-serving-service.git
