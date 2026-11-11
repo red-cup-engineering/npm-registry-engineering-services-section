@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "basis": "Inspect the installed package surface and select an exact registry release.",
+  "cases": [
+    {
+      "id": "INSTALLATION-REFUSAL",
+      "role": "source",
+      "kind": "refusal",
+      "claim": "A package with missing export targets or references outside its declared closure is refused.",
+      "file": "test/check-package-installation.test.mjs",
+      "test": "refuses missing faces and imports escaping the carrier"
+    },
+    {
+      "id": "INSTALLATION-QUICKSTART",
+      "role": "consumer",
+      "kind": "example",
+      "claim": "An installed caller selects a package by its exact version when several releases exist.",
+      "file": "examples/quickstart.test.mjs"
+    }
+  ]
+}

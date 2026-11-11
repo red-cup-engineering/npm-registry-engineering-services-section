@@ -1,0 +1,46 @@
+{
+  "name": "@red-cup-engineering/npm-registry-read-service",
+  "version": "0.1.3",
+  "description": "Serves a built npm registry over its read-only HTTP face, including npm health checks, packuments, and tarballs, and deploys that face as a standalone process.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/npm-registry-engineering-services-section.git",
+    "directory": "services/npm-registry-read-service"
+  },
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "exports": {
+    ".": "./src/npm-registry-read-service.mjs"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "deploy",
+    "README.md",
+    "package.json",
+    "docs/API.md",
+    "examples/quickstart.test.mjs"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "bin": {
+    "serve-npm-registry-read": "./scripts/serve-npm-registry-read.mjs"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts",
+    "check": "node --check scripts/serve-npm-registry-read.mjs && node --check src/npm-registry-read-service.mjs",
+    "test:consumer": "node --test examples/quickstart.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {},
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/561-group/.github/blob/main/TIPS.md"
+  }
+}

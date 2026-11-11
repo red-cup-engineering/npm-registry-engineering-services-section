@@ -1,0 +1,20 @@
+{
+  "type": "ExistingRetentionWorkAssessment",
+  "version": 1,
+  "authoredBy": "Hai Zhou, Codex /root",
+  "originalWork": "https://github.com/red-cup-engineering/npm-registry-serving-service/pull/15",
+  "originalHead": "82d770a79049b290bbaa56d77bbba47eafb701bc",
+  "originalTitle": "Bound prerelease retention on publish",
+  "originalDescription": "The registry kept every published tarball forever, and every merge in every house repo publishes a dev prerelease.\n\nOn each publish, the registry now prunes that package's prereleases, under the package lock. It keeps every stable version, the newest 10 prereleases by publish time (PRERELEASES_KEPT, src/retention.mjs), every dist-tagged version, and every exact name@version in the protectedVersions set. The set is a path or URL of a JSON array, configured by the operator from the composition lockfiles. It fails closed: an unset or unreadable set prunes nothing.\n\nA pruned version is removed from the journal, the package.json layout (versions, time, _attachments), and the storage (leaf and blob), in that order, so no document names a version whose bytes are gone.\n\nTests (local, GitHub CI is unavailable for billing): test/retention.test.mjs, 8 pass. Related suites (registry-receiving, metadata-updates, facts-store, publish-gate-registry, protocol, leftovers, memory-bounds, public-tarballs, publish-gate, package-exports, tarball-reader) pass, 125 in total. The clients and packed-maintenance suites were not re-run (they run real npm/pnpm installs); clients passed on the first full run.",
+  "sourceDisposition": "Original proposal history is retained as an additional parent while the branch tree continues the current canonical source and generated retirement chain. This does not claim that the old proposal was installed or its tests rerun.",
+  "usefulCapability": "Exact protected package-version selection from real consuming products is retained and completed as the full installed, incoming, tag, rollback, conflict and unsettled-publication dependency graph.",
+  "rejectedMechanisms": [
+    "Retaining every stable version and an arbitrary newest ten prereleases.",
+    "Rewriting original publication journal history to remove obsolete versions.",
+    "Removing versions without permanent immutable identity evidence.",
+    "Treating native-only cleanup as complete canonical R2 and native consumer receiving."
+  ],
+  "replacementBasis": "The original Requirement and generated Specification from merged PR27 govern this same unfinished PR15. No parallel retention system is introduced.",
+  "originalReportedTestsAreHistorical": true,
+  "newImplementationOrCleanupClaimed": false
+}

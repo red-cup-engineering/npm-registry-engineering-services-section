@@ -1,0 +1,53 @@
+{
+  "type": "OriginalSpecificationToArchitectureReceiving",
+  "version": 1,
+  "authoredBy": "Hai Zhou, Codex /root",
+  "sourceCut": {
+    "requirementRevision": "ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0",
+    "specificationRevision": "ni:///sha-256;h5NHsesOy07uUd-WsnL2noLTPZdzxMzai0JP5UZ489E",
+    "canonicalRequirementSpecificationCommit": "46ff758c040089df9bdeb5b7b67abd43ff5ce87b"
+  },
+  "operation": {
+    "intentAt": "2026-10-29T00:47:00.439Z",
+    "deliveryAt": "2026-10-29T00:49:31.586Z",
+    "assembledRequestSha256": "13626d7c333ee889c4aefbfc21a81d83737d2b064f5fa3e92370047eb9a1744b",
+    "originalAdmissionPlanSha256": "fa9229eff5907393e83036ab6cbe5e07b37652d4c5ddf6beab13cdc260042b7d",
+    "workLot": "urn:work-lot:inference:QcTxHjRu5VJAcLkUGMzU5-NHu352-VnHNYaKLFbb2nM",
+    "provider": "urn:ame:nvidia-inference-team",
+    "taskClass": "software-development/architecture-review",
+    "selectedOffer": "urn:offer:direct-endpoint:urn:ame:nvidia-inference-team:2fUXmpnthgNbciM9wayHgJGw1vwg7JkTMjaUeQmU24g:software-development/architecture-review",
+    "receipt": "ni:///sha-256;flVxoixRla3dgoSgvQppssOqhk5GNpmh_nTJoMEBrhk",
+    "receiver": "actor:WWOM5azg-fTrn1Id0YVbz5AhppbnFny_W5Xl-rKgSs4",
+    "model": "private/nvidia/nemotron-3.5-super-120b-a12b",
+    "configurationIdentity": "ni:///sha-256;2fUXmpnthgNbciM9wayHgJGw1vwg7JkTMjaUeQmU24g",
+    "rawReviewSha256": "8aca2e2bb6d1faba0b96322b339ac1803af9be9b96fb6d9516930472b386fee4",
+    "rawReviewBytes": 16389,
+    "rawReviewChanged": false
+  },
+  "nativeReceiving": {
+    "generatorRepository": "red-cup-engineering/specification-engineering-services-section",
+    "generatorRevision": "db52af5115ce9cc12e027d3ec23c42fe5a2a1aa2",
+    "module": "src/architecture-description.mjs",
+    "moduleSha256": "fc98de612426477836ff93443064cdd3fe24808d1374c8023e0641fbf4d37833",
+    "sharedSemanticContractSha256": "c08df4e354192c20840d40d168dcd6b48a0629ee2f10f7c775b8d813632653da",
+    "observedAt": "2026-10-29T00:51:47.120Z",
+    "outputSchemaValid": true,
+    "originalGenerator": "derived",
+    "candidateRevision": "ni:///sha-256;a28925UM-HDQEqBX2OgZmuUXladAedyzEDfLppLteu4",
+    "candidateSha256": "d7233ba7e2cf5cd22b283f96b71109414d9a81599b2185e4ca6060dcd264111b",
+    "independentSemanticReceiptSha256": "55d21b887650c072fbec44615d535dc6d43a45dbd85cc533cacbf582327c3a60"
+  },
+  "nativeHldPlanning": {
+    "result": "planned",
+    "originalPlanSha256": "ba98d798ddc6945da471d298cd03d8a8aec385991f06a97c330d3f03ec552f71",
+    "planUnchanged": true,
+    "providerDeliveryReceived": false
+  },
+  "limits": {
+    "disposition": "accepted-for-original-high-level-design",
+    "normativeImplementationGenerated": false,
+    "archivesRetired": false,
+    "operatingReceiving": false,
+    "versionCountIsHistorical": true
+  }
+}

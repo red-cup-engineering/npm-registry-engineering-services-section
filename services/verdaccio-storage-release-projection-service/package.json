@@ -1,0 +1,40 @@
+{
+  "name": "@red-cup-engineering/verdaccio-storage-release-projection-service",
+  "version": "0.1.1",
+  "description": "Read-only projection of legacy Verdaccio storage releases into verified snapshot assembly inputs.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "exports": {
+    ".": "./src/project-verdaccio-storage-releases.mjs"
+  },
+  "bin": {
+    "project-verdaccio-storage-releases": "./scripts/project-verdaccio-storage-releases.mjs"
+  },
+  "files": [
+    "src",
+    "scripts",
+    "test",
+    "package.json",
+    "README.md",
+    "docs/API.md",
+    "examples/quickstart.test.mjs"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts",
+    "test:consumer": "node --test examples/quickstart.test.mjs"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/npm-registry-engineering-services-section.git",
+    "directory": "services/verdaccio-storage-release-projection-service"
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/561-group/.github/blob/main/TIPS.md"
+  }
+}

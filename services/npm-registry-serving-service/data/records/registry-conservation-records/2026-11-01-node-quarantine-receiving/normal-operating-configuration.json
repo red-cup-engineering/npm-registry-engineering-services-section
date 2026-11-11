@@ -1,0 +1,108 @@
+{
+  "work": "https://github.com/red-cup-engineering/npm-registry-serving-service/issues/17",
+  "sourceWorkerSha256": "bf6d29c0a48f54c433296cfb26e5a81f309f8550c7cd9e8ed40d1627a2f01b20",
+  "configuration": {
+    "origin": "https://registry.561.group",
+    "privateScopes": [
+      "@561-group",
+      "@causeway-services",
+      "@coesite-operations",
+      "@emsenn",
+      "@emsweb",
+      "@harmonious-union",
+      "@koios-news",
+      "@lenticule-science",
+      "@red-cup-engineering",
+      "@red-cup-science",
+      "@rsc-quiescent",
+      "@turntide-islands",
+      "@union-officer-academy"
+    ],
+    "privateNames": [
+      "ephemeral-computer-machine-services-section",
+      "persistent-computer-machine-services-section"
+    ],
+    "nativePublisherPolicy": "native-authenticated-group-publishers-v1",
+    "maxPublishBytes": 8388608,
+    "maxMetadataBytes": 8388608,
+    "maxUnpackedBytes": 16777216,
+    "authenticationTimeoutMs": 10000
+  },
+  "identityConservation": {
+    "version": 1,
+    "conflicts": [
+      {
+        "name": "@red-cup-engineering/npm-registry-serving-service",
+        "version": "0.2.5-dev.0",
+        "evidence": {
+          "recordSha256": "a28baafc168ea865c1e6c8cf208c5585e52cdce89ec4db8cc82620f976371a74",
+          "work": "https://github.com/561-group/561-group-bare-cedar-fog-services-section/issues/599"
+        },
+        "identities": [
+          {
+            "authority": "native",
+            "manifestSha256": "15c5f29cba550c33473e95228304cdf842604ad05818c06e828cd50df1dab9da",
+            "integrity": "sha512-WDMXCFl4ltl8NWKMoMYJ61hchHPnCdz6ttI4aa+IO4EJnV7M1Ohe8UphRQvhKUYvKhXsfqjPelwTLETXaaaUnw==",
+            "gitHead": "fde822864fa85bc536a74dc2c012cc819f84ab1c",
+            "tarball": "https://registry.561.group/@red-cup-engineering/npm-registry-serving-service/-/npm-registry-serving-service-0.2.5-dev.0.tgz"
+          },
+          {
+            "authority": "canonical-r2",
+            "manifestSha256": "62a149a7eac45230cfee4db524bde7fa82ca48e1d8acc24c2665ef94bad2a7f3",
+            "integrity": "sha512-El+NfI2ms7wYiRQuXp69Bnpg1TQdu3veTFjFfrlZrsHLd6A7zLmFvqYITFBcZ79OLJVCNpAVjubfmVe29Twdcw==",
+            "gitHead": "263b5239a19cbbde1108bbc5e06207cf1e157284",
+            "tarball": "https://registry.561.group/@red-cup-engineering/npm-registry-serving-service/-/npm-registry-serving-service-0.2.5-dev.0.tgz"
+          }
+        ]
+      },
+      {
+        "name": "@red-cup-engineering/computer-language-systems-engineering-services-section",
+        "version": "0.1.4-dev.1",
+        "evidence": {
+          "recordSha256": "c2a02af017a6c43eb81a40dbc20920d3dbc48c5f8623f35e31915501c5a4b6a4",
+          "work": "https://github.com/red-cup-engineering/npm-registry-serving-service/issues/17"
+        },
+        "identities": [
+          {
+            "authority": "native",
+            "manifestSha256": "a7b11caf44fd86acfb305bce037439c32db75d56fcd7c9da3db5f7d0d28a0300",
+            "integrity": "sha512-QwAtBEQ8ZF2RrPBJU4O8ibrg96mQRmADjnhx45MelMufXEtLD784Oytu63Ap9BABFBT0LnPZZOiK8Sx918YEaw==",
+            "gitHead": "b7b29909d71e8eee72622a3d40a4febd15c0c8b3",
+            "tarball": "https://registry.561.group/@red-cup-engineering/computer-language-systems-engineering-services-section/-/computer-language-systems-engineering-services-section-0.1.4-dev.1.tgz"
+          },
+          {
+            "authority": "canonical-r2",
+            "manifestSha256": "0d39dc7a53daa57b820e25f8728a0ec4985c8e6f7d94b3979731feaff59ea881",
+            "integrity": "sha512-SgBpnYsp0sQd1L/NMmz8V31UHAFOJhxuRBywFCLN7D2jVtyGLiBHiX31UBpRHILY7hPbzKQYKxRHvHUaSmPk5g==",
+            "gitHead": null,
+            "tarball": "https://registry.561.group/@red-cup-engineering/computer-language-systems-engineering-services-section/-/computer-language-systems-engineering-services-section-0.1.4-dev.1.tgz"
+          }
+        ]
+      }
+    ],
+    "reservations": []
+  },
+  "completedReservations": [
+    {
+      "name": "@red-cup-engineering/codex-home-service",
+      "version": "0.2.1-dev.40"
+    },
+    {
+      "name": "@red-cup-engineering/npm-registry-serving-service",
+      "version": "0.2.5-dev.42"
+    },
+    {
+      "name": "@red-cup-engineering/paid-data-endpoint-service",
+      "version": "0.6.1-dev.61"
+    },
+    {
+      "name": "@red-cup-engineering/computer-language-systems-engineering-services-section",
+      "version": "0.1.4-dev.0"
+    },
+    {
+      "name": "@red-cup-engineering/json-services-section",
+      "version": "0.4.2-dev.269"
+    }
+  ],
+  "receiving": "compiled-registry-normal-operation.receiving.mjs; current exact archives and empty private input namespace independently received"
+}

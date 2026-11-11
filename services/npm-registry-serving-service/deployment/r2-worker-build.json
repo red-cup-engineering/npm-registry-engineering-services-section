@@ -1,0 +1,15 @@
+{
+  "entryPoints": [
+    "src/r2-registry.mjs"
+  ],
+  "bundle": true,
+  "format": "esm",
+  "platform": "neutral",
+  "target": "es2022",
+  "external": [
+    "node:*"
+  ],
+  "define": {
+    "import.meta.main": "false"
+  }
+}

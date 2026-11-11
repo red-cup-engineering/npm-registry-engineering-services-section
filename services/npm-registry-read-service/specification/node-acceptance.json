@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "basis": "A read-only npm snapshot serves GET and HEAD and preserves the artifact path when rewriting public URLs.",
+  "cases": [
+    {
+      "id": "REGISTRY-READ-REFUSAL",
+      "role": "source",
+      "kind": "refusal",
+      "claim": "The registry accepts read methods and returns Method Not Allowed for POST.",
+      "file": "test/npm-registry-read-service.test.mjs",
+      "test": "serves npm ping and method semantics"
+    },
+    {
+      "id": "REGISTRY-READ-QUICKSTART",
+      "role": "consumer",
+      "kind": "example",
+      "claim": "An installed caller can change the served tarball origin while preserving its path and the original metadata.",
+      "file": "examples/quickstart.test.mjs"
+    }
+  ]
+}

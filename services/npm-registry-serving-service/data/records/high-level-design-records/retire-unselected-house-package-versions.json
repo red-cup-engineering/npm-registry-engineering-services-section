@@ -1,0 +1,382 @@
+{
+  "type": "EngineeringDesignCandidate",
+  "stage": "high-level",
+  "sources": [
+    {
+      "kind": "requirement",
+      "text": "{\n  \"id\": \"retire-unselected-house-package-versions\",\n  \"name\": \"Retire unselected house package versions at the canonical registry\",\n  \"kind\": \"requirement\",\n  \"raised-by\": \"emsenn\",\n  \"asks\": [\n    \"I don't understand how we ahve 7k \\\"native package versions\\\" what \\\"native package verisons\\\" are you talking about like do you mean we have 7k versiosn of a software in our npm registry?\\n\\nThat's fucked up and we should not have that.\",\n    \"STOP ROUTING AROUND DAMAGE YOU (or other agents, it does not matter who) CAUSED AND ABANDONED: it just causes more damage.\\nFIX THE DAMAGE\",\n    \"STOP PRESERVING BACKCOMPAT AND SHIMS\\n\\nTHIS IS EARLY ALPHA CODE\\n\\nFIND WORK THAT IS UNFINISHED AND FINISH IT, NOT BY RECONCILING BOTH DIRECTIONS BUT BY FINISHING THE WORK\"\n  ],\n  \"met-when\": [\n    {\n      \"cell\": \"retire-unselected-house-package-versions:accurate-inventory\",\n      \"target\": \"held\",\n      \"says\": \"The original registry owner distinguishes observed package names, name/version identities, repeated content identities, current canonical serving objects and historical native storage; no historical7192 count is represented as a fresh canonical count.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:declared-editions\",\n      \"target\": \"held\",\n      \"says\": \"The original source publisher publishes exactly the source-declared edition, receives an identical existing product without minting another edition and refuses a changed occupied identity. Git history, a retry and a test-only edit do not allocate an edition.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:protected-closure\",\n      \"target\": \"held\",\n      \"says\": \"An explicit retirement lot protects every current installed package identity and transitive exact closure, current canonical dist-tag targets and their dependency closure, admitted incoming release dependencies, necessary rollback products, immutable conflicts and unsettled original publication input. Protection names exact source/operating evidence and uncertainty; incomplete coverage refuses only the affected retirement.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:retirement-selection\",\n      \"target\": \"held\",\n      \"says\": \"Retirement is derived from that protected dependency graph and source-owned product selection, rather than retaining every stable version or a hardcoded count/age of prereleases. Existing PR15 is assessed, useful capability retained at the canonical R2 owner, and obsolete native-only retention implementation retired.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:immutable-retired-identities\",\n      \"target\": \"held\",\n      \"says\": \"A retired name/version cannot be republished with either the same or different bytes. Compact permanent identity evidence binds its original integrity and source/manifest commitment, without retaining redundant payload copies or treating archived evidence as an active registry version.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:atomic-owner-operation\",\n      \"target\": \"held\",\n      \"says\": \"The canonical authenticated operator operation receives the exact package metadata ETag and plan commitment, rechecks protected identities and current tags, and uses original conditional storage. It never removes an advertised archive first, overwrites a concurrent publication, mutates user credentials, or accepts publisher-supplied retirement metadata.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:bounded-terminal-custody\",\n      \"target\": \"held\",\n      \"says\": \"The owner records intent before effects and actual conditional results after effects. Interrupted metadata/archive removal resumes only that same original lot, never overwrites or remints it, distinguishes unknown effects and keeps every affected protected package usable. Cleanup reclaims unneeded original archive objects without another full archive copy.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:complete-consumer-cutover\",\n      \"target\": \"held\",\n      \"says\": \"Canonical packuments, exact-version lookup, dist-tag resolution, dependency admission and archive GET/HEAD consistently exclude retired editions and retain precise retired-identity refusals. No hidden direct archive route or old native shelf bypass continues serving retired editions.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:receive-real-cleanup\",\n      \"target\": \"held\",\n      \"says\": \"Independent receiving compares original and final canonical version counts, actual removed bytes/objects, protected exact products and archive integrities, concurrent-write refusal and interrupted-lot completion. A draft PR, deletion plan, passing synthetic suite or corrected allocator alone does not satisfy this condition.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:original-work-lineage\",\n      \"target\": \"held\",\n      \"says\": \"The original registry conservation Work17 and BCF599 retain the two disputed identities and unsettled WSL predecessor without false settlement; explicit later version retirement fulfills the current Leader request rather than silently rewriting prior conservation evidence.\"\n    },\n    {\n      \"cell\": \"retire-unselected-house-package-versions:generated-source\",\n      \"target\": \"held\",\n      \"says\": \"The requirement is consumed by the existing Specification, Architecture, HLD, LLD and Computer Systems Fabrication chain with exact source lineage, bounded zero-cash inference and independent receiving. A missing generator is repaired at its existing owner; no handwritten normative code or parallel registry is introduced.\"\n    }\n  ],\n  \"owners\": [\n    \"red-cup-engineering/npm-registry-serving-service\",\n    \"red-cup-engineering/npm-workspace-publication-service\"\n  ],\n  \"x-provenance\": {\n    \"recorded-by\": \"Hai Zhou, Chief Engineering Officer, Codex /root\",\n    \"recorded-on\": \"2026-10-28\",\n    \"basis\": \"The asks are verbatim Leader messages in this chat. All acceptance conditions are assistant inferences, open for the Leader to accept or strike; every condition is unmeasured. No admission, effect or completion is asserted.\",\n    \"references\": [\n      \"https://github.com/red-cup-engineering/npm-registry-serving-service/issues/17\",\n      \"https://github.com/red-cup-engineering/npm-registry-serving-service/pull/15\",\n      \"https://github.com/red-cup-engineering/npm-workspace-publication-service/pull/81\"\n    ]\n  }\n}\n",
+      "digest": "sha256:6cbadc808d1778f55b2c2a928ef59e31e06fea4219eae5d97af5962d050b55c0"
+    },
+    {
+      "kind": "specification",
+      "text": "{\n  \"identity\": {\n    \"version\": \"0.1.0\",\n    \"stability\": \"draft\",\n    \"status\": \"requires-independent-requirement-and-interpretation-admission\",\n    \"date-created\": \"2026-10-28\",\n    \"id\": \"retire-unselected-house-package-versions\",\n    \"title\": \"Retire unselected house package versions at the canonical registry\",\n    \"seat\": \"red-cup-engineering/npm-registry-serving-service\",\n    \"carrier\": \"data/records/specification-records/retire-unselected-house-package-versions.json\",\n    \"authors\": [\n      \"Hai Zhou, Chief Engineering Officer, Codex /root\"\n    ],\n    \"profile\": \"prose\"\n  },\n  \"whatThisIs\": \"An unadmitted candidate reading of Requirement retire-unselected-house-package-versions at ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0. External authority and specification acceptance remain open.\",\n  \"topics\": [\n    {\n      \"heading\": \"Source-owned requirement conditions\",\n      \"body\": \"{{clause:rvp-1}}\\n\\n{{clause:rvp-2}}\\n\\n{{clause:rvp-3}}\\n\\n{{clause:rvp-4}}\\n\\n{{clause:rvp-5}}\\n\\n{{clause:rvp-6}}\\n\\n{{clause:rvp-7}}\\n\\n{{clause:rvp-8}}\\n\\n{{clause:rvp-9}}\\n\\n{{clause:rvp-10}}\\n\\n{{clause:rvp-11}}\",\n      \"clauses\": [\n        {\n          \"id\": \"rvp-1\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The canonical registry owner\",\n          \"statement\": \"The original registry owner distinguishes observed package names, name/version identities, repeated content identities, current canonical serving objects and historical native storage; no historical7192 count is represented as a fresh canonical count.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:accurate-inventory\"\n          ]\n        },\n        {\n          \"id\": \"rvp-2\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The original source publisher\",\n          \"statement\": \"The original source publisher publishes exactly the source-declared edition, receives an identical existing product without minting another edition and refuses a changed occupied identity. Git history, a retry and a test-only edit do not allocate an edition.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:declared-editions\"\n          ]\n        },\n        {\n          \"id\": \"rvp-3\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The canonical registry owner\",\n          \"statement\": \"An explicit retirement lot protects every current installed package identity and transitive exact closure, current canonical dist-tag targets and their dependency closure, admitted incoming release dependencies, necessary rollback products, immutable conflicts and unsettled original publication input. Protection names exact source/operating evidence and uncertainty; incomplete coverage refuses only the affected retirement.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:protected-closure\"\n          ]\n        },\n        {\n          \"id\": \"rvp-4\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The canonical registry owner\",\n          \"statement\": \"Retirement is derived from that protected dependency graph and source-owned product selection, rather than retaining every stable version or a hardcoded count/age of prereleases. Existing PR15 is assessed, useful capability retained at the canonical R2 owner, and obsolete native-only retention implementation retired.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:retirement-selection\"\n          ]\n        },\n        {\n          \"id\": \"rvp-5\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The canonical registry owner\",\n          \"statement\": \"A retired name/version cannot be republished with either the same or different bytes. Compact permanent identity evidence binds its original integrity and source/manifest commitment, without retaining redundant payload copies or treating archived evidence as an active registry version.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:immutable-retired-identities\"\n          ]\n        },\n        {\n          \"id\": \"rvp-6\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The canonical registry owner\",\n          \"statement\": \"The canonical authenticated operator operation receives the exact package metadata ETag and plan commitment, rechecks protected identities and current tags, and uses original conditional storage. It never removes an advertised archive first, overwrites a concurrent publication, mutates user credentials, or accepts publisher-supplied retirement metadata.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:atomic-owner-operation\"\n          ]\n        },\n        {\n          \"id\": \"rvp-7\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The canonical registry owner\",\n          \"statement\": \"The owner records intent before effects and actual conditional results after effects. Interrupted metadata/archive removal resumes only that same original lot, never overwrites or remints it, distinguishes unknown effects and keeps every affected protected package usable. Cleanup reclaims unneeded original archive objects without another full archive copy.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:bounded-terminal-custody\"\n          ]\n        },\n        {\n          \"id\": \"rvp-8\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The canonical registry owner\",\n          \"statement\": \"Canonical packuments, exact-version lookup, dist-tag resolution, dependency admission and archive GET/HEAD consistently exclude retired editions and retain precise retired-identity refusals. No hidden direct archive route or old native shelf bypass continues serving retired editions.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:complete-consumer-cutover\"\n          ]\n        },\n        {\n          \"id\": \"rvp-9\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The independent registry receiver\",\n          \"statement\": \"Independent receiving compares original and final canonical version counts, actual removed bytes/objects, protected exact products and archive integrities, concurrent-write refusal and interrupted-lot completion. A draft PR, deletion plan, passing synthetic suite or corrected allocator alone does not satisfy this condition.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:receive-real-cleanup\"\n          ]\n        },\n        {\n          \"id\": \"rvp-10\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The canonical registry owner\",\n          \"statement\": \"The original registry conservation Work17 and BCF599 retain the two disputed identities and unsettled WSL predecessor without false settlement; explicit later version retirement fulfills the current Leader request rather than silently rewriting prior conservation evidence.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:original-work-lineage\"\n          ]\n        },\n        {\n          \"id\": \"rvp-11\",\n          \"keyword\": \"MUST\",\n          \"actor\": \"The original Engineering generation chain\",\n          \"statement\": \"The requirement is consumed by the existing Specification, Architecture, HLD, LLD and Computer Systems Fabrication chain with exact source lineage, bounded zero-cash inference and independent receiving. A missing generator is repaired at its existing owner; no handwritten normative code or parallel registry is introduced.\",\n          \"backedBy\": [\n            \"Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:generated-source\"\n          ]\n        }\n      ]\n    }\n  ],\n  \"implementations\": [],\n  \"openQuestions\": [\n    {\n      \"question\": \"Has the original source Requirement and each BCP 14 interpretation been independently admitted?\",\n      \"blockedBy\": \"An original competent Office and external reviewer; no approval is inferred from this record\"\n    }\n  ],\n  \"laws\": [],\n  \"standards\": [],\n  \"provenance\": {\n    \"derivedAt\": \"2026-10-28T22:48:00.000Z\",\n    \"derivedBy\": \"Codex /root/pnpm_delivery, independent source review\",\n    \"derivedFrom\": [\n      \"retire-unselected-house-package-versions@ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0\"\n    ]\n  }\n}\n",
+      "digest": "sha256:009154842440a7bff0392d67bddad945f9327e7d57aa430a5089a51d32909570"
+    },
+    {
+      "kind": "architecture",
+      "text": "{\n  \"type\": \"ArchitectureDescriptionCandidate\",\n  \"version\": 1,\n  \"identity\": {\n    \"id\": \"registry-version-retirement\",\n    \"title\": \"Architecture review for retiring unselected house package versions\",\n    \"owner\": \"red-cup-engineering/npm-registry-serving-service\",\n    \"revision\": \"ni:///sha-256;a28925UM-HDQEqBX2OgZmuUXladAedyzEDfLppLteu4\",\n    \"status\": \"candidate\"\n  },\n  \"standard\": {\n    \"designation\": \"ISO/IEC/IEEE 42010\",\n    \"edition\": \"2022\",\n    \"applicability\": \"ISO/IEC/IEEE 42010:2022 architecture description for retiring unselected house package versions at the canonical npm registry; candidate status, conformance unassessed.\",\n    \"conformance\": \"unassessed\"\n  },\n  \"system\": {\n    \"name\": \"npm registry serving service\",\n    \"description\": \"Canonical R2 house registry serving package metadata, exact versions, dist-tags and immutable archives with native public uplink and identity conservation.\",\n    \"sourceIds\": [\n      \"req\",\n      \"spec\",\n      \"r2-source\"\n    ]\n  },\n  \"upstream\": {\n    \"requirementsSourceId\": \"req\",\n    \"specificationSourceId\": \"spec\"\n  },\n  \"sources\": [\n    {\n      \"id\": \"req\",\n      \"locator\": \"ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0\",\n      \"revision\": \"ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0\"\n    },\n    {\n      \"id\": \"spec\",\n      \"locator\": \"ni:///sha-256;h5NHsesOy07uUd-WsnL2noLTPZdzxMzai0JP5UZ489E\",\n      \"revision\": \"ni:///sha-256;h5NHsesOy07uUd-WsnL2noLTPZdzxMzai0JP5UZ489E\"\n    },\n    {\n      \"id\": \"r2-source\",\n      \"locator\": \"https://github.com/red-cup-engineering/npm-registry-serving-service/blob/3861ba494c72eb756adc7ccf72fa0d89122b53cd/src/r2-registry.mjs\",\n      \"revision\": \"3861ba494c72eb756adc7ccf72fa0d89122b53cd\"\n    }\n  ],\n  \"stakeholders\": [\n    {\n      \"id\": \"s-registry-owner\",\n      \"name\": \"Canonical registry owner\",\n      \"concernIds\": [\n        \"c-accurate-inventory\",\n        \"c-protected-closure\",\n        \"c-retirement-selection\",\n        \"c-immutable-retired-identities\",\n        \"c-atomic-owner-operation\",\n        \"c-bounded-terminal-custody\",\n        \"c-complete-consumer-cutover\"\n      ]\n    },\n    {\n      \"id\": \"s-source-publisher\",\n      \"name\": \"Original source publisher\",\n      \"concernIds\": [\n        \"c-declared-editions\"\n      ]\n    },\n    {\n      \"id\": \"s-independent-receiver\",\n      \"name\": \"Independent registry receiver\",\n      \"concernIds\": [\n        \"c-receive-real-cleanup\"\n      ]\n    },\n    {\n      \"id\": \"s-engineering-chain\",\n      \"name\": \"Engineering generation chain\",\n      \"concernIds\": [\n        \"c-original-work-lineage\",\n        \"c-generated-source\"\n      ]\n    }\n  ],\n  \"concerns\": [\n    {\n      \"id\": \"c-accurate-inventory\",\n      \"statement\": \"The registry distinguishes observed package names, name/version identities, repeated content identities, current canonical serving objects and historical native storage; the historical count is not represented as a fresh canonical count.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:accurate-inventory\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-1\"\n      ]\n    },\n    {\n      \"id\": \"c-declared-editions\",\n      \"statement\": \"The source publisher publishes exactly the source-declared edition, receives an identical existing product without minting another and refuses a changed occupied identity; git history, retry and test-only edits do not allocate an edition.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:declared-editions\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-2\"\n      ]\n    },\n    {\n      \"id\": \"c-protected-closure\",\n      \"statement\": \"An explicit retirement lot protects installed identities and transitive closure, dist-tag targets and dependency closure, admitted incoming release dependencies, rollback products, immutable conflicts and unsettled publication input; incomplete coverage refuses only the affected retirement.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:protected-closure\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-3\"\n      ]\n    },\n    {\n      \"id\": \"c-retirement-selection\",\n      \"statement\": \"Retirement derives from the protected dependency graph and source-owned product selection rather than stable-version retention or a hardcoded count or age; PR15 is assessed, useful capability retained at the canonical R2 owner and obsolete native-only retention retired.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:retirement-selection\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-4\"\n      ]\n    },\n    {\n      \"id\": \"c-immutable-retired-identities\",\n      \"statement\": \"A retired name/version cannot be republished with same or different bytes; compact permanent identity evidence binds original integrity and source/manifest commitment without redundant payload copies or treating archived evidence as an active version.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:immutable-retired-identities\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-5\"\n      ]\n    },\n    {\n      \"id\": \"c-atomic-owner-operation\",\n      \"statement\": \"The authenticated operator operation receives the exact metadata ETag and plan commitment, rechecks protected identities and current tags and uses original conditional storage; it never removes an advertised archive first, overwrites a concurrent publication, mutates credentials or accepts publisher-supplied retirement metadata.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:atomic-owner-operation\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-6\"\n      ]\n    },\n    {\n      \"id\": \"c-bounded-terminal-custody\",\n      \"statement\": \"The owner records intent before effects and actual conditional results after effects; interrupted removal resumes only the same lot, never overwrites or remints, distinguishes unknown effects and keeps protected packages usable; cleanup reclaims unneeded archive objects without another full copy.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:bounded-terminal-custody\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-7\"\n      ]\n    },\n    {\n      \"id\": \"c-complete-consumer-cutover\",\n      \"statement\": \"Packuments, exact-version lookup, dist-tag resolution, dependency admission and archive GET/HEAD consistently exclude retired editions and retain precise retired-identity refusals; no hidden direct archive route or old native shelf bypass continues serving retired editions.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:complete-consumer-cutover\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-8\"\n      ]\n    },\n    {\n      \"id\": \"c-receive-real-cleanup\",\n      \"statement\": \"Independent receiving compares original and final canonical version counts, actual removed bytes and objects, protected exact products and archive integrities, concurrent-write refusal and interrupted-lot completion; a draft PR, deletion plan, passing synthetic suite or corrected allocator alone does not satisfy this condition.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:receive-real-cleanup\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-9\"\n      ]\n    },\n    {\n      \"id\": \"c-original-work-lineage\",\n      \"statement\": \"Work17 and BCF599 retain the two disputed identities and unsettled WSL predecessor without false settlement; explicit later version retirement fulfills the current Leader request rather than silently rewriting prior conservation evidence.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:original-work-lineage\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-10\"\n      ]\n    },\n    {\n      \"id\": \"c-generated-source\",\n      \"statement\": \"The requirement is consumed by the existing Specification, Architecture, HLD, LLD and fabrication chain with exact source lineage and bounded inference; a missing generator is repaired at its existing owner and no handwritten normative code or parallel registry is introduced.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\"\n      ],\n      \"requirementCellIds\": [\n        \"retire-unselected-house-package-versions:generated-source\"\n      ],\n      \"specificationClauseIds\": [\n        \"rvp-11\"\n      ]\n    }\n  ],\n  \"viewpoints\": [\n    {\n      \"id\": \"vp-data\",\n      \"name\": \"Data plane inventory and custody\",\n      \"concernIds\": [\n        \"c-accurate-inventory\",\n        \"c-immutable-retired-identities\",\n        \"c-bounded-terminal-custody\",\n        \"c-receive-real-cleanup\"\n      ],\n      \"modelKinds\": [\n        \"package-inventory\",\n        \"retired-identity\",\n        \"custody-lifecycle\"\n      ],\n      \"method\": \"R2 canonical data plane: inventory distinction, retired-identity evidence, conditional custody and independent receiving readback.\"\n    },\n    {\n      \"id\": \"vp-code\",\n      \"name\": \"Code publication and retirement pipeline\",\n      \"concernIds\": [\n        \"c-declared-editions\",\n        \"c-retirement-selection\",\n        \"c-atomic-owner-operation\"\n      ],\n      \"modelKinds\": [\n        \"edition-selection\",\n        \"retirement-graph\",\n        \"operator-cas\"\n      ],\n      \"method\": \"Source-owned publication pipeline: edition admission, graph-derived retirement selection and conditional operator CAS.\"\n    },\n    {\n      \"id\": \"vp-networking\",\n      \"name\": \"Networking consumer cutover and serving\",\n      \"concernIds\": [\n        \"c-complete-consumer-cutover\"\n      ],\n      \"modelKinds\": [\n        \"consumer-cutover\"\n      ],\n      \"method\": \"Canonical serving cutover: exclusion of retired editions from packuments, tags, admission and archive GET/HEAD.\"\n    },\n    {\n      \"id\": \"vp-systems\",\n      \"name\": \"Systems protection, lineage and generation chain\",\n      \"concernIds\": [\n        \"c-protected-closure\",\n        \"c-original-work-lineage\",\n        \"c-generated-source\"\n      ],\n      \"modelKinds\": [\n        \"protection-graph\",\n        \"work-lineage\",\n        \"generation-chain\"\n      ],\n      \"method\": \"Operating system boundary: protected dependency closure, conservation work lineage and existing generation-chain consumption.\"\n    }\n  ],\n  \"views\": [\n    {\n      \"id\": \"v-data-view\",\n      \"name\": \"R2 data inventory and custody view\",\n      \"viewpointId\": \"vp-data\",\n      \"modelIds\": [\n        \"m-package-inventory\",\n        \"m-retired-identity\",\n        \"m-custody-lifecycle\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"v-code-view\",\n      \"name\": \"Publication and retirement code view\",\n      \"viewpointId\": \"vp-code\",\n      \"modelIds\": [\n        \"m-edition-selection\",\n        \"m-retirement-graph\",\n        \"m-operator-cas\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"v-networking-view\",\n      \"name\": \"Consumer cutover networking view\",\n      \"viewpointId\": \"vp-networking\",\n      \"modelIds\": [\n        \"m-consumer-cutover\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"v-systems-view\",\n      \"name\": \"Systems protection and lineage view\",\n      \"viewpointId\": \"vp-systems\",\n      \"modelIds\": [\n        \"m-protection-graph\",\n        \"m-work-lineage\",\n        \"m-generation-chain\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    }\n  ],\n  \"models\": [\n    {\n      \"id\": \"m-package-inventory\",\n      \"kind\": \"package-inventory\",\n      \"content\": \"Catalog of observed package names, name/version identities, repeated content identities, current canonical serving objects and historical native storage; the historical count is not represented as a fresh canonical count.\",\n      \"concernIds\": [\n        \"c-accurate-inventory\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-retired-identity\",\n      \"kind\": \"retired-identity\",\n      \"content\": \"Compact permanent retired identity binding original integrity, source/manifest commitment and archive SRI; republish of same or different bytes is refused and archived evidence is not an active version.\",\n      \"concernIds\": [\n        \"c-immutable-retired-identities\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-custody-lifecycle\",\n      \"kind\": \"custody-lifecycle\",\n      \"content\": \"Purpose-bound retirement-lot custody distinct from publication-input keys; intent recorded before effects, conditional results after, resume limited to the same lot, archive reclaimed without a second full copy.\",\n      \"concernIds\": [\n        \"c-bounded-terminal-custody\",\n        \"c-receive-real-cleanup\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-edition-selection\",\n      \"kind\": \"edition-selection\",\n      \"content\": \"Source-declared edition publication receiving an identical existing product without minting another and refusing a changed occupied identity; git history, retry and test-only edits do not allocate an edition.\",\n      \"concernIds\": [\n        \"c-declared-editions\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-retirement-graph\",\n      \"kind\": \"retirement-graph\",\n      \"content\": \"Retirement derived from the protected dependency graph and source-owned product selection; PR15 assessed, useful capability retained at the canonical R2 owner, obsolete native-only retention retired.\",\n      \"concernIds\": [\n        \"c-retirement-selection\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-operator-cas\",\n      \"kind\": \"operator-cas\",\n      \"content\": \"Authenticated operator receives exact metadata ETag and plan commitment, rechecks protected identities and tags, uses original conditional storage, refuses publisher-supplied retirement metadata and concurrent overwrites.\",\n      \"concernIds\": [\n        \"c-atomic-owner-operation\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-consumer-cutover\",\n      \"kind\": \"consumer-cutover\",\n      \"content\": \"Packuments, exact lookup, dist-tag resolution, dependency admission and archive GET/HEAD exclude retired editions and retain precise refusals; no hidden archive route or native shelf bypass serves retired editions.\",\n      \"concernIds\": [\n        \"c-complete-consumer-cutover\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-protection-graph\",\n      \"kind\": \"protection-graph\",\n      \"content\": \"Exact closure over installed identities, dist-tag targets, admitted incoming release dependencies, rollback products, immutable conflicts and unsettled publication input; incomplete coverage refuses the affected retirement.\",\n      \"concernIds\": [\n        \"c-protected-closure\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-work-lineage\",\n      \"kind\": \"work-lineage\",\n      \"content\": \"Work17 and BCF599 retain the two disputed identities and unsettled WSL predecessor without false settlement; explicit later retirement fulfills the Leader request.\",\n      \"concernIds\": [\n        \"c-original-work-lineage\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"m-generation-chain\",\n      \"kind\": \"generation-chain\",\n      \"content\": \"Existing Specification, Architecture, HLD, LLD and fabrication chain consumes the requirement with exact lineage; missing generator repaired at its owner, no handwritten normative code or parallel registry.\",\n      \"concernIds\": [\n        \"c-generated-source\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    }\n  ],\n  \"correspondences\": [\n    {\n      \"id\": \"corr-data-code\",\n      \"fromViewId\": \"v-data-view\",\n      \"toViewId\": \"v-code-view\",\n      \"rule\": \"Data inventory and retired-identity evidence feed code retirement selection and edition publication.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"corr-code-networking\",\n      \"fromViewId\": \"v-code-view\",\n      \"toViewId\": \"v-networking-view\",\n      \"rule\": \"Retired identities selected by code are excluded from networking serving, tags and archive access.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"corr-networking-systems\",\n      \"fromViewId\": \"v-networking-view\",\n      \"toViewId\": \"v-systems-view\",\n      \"rule\": \"Networking cutover relies on systems protected closure and conservation lineage for safe retirement.\",\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    }\n  ],\n  \"decisions\": [\n    {\n      \"id\": \"d-data-custody\",\n      \"statement\": \"Retire R2 original-input keys only under a purpose-bound retirement-lot custody distinct from publication input keys.\",\n      \"rationale\": \"Prevents delayed publication cleanup from deleting a retirement claim and preserves original publisher input.\",\n      \"alternatives\": [\n        \"Reuse publication input keys\",\n        \"Distinct retirement-lot custody\",\n        \"No custody record\"\n      ],\n      \"concernIds\": [\n        \"c-bounded-terminal-custody\",\n        \"c-receive-real-cleanup\",\n        \"c-immutable-retired-identities\",\n        \"c-accurate-inventory\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"d-code-pipeline\",\n      \"statement\": \"Derive retirement from the protected dependency graph and source-owned product selection; retain PR15 capability at the canonical R2 owner and retire native-only retention.\",\n      \"rationale\": \"Avoids hardcoded counts or ages and preserves useful capability while removing obsolete native retention.\",\n      \"alternatives\": [\n        \"Retain all stable versions\",\n        \"Hardcoded prerequisite count or age\",\n        \"Graph-derived source-owned selection\"\n      ],\n      \"concernIds\": [\n        \"c-retirement-selection\",\n        \"c-declared-editions\",\n        \"c-atomic-owner-operation\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"d-networking-cutover\",\n      \"statement\": \"Exclude retired editions from packuments, exact lookup, dist-tag resolution, dependency admission and archive GET/HEAD; remove hidden direct archive and native shelf bypass.\",\n      \"rationale\": \"Ensures consumers consistently refuse retired identities and no bypass continues serving retired editions.\",\n      \"alternatives\": [\n        \"Retain native shelf bypass\",\n        \"Add hidden archive route\",\n        \"Consistent canonical exclusion\"\n      ],\n      \"concernIds\": [\n        \"c-complete-consumer-cutover\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    },\n    {\n      \"id\": \"d-systems-lineage\",\n      \"statement\": \"Protect installed, tag, admitted-incoming and rollback closure; retain Work17 and BCF599 disputed identities and WSL predecessor; consume the existing generation chain with no parallel registry.\",\n      \"rationale\": \"Preserves protected identities and conservation evidence while finishing generation at the existing owner.\",\n      \"alternatives\": [\n        \"Add Git HEAD tag seed\",\n        \"Introduce a parallel registry\",\n        \"Exact closure plus existing generation chain\"\n      ],\n      \"concernIds\": [\n        \"c-protected-closure\",\n        \"c-original-work-lineage\",\n        \"c-generated-source\"\n      ],\n      \"sourceIds\": [\n        \"req\",\n        \"spec\",\n        \"r2-source\"\n      ]\n    }\n  ],\n  \"openQuestions\": [\n    {\n      \"id\": \"oq-1\",\n      \"question\": \"Has the original source Requirement and each BCP 14 interpretation been independently admitted?\",\n      \"blockedBy\": \"An original competent Office and external reviewer; no approval is inferred from this record\"\n    },\n    {\n      \"id\": \"oq-2\",\n      \"question\": \"Is the historical native package version count confirmed as non-canonical and the observed inventory distinct from fresh canonical serving objects?\",\n      \"blockedBy\": \"Independent receiving has not completed; the 7192 count remains unresolved\"\n    },\n    {\n      \"id\": \"oq-3\",\n      \"question\": \"Are Work17 and BCF599 confirmed to retain the two disputed identities and unsettled WSL predecessor without false settlement?\",\n      \"blockedBy\": \"Original conservation receiving has not been completed\"\n    }\n  ]\n}\n",
+      "digest": "sha256:d7233ba7e2cf5cd22b283f96b71109414d9a81599b2185e4ca6060dcd264111b"
+    }
+  ],
+  "design": {
+    "components": [
+      {
+        "id": "package-inventory",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "data",
+        "responsibility": "Catalogs observed package names, name/version identities, repeated content identities, current canonical serving objects and historical native storage; does not represent the historical count as a fresh canonical count.",
+        "dependencyIds": [],
+        "providedPorts": [
+          "inventory-read"
+        ],
+        "requiredPorts": []
+      },
+      {
+        "id": "retired-identity",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "data",
+        "responsibility": "Binds compact permanent retired identity evidence to original integrity, source/manifest commitment and archive SRI; refuses republish of same or different bytes; treats archived evidence as inactive, not an active registry version.",
+        "dependencyIds": [],
+        "providedPorts": [
+          "retired-identity-read"
+        ],
+        "requiredPorts": []
+      },
+      {
+        "id": "custody-lifecycle",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "data",
+        "responsibility": "Maintains purpose-bound retirement-lot custody distinct from publication-input keys; records intent before effects and actual conditional results after effects; resumes only the same original lot; reclaims unneeded archive objects without a second full archive copy.",
+        "dependencyIds": [],
+        "providedPorts": [
+          "custody-intent",
+          "custody-result"
+        ],
+        "requiredPorts": []
+      },
+      {
+        "id": "edition-selection",
+        "owner": "red-cup-engineering/npm-workspace-publication-service",
+        "layer": "code",
+        "responsibility": "Publishes exactly the source-declared edition, receives an identical existing product without minting another edition, and refuses a changed occupied identity; git history, retry and test-only edits do not allocate an edition.",
+        "dependencyIds": [
+          "package-inventory"
+        ],
+        "providedPorts": [
+          "edition-publish"
+        ],
+        "requiredPorts": [
+          "inventory-read"
+        ]
+      },
+      {
+        "id": "retirement-graph",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "code",
+        "responsibility": "Derives retirement from the protected dependency graph and source-owned product selection rather than stable-version retention or hardcoded count/age; assesses PR15, retains useful capability at the canonical R2 owner, and retires obsolete native-only retention.",
+        "dependencyIds": [
+          "package-inventory",
+          "retired-identity",
+          "custody-lifecycle"
+        ],
+        "providedPorts": [
+          "retirement-plan"
+        ],
+        "requiredPorts": [
+          "inventory-read",
+          "retired-identity-read",
+          "custody-intent"
+        ]
+      },
+      {
+        "id": "operator-cas",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "code",
+        "responsibility": "Canonical authenticated operator operation receives the exact package metadata ETag and plan commitment, rechecks protected identities and current tags, and uses original conditional storage; never removes an advertised archive first, overwrites a concurrent publication, mutates credentials, or accepts publisher-supplied retirement metadata.",
+        "dependencyIds": [
+          "retired-identity",
+          "custody-lifecycle",
+          "retirement-graph"
+        ],
+        "providedPorts": [
+          "operator-cas"
+        ],
+        "requiredPorts": [
+          "retired-identity-read",
+          "custody-intent",
+          "retirement-plan"
+        ]
+      },
+      {
+        "id": "consumer-cutover",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "networking",
+        "responsibility": "Excludes retired editions from packuments, exact-version lookup, dist-tag resolution, dependency admission and archive GET/HEAD; retains precise retired-identity refusals; removes hidden direct archive route and old native shelf bypass.",
+        "dependencyIds": [
+          "retired-identity",
+          "operator-cas"
+        ],
+        "providedPorts": [
+          "consumer-serving"
+        ],
+        "requiredPorts": [
+          "retired-identity-read",
+          "operator-cas"
+        ]
+      },
+      {
+        "id": "protection-graph",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "systems",
+        "responsibility": "Computes exact closure over installed identities, dist-tag targets, admitted incoming release dependencies, rollback products, immutable conflicts and unsettled publication input; incomplete coverage refuses only the affected retirement.",
+        "dependencyIds": [
+          "package-inventory",
+          "custody-lifecycle",
+          "retirement-graph",
+          "operator-cas"
+        ],
+        "providedPorts": [
+          "protected-closure"
+        ],
+        "requiredPorts": [
+          "inventory-read",
+          "custody-intent",
+          "retirement-plan",
+          "operator-cas"
+        ]
+      },
+      {
+        "id": "work-lineage",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "systems",
+        "responsibility": "Retains Work17 and BCF599 disputed identities and unsettled WSL predecessor without false settlement; explicit later version retirement fulfills the current Leader request rather than silently rewriting prior conservation evidence.",
+        "dependencyIds": [],
+        "providedPorts": [
+          "work-lineage"
+        ],
+        "requiredPorts": []
+      },
+      {
+        "id": "generation-chain",
+        "owner": "red-cup-engineering/npm-registry-serving-service",
+        "layer": "systems",
+        "responsibility": "Consumes the requirement through the existing Specification, Architecture, HLD, LLD and Computer Systems Fabrication chain with exact source lineage and bounded zero-cash inference; repairs a missing generator at its existing owner and introduces no handwritten normative code or parallel registry.",
+        "dependencyIds": [],
+        "providedPorts": [
+          "generation-chain"
+        ],
+        "requiredPorts": []
+      }
+    ],
+    "connections": [
+      {
+        "fromComponentId": "package-inventory",
+        "toComponentId": "edition-selection",
+        "port": "inventory-read"
+      },
+      {
+        "fromComponentId": "package-inventory",
+        "toComponentId": "retirement-graph",
+        "port": "inventory-read"
+      },
+      {
+        "fromComponentId": "retired-identity",
+        "toComponentId": "retirement-graph",
+        "port": "retired-identity-read"
+      },
+      {
+        "fromComponentId": "custody-lifecycle",
+        "toComponentId": "retirement-graph",
+        "port": "custody-intent"
+      },
+      {
+        "fromComponentId": "retired-identity",
+        "toComponentId": "operator-cas",
+        "port": "retired-identity-read"
+      },
+      {
+        "fromComponentId": "custody-lifecycle",
+        "toComponentId": "operator-cas",
+        "port": "custody-intent"
+      },
+      {
+        "fromComponentId": "retirement-graph",
+        "toComponentId": "operator-cas",
+        "port": "retirement-plan"
+      },
+      {
+        "fromComponentId": "retired-identity",
+        "toComponentId": "consumer-cutover",
+        "port": "retired-identity-read"
+      },
+      {
+        "fromComponentId": "operator-cas",
+        "toComponentId": "consumer-cutover",
+        "port": "operator-cas"
+      },
+      {
+        "fromComponentId": "package-inventory",
+        "toComponentId": "protection-graph",
+        "port": "inventory-read"
+      },
+      {
+        "fromComponentId": "custody-lifecycle",
+        "toComponentId": "protection-graph",
+        "port": "custody-intent"
+      },
+      {
+        "fromComponentId": "retirement-graph",
+        "toComponentId": "protection-graph",
+        "port": "retirement-plan"
+      },
+      {
+        "fromComponentId": "operator-cas",
+        "toComponentId": "protection-graph",
+        "port": "operator-cas"
+      }
+    ],
+    "traceability": [
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:accurate-inventory",
+        "specificationClauseIds": [
+          "rvp-1"
+        ],
+        "architectureModelIds": [
+          "m-package-inventory"
+        ],
+        "designElementIds": [
+          "package-inventory"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:declared-editions",
+        "specificationClauseIds": [
+          "rvp-2"
+        ],
+        "architectureModelIds": [
+          "m-edition-selection"
+        ],
+        "designElementIds": [
+          "edition-selection"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:protected-closure",
+        "specificationClauseIds": [
+          "rvp-3"
+        ],
+        "architectureModelIds": [
+          "m-protection-graph"
+        ],
+        "designElementIds": [
+          "protection-graph"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:retirement-selection",
+        "specificationClauseIds": [
+          "rvp-4"
+        ],
+        "architectureModelIds": [
+          "m-retirement-graph"
+        ],
+        "designElementIds": [
+          "retirement-graph"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:immutable-retired-identities",
+        "specificationClauseIds": [
+          "rvp-5"
+        ],
+        "architectureModelIds": [
+          "m-retired-identity"
+        ],
+        "designElementIds": [
+          "retired-identity"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:atomic-owner-operation",
+        "specificationClauseIds": [
+          "rvp-6"
+        ],
+        "architectureModelIds": [
+          "m-operator-cas"
+        ],
+        "designElementIds": [
+          "operator-cas"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:bounded-terminal-custody",
+        "specificationClauseIds": [
+          "rvp-7"
+        ],
+        "architectureModelIds": [
+          "m-custody-lifecycle"
+        ],
+        "designElementIds": [
+          "custody-lifecycle"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:complete-consumer-cutover",
+        "specificationClauseIds": [
+          "rvp-8"
+        ],
+        "architectureModelIds": [
+          "m-consumer-cutover"
+        ],
+        "designElementIds": [
+          "consumer-cutover"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:receive-real-cleanup",
+        "specificationClauseIds": [
+          "rvp-9"
+        ],
+        "architectureModelIds": [
+          "m-custody-lifecycle"
+        ],
+        "designElementIds": [
+          "custody-lifecycle"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:original-work-lineage",
+        "specificationClauseIds": [
+          "rvp-10"
+        ],
+        "architectureModelIds": [
+          "m-work-lineage"
+        ],
+        "designElementIds": [
+          "work-lineage"
+        ]
+      },
+      {
+        "requirementCellId": "retire-unselected-house-package-versions:generated-source",
+        "specificationClauseIds": [
+          "rvp-11"
+        ],
+        "architectureModelIds": [
+          "m-generation-chain"
+        ],
+        "designElementIds": [
+          "generation-chain"
+        ]
+      }
+    ],
+    "openQuestions": [
+      "Has the original source Requirement and each BCP 14 interpretation been independently admitted? Blocked by: an original competent Office and external reviewer; no approval is inferred from this record.",
+      "Is the historical native package version count confirmed as non-canonical and the observed inventory distinct from fresh canonical serving objects? Blocked by: independent receiving has not completed; the 7192 count remains unresolved.",
+      "Are Work17 and BCF599 confirmed to retain the two disputed identities and unsettled WSL predecessor without false settlement? Blocked by: original conservation receiving has not been completed.",
+      "Does one package metadata ETag establish that the protected cross-package dependency graph stayed unchanged between graph reading and archive retirement? Blocked by: requires real original-owner coordination and receiving at that boundary; per-package CAS alone does not prove global closure safety.",
+      "Are retirement custody keys distinct from publication-input keys, with no reuse of -/publication-inputs/{name}/{version}.json for retirement operations? Blocked by: unresolved original-native binding."
+    ]
+  },
+  "admitted": false,
+  "proof": "unreceived"
+}

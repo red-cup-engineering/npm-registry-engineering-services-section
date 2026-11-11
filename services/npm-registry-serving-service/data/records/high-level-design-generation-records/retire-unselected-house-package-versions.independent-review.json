@@ -1,0 +1,56 @@
+{
+  "type": "IndependentHighLevelDesignSemanticReceiving",
+  "version": 1,
+  "reviewedBy": "actor:NbEkNFALJ-DGHuaHksujM0a3w5aWbIkQ0wW6Jrmgslg",
+  "source": {
+    "requirementRevision": "ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0",
+    "specificationRevision": "ni:///sha-256;h5NHsesOy07uUd-WsnL2noLTPZdzxMzai0JP5UZ489E",
+    "architectureRevision": "ni:///sha-256;a28925UM-HDQEqBX2OgZmuUXladAedyzEDfLppLteu4",
+    "originalNativePlanSha256": "ba98d798ddc6945da471d298cd03d8a8aec385991f06a97c330d3f03ec552f71",
+    "rawDeliverySha256": "6cebc9607cc383c303cd4a335f6cb1086561dea7005c7e5ad9148ca11ca5e995",
+    "rawDeliveryBytes": 10099,
+    "candidateSha256": "9a3b2cb3c011072d0dce62bdc7b9bc53078c8ebb2ca457c5e473b0226eb8b49f"
+  },
+  "independentNativeReceiving": {
+    "generatorRevision": "db52af5115ce9cc12e027d3ec23c42fe5a2a1aa2",
+    "at": "2026-10-29T01:42:10.434Z",
+    "type": "EngineeringDesignCandidate",
+    "stage": "high-level",
+    "nativePlanMatchesOriginal": true
+  },
+  "semanticReceiving": {
+    "componentsRead": [
+      "package-inventory",
+      "retired-identity",
+      "custody-lifecycle",
+      "edition-selection",
+      "retirement-graph",
+      "operator-cas",
+      "consumer-cutover",
+      "protection-graph",
+      "work-lineage",
+      "generation-chain"
+    ],
+    "elevenTraceRowsRead": true,
+    "assessment": "The source-owned allocation is adequate for detailed design. Layer dependencies describe required capabilities, not authority to execute side effects before protection. Systems protection orchestrates lower-layer planning and CAS. No unresolved coordination or custody question is claimed resolved by this high-level candidate.",
+    "mandatoryDetailedDesignBeforeFabrication": [
+      "Choose and specify actual original-owner coordination for the cross-package protected graph, concurrent dependency publication and incoming selection. One package ETag is insufficient; no unqualified snapshot permits deletion.",
+      "Specify distinct purpose-bound retirement custody keys and original-lot recovery. Never allocate or reuse published-version publication-input keys; preserve disputed identities and unknown WSL custody.",
+      "Bind protected complete closure and current tags to actual effect preconditions; never remove a tag to make retirement possible.",
+      "Specify native CAS blob and hard-linked leaf reclamation with shared protected payload references, not R2-only deletion or journal-history rewriting.",
+      "Retire native house serving while preserving actual native authentication and public-uplink capabilities. No compatibility serving branch.",
+      "Bind tombstones to full canonical manifest/source commitment and original archive integrity. Derive archive filenames from admitted metadata/attachments.",
+      "Receive original/final active versions, actual reclaimed objects/bytes, protected exact products, write races and interrupted original-lot completion.",
+      "Keep already received Code17 source-declared edition selection; do not invent a new Code version if its implementation needs no change."
+    ]
+  },
+  "disposition": "accepted-for-original-low-level-design",
+  "limits": {
+    "fullDesignClosed": false,
+    "fabricationAdmitted": false,
+    "sourceChanged": false,
+    "archiveRetirementPerformed": false,
+    "operatingConsumerReceived": false
+  },
+  "recordedAt": "2026-10-29T01:53:32.256Z"
+}

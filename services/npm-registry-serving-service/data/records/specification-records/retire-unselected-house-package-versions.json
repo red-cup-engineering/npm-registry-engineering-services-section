@@ -1,0 +1,140 @@
+{
+  "identity": {
+    "version": "0.1.0",
+    "stability": "draft",
+    "status": "requires-independent-requirement-and-interpretation-admission",
+    "date-created": "2026-10-28",
+    "id": "retire-unselected-house-package-versions",
+    "title": "Retire unselected house package versions at the canonical registry",
+    "seat": "red-cup-engineering/npm-registry-serving-service",
+    "carrier": "data/records/specification-records/retire-unselected-house-package-versions.json",
+    "authors": [
+      "Hai Zhou, Chief Engineering Officer, Codex /root"
+    ],
+    "profile": "prose"
+  },
+  "whatThisIs": "An unadmitted candidate reading of Requirement retire-unselected-house-package-versions at ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0. External authority and specification acceptance remain open.",
+  "topics": [
+    {
+      "heading": "Source-owned requirement conditions",
+      "body": "{{clause:rvp-1}}\n\n{{clause:rvp-2}}\n\n{{clause:rvp-3}}\n\n{{clause:rvp-4}}\n\n{{clause:rvp-5}}\n\n{{clause:rvp-6}}\n\n{{clause:rvp-7}}\n\n{{clause:rvp-8}}\n\n{{clause:rvp-9}}\n\n{{clause:rvp-10}}\n\n{{clause:rvp-11}}",
+      "clauses": [
+        {
+          "id": "rvp-1",
+          "keyword": "MUST",
+          "actor": "The canonical registry owner",
+          "statement": "The original registry owner distinguishes observed package names, name/version identities, repeated content identities, current canonical serving objects and historical native storage; no historical7192 count is represented as a fresh canonical count.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:accurate-inventory"
+          ]
+        },
+        {
+          "id": "rvp-2",
+          "keyword": "MUST",
+          "actor": "The original source publisher",
+          "statement": "The original source publisher publishes exactly the source-declared edition, receives an identical existing product without minting another edition and refuses a changed occupied identity. Git history, a retry and a test-only edit do not allocate an edition.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:declared-editions"
+          ]
+        },
+        {
+          "id": "rvp-3",
+          "keyword": "MUST",
+          "actor": "The canonical registry owner",
+          "statement": "An explicit retirement lot protects every current installed package identity and transitive exact closure, current canonical dist-tag targets and their dependency closure, admitted incoming release dependencies, necessary rollback products, immutable conflicts and unsettled original publication input. Protection names exact source/operating evidence and uncertainty; incomplete coverage refuses only the affected retirement.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:protected-closure"
+          ]
+        },
+        {
+          "id": "rvp-4",
+          "keyword": "MUST",
+          "actor": "The canonical registry owner",
+          "statement": "Retirement is derived from that protected dependency graph and source-owned product selection, rather than retaining every stable version or a hardcoded count/age of prereleases. Existing PR15 is assessed, useful capability retained at the canonical R2 owner, and obsolete native-only retention implementation retired.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:retirement-selection"
+          ]
+        },
+        {
+          "id": "rvp-5",
+          "keyword": "MUST",
+          "actor": "The canonical registry owner",
+          "statement": "A retired name/version cannot be republished with either the same or different bytes. Compact permanent identity evidence binds its original integrity and source/manifest commitment, without retaining redundant payload copies or treating archived evidence as an active registry version.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:immutable-retired-identities"
+          ]
+        },
+        {
+          "id": "rvp-6",
+          "keyword": "MUST",
+          "actor": "The canonical registry owner",
+          "statement": "The canonical authenticated operator operation receives the exact package metadata ETag and plan commitment, rechecks protected identities and current tags, and uses original conditional storage. It never removes an advertised archive first, overwrites a concurrent publication, mutates user credentials, or accepts publisher-supplied retirement metadata.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:atomic-owner-operation"
+          ]
+        },
+        {
+          "id": "rvp-7",
+          "keyword": "MUST",
+          "actor": "The canonical registry owner",
+          "statement": "The owner records intent before effects and actual conditional results after effects. Interrupted metadata/archive removal resumes only that same original lot, never overwrites or remints it, distinguishes unknown effects and keeps every affected protected package usable. Cleanup reclaims unneeded original archive objects without another full archive copy.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:bounded-terminal-custody"
+          ]
+        },
+        {
+          "id": "rvp-8",
+          "keyword": "MUST",
+          "actor": "The canonical registry owner",
+          "statement": "Canonical packuments, exact-version lookup, dist-tag resolution, dependency admission and archive GET/HEAD consistently exclude retired editions and retain precise retired-identity refusals. No hidden direct archive route or old native shelf bypass continues serving retired editions.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:complete-consumer-cutover"
+          ]
+        },
+        {
+          "id": "rvp-9",
+          "keyword": "MUST",
+          "actor": "The independent registry receiver",
+          "statement": "Independent receiving compares original and final canonical version counts, actual removed bytes/objects, protected exact products and archive integrities, concurrent-write refusal and interrupted-lot completion. A draft PR, deletion plan, passing synthetic suite or corrected allocator alone does not satisfy this condition.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:receive-real-cleanup"
+          ]
+        },
+        {
+          "id": "rvp-10",
+          "keyword": "MUST",
+          "actor": "The canonical registry owner",
+          "statement": "The original registry conservation Work17 and BCF599 retain the two disputed identities and unsettled WSL predecessor without false settlement; explicit later version retirement fulfills the current Leader request rather than silently rewriting prior conservation evidence.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:original-work-lineage"
+          ]
+        },
+        {
+          "id": "rvp-11",
+          "keyword": "MUST",
+          "actor": "The original Engineering generation chain",
+          "statement": "The requirement is consumed by the existing Specification, Architecture, HLD, LLD and Computer Systems Fabrication chain with exact source lineage, bounded zero-cash inference and independent receiving. A missing generator is repaired at its existing owner; no handwritten normative code or parallel registry is introduced.",
+          "backedBy": [
+            "Original Requirement retire-unselected-house-package-versions (ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0), cell retire-unselected-house-package-versions:generated-source"
+          ]
+        }
+      ]
+    }
+  ],
+  "implementations": [],
+  "openQuestions": [
+    {
+      "question": "Has the original source Requirement and each BCP 14 interpretation been independently admitted?",
+      "blockedBy": "An original competent Office and external reviewer; no approval is inferred from this record"
+    }
+  ],
+  "laws": [],
+  "standards": [],
+  "provenance": {
+    "derivedAt": "2026-10-28T22:48:00.000Z",
+    "derivedBy": "Codex /root/pnpm_delivery, independent source review",
+    "derivedFrom": [
+      "retire-unselected-house-package-versions@ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0"
+    ]
+  }
+}

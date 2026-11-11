@@ -1,0 +1,82 @@
+{
+  "id": "retire-unselected-house-package-versions",
+  "name": "Retire unselected house package versions at the canonical registry",
+  "kind": "requirement",
+  "raised-by": "emsenn",
+  "asks": [
+    "I don't understand how we ahve 7k \"native package versions\" what \"native package verisons\" are you talking about like do you mean we have 7k versiosn of a software in our npm registry?\n\nThat's fucked up and we should not have that.",
+    "STOP ROUTING AROUND DAMAGE YOU (or other agents, it does not matter who) CAUSED AND ABANDONED: it just causes more damage.\nFIX THE DAMAGE",
+    "STOP PRESERVING BACKCOMPAT AND SHIMS\n\nTHIS IS EARLY ALPHA CODE\n\nFIND WORK THAT IS UNFINISHED AND FINISH IT, NOT BY RECONCILING BOTH DIRECTIONS BUT BY FINISHING THE WORK"
+  ],
+  "met-when": [
+    {
+      "cell": "retire-unselected-house-package-versions:accurate-inventory",
+      "target": "held",
+      "says": "The original registry owner distinguishes observed package names, name/version identities, repeated content identities, current canonical serving objects and historical native storage; no historical7192 count is represented as a fresh canonical count."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:declared-editions",
+      "target": "held",
+      "says": "The original source publisher publishes exactly the source-declared edition, receives an identical existing product without minting another edition and refuses a changed occupied identity. Git history, a retry and a test-only edit do not allocate an edition."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:protected-closure",
+      "target": "held",
+      "says": "An explicit retirement lot protects every current installed package identity and transitive exact closure, current canonical dist-tag targets and their dependency closure, admitted incoming release dependencies, necessary rollback products, immutable conflicts and unsettled original publication input. Protection names exact source/operating evidence and uncertainty; incomplete coverage refuses only the affected retirement."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:retirement-selection",
+      "target": "held",
+      "says": "Retirement is derived from that protected dependency graph and source-owned product selection, rather than retaining every stable version or a hardcoded count/age of prereleases. Existing PR15 is assessed, useful capability retained at the canonical R2 owner, and obsolete native-only retention implementation retired."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:immutable-retired-identities",
+      "target": "held",
+      "says": "A retired name/version cannot be republished with either the same or different bytes. Compact permanent identity evidence binds its original integrity and source/manifest commitment, without retaining redundant payload copies or treating archived evidence as an active registry version."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:atomic-owner-operation",
+      "target": "held",
+      "says": "The canonical authenticated operator operation receives the exact package metadata ETag and plan commitment, rechecks protected identities and current tags, and uses original conditional storage. It never removes an advertised archive first, overwrites a concurrent publication, mutates user credentials, or accepts publisher-supplied retirement metadata."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:bounded-terminal-custody",
+      "target": "held",
+      "says": "The owner records intent before effects and actual conditional results after effects. Interrupted metadata/archive removal resumes only that same original lot, never overwrites or remints it, distinguishes unknown effects and keeps every affected protected package usable. Cleanup reclaims unneeded original archive objects without another full archive copy."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:complete-consumer-cutover",
+      "target": "held",
+      "says": "Canonical packuments, exact-version lookup, dist-tag resolution, dependency admission and archive GET/HEAD consistently exclude retired editions and retain precise retired-identity refusals. No hidden direct archive route or old native shelf bypass continues serving retired editions."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:receive-real-cleanup",
+      "target": "held",
+      "says": "Independent receiving compares original and final canonical version counts, actual removed bytes/objects, protected exact products and archive integrities, concurrent-write refusal and interrupted-lot completion. A draft PR, deletion plan, passing synthetic suite or corrected allocator alone does not satisfy this condition."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:original-work-lineage",
+      "target": "held",
+      "says": "The original registry conservation Work17 and BCF599 retain the two disputed identities and unsettled WSL predecessor without false settlement; explicit later version retirement fulfills the current Leader request rather than silently rewriting prior conservation evidence."
+    },
+    {
+      "cell": "retire-unselected-house-package-versions:generated-source",
+      "target": "held",
+      "says": "The requirement is consumed by the existing Specification, Architecture, HLD, LLD and Computer Systems Fabrication chain with exact source lineage, bounded zero-cash inference and independent receiving. A missing generator is repaired at its existing owner; no handwritten normative code or parallel registry is introduced."
+    }
+  ],
+  "owners": [
+    "red-cup-engineering/npm-registry-serving-service",
+    "red-cup-engineering/npm-workspace-publication-service"
+  ],
+  "x-provenance": {
+    "recorded-by": "Hai Zhou, Chief Engineering Officer, Codex /root",
+    "recorded-on": "2026-10-28",
+    "basis": "The asks are verbatim Leader messages in this chat. All acceptance conditions are assistant inferences, open for the Leader to accept or strike; every condition is unmeasured. No admission, effect or completion is asserted.",
+    "references": [
+      "https://github.com/red-cup-engineering/npm-registry-serving-service/issues/17",
+      "https://github.com/red-cup-engineering/npm-registry-serving-service/pull/15",
+      "https://github.com/red-cup-engineering/npm-workspace-publication-service/pull/81"
+    ]
+  }
+}
