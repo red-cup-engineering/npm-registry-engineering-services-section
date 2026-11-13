@@ -92,7 +92,7 @@ export function rewriteMetadataTarballOrigins(metadata, origin) {
     if (typeof version?.dist?.tarball === "string") {
       const name = version.name ?? rewritten.name;
       if (version.version !== key || (rewritten.name && name !== rewritten.name)) throw new Error("Inconsistent package tarball identity");
-      version.dist.tarball = new URL(packageTarballPath(name, key), `${origin}/`).href;
+      version.dist.tarball = new URL(`/${packageTarballPath(name, key)}`, origin).href;
     }
   }
   return rewritten;

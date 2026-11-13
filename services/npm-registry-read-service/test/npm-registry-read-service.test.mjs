@@ -98,6 +98,7 @@ test("serves tarballs as immutable binary artifacts and rejects escaped paths", 
 test("projects complete package identities without mutating source metadata", () => {
   const metadata = { name: "@customer/example", versions: { "1.0.0": { name: "@customer/example", version: "1.0.0", dist: { tarball: "http://registry.invalid/tarballs/customer/example/-/example-1.0.0.tgz" } } } };
   const rewritten = rewriteMetadataTarballOrigins(metadata, "https://registry.example.test");
+  assert.deepEqual(rewriteMetadataTarballOrigins(metadata, "https://registry.example.test/"), rewritten);
   assert.equal(rewritten.versions["1.0.0"].dist.tarball, "https://registry.example.test/@customer/example/-/example-1.0.0.tgz");
   assert.equal(metadata.versions["1.0.0"].dist.tarball, "http://registry.invalid/tarballs/customer/example/-/example-1.0.0.tgz");
 });
