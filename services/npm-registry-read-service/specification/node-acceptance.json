@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "basis": "A read-only npm snapshot serves GET and HEAD and preserves the artifact path when rewriting public URLs.",
+  "basis": "A read-only npm snapshot serves GET and HEAD and projects complete package identities onto canonical npm tarball URLs.",
   "cases": [
     {
       "id": "REGISTRY-READ-REFUSAL",
@@ -14,7 +14,7 @@
       "id": "REGISTRY-READ-QUICKSTART",
       "role": "consumer",
       "kind": "example",
-      "claim": "An installed caller can change the served tarball origin while preserving its path and the original metadata.",
+      "claim": "An installed caller can project a canonical tarball URL while preserving the original metadata.",
       "file": "examples/quickstart.test.mjs"
     }
   ]

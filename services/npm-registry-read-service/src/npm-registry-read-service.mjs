@@ -76,12 +76,23 @@ export function createPackageRegistryServer({ registryDirectory, openFile = open
   });
 }
 
+/** Derive a registry tarball path from the complete package identity. */
+function packageTarballPath(name, version) {
+  if (!PACKAGE_NAME.test(name) || typeof version !== "string" || !/^[0-9A-Za-z.+-]+$/.test(version)) {
+    throw new Error("Invalid package tarball identity");
+  }
+  const leaf = name.slice(name.lastIndexOf("/") + 1);
+  return `${name}/-/${leaf}-${version}.tgz`;
+}
+
+/** Project immutable snapshot artifacts onto conventional npm registry routes. */
 export function rewriteMetadataTarballOrigins(metadata, origin) {
   const rewritten = structuredClone(metadata);
-  for (const version of Object.values(rewritten.versions ?? {})) {
+  for (const [key, version] of Object.entries(rewritten.versions ?? {})) {
     if (typeof version?.dist?.tarball === "string") {
-      const artifact = new URL(version.dist.tarball).pathname;
-      version.dist.tarball = new URL(artifact, origin).href;
+      const name = version.name ?? rewritten.name;
+      if (version.version !== key || (rewritten.name && name !== rewritten.name)) throw new Error("Inconsistent package tarball identity");
+      version.dist.tarball = new URL(`/${packageTarballPath(name, key)}`, origin).href;
     }
   }
   return rewritten;
@@ -94,19 +105,17 @@ export async function resolvePackageRegistryRequest({ registryDirectory, request
   if (decoded.endsWith(".tgz") && !decoded.startsWith("tarballs/")) {
     const boundary = decoded.indexOf("/-/");
     const name = boundary < 0 ? null : decoded.slice(0, boundary);
-    const filename = boundary < 0 ? null : decoded.slice(boundary + 3);
-    if (name && filename && PACKAGE_NAME.test(name)) {
-      const scoped = name.startsWith("@");
-      const slash = name.indexOf("/");
-      const leaf = scoped ? name.slice(slash + 1) : name;
-      const expected = `${name}-${filename.slice(filename.lastIndexOf("-") + 1)}`;
-      if (filename === expected) relativeTarget = `tarballs/${scoped ? `${name.slice(1, slash)}/` : ""}${leaf}/-/${leaf}-${filename.slice(filename.lastIndexOf("-") + 1)}`;
-    }
+    if (!name || !PACKAGE_NAME.test(name)) return null;
+    const metadataPath = join(root, "metadata", `${encodeURIComponent(name)}.json`);
+    if (!(await exists(metadataPath))) return null;
+    const metadata = JSON.parse(await readFile(metadataPath, "utf8"));
+    // Match the whole name/version from the authoritative packument. Never
+    // infer a version by splitting hyphens in package or prerelease names.
+    const version = Object.entries(metadata.versions ?? {}).find(([key, value]) =>
+      value.name === name && value.version === key && packageTarballPath(name, key) === decoded)?.[1];
+    if (!version?.dist?.tarball) return null;
+    relativeTarget = decodeURIComponent(new URL(version.dist.tarball).pathname).replace(/^\/+/, "");
   }
-  // registry-receipt.json lives at the registry root, not under metadata/ —
-  // it happens to satisfy PACKAGE_NAME's character class (hyphens and one
-  // dot are legal in an unscoped name), so it must be excluded explicitly or
-  // every reader of the receipt gets a 404 from the metadata/ branch below.
   const target = decoded !== "registry-receipt.json" && PACKAGE_NAME.test(decoded) && !decoded.includes(".tgz")
     ? join(root, "metadata", `${encodeURIComponent(decoded)}.json`)
     : resolve(root, relativeTarget);

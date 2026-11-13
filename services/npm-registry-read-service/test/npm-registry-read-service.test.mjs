@@ -58,7 +58,7 @@ test("serves packuments with the requesting face and supports HEAD", async () =>
     assert.equal(packument.status, 200);
     assert.equal(packument.headers["content-type"], "application/json");
     assert.equal(packument.headers["cache-control"], "no-cache");
-    assert.equal(JSON.parse(packument.body).versions["1.0.0"].dist.tarball, "http://registry.example.test/tarballs/customer/example/-/example-1.0.0.tgz");
+    assert.equal(JSON.parse(packument.body).versions["1.0.0"].dist.tarball, "http://registry.example.test/@customer/example/-/example-1.0.0.tgz");
     const head = await registryRequest(root, { method: "HEAD", path: "/@customer%2Fexample" });
     assert.equal(head.status, 200);
     assert.equal(Number(head.headers["content-length"]) > 0, true);
@@ -84,7 +84,7 @@ test("serves tarballs as immutable binary artifacts and rejects escaped paths", 
     assert.equal(tarball.headers["content-type"], "application/octet-stream");
     assert.equal(tarball.headers["cache-control"], "public, immutable");
     assert.deepEqual(tarball.body, Buffer.from("1.0.0", "utf8"));
-    const canonicalClientPath = await registryRequest(root, { path: "/@customer/example/-/@customer/example-1.0.0.tgz" });
+    const canonicalClientPath = await registryRequest(root, { path: "/@customer/example/-/example-1.0.0.tgz" });
     assert.equal(canonicalClientPath.status, 200);
     assert.deepEqual(canonicalClientPath.body, Buffer.from("1.0.0", "utf8"));
     const head = await registryRequest(root, { method: "HEAD", path: "/tarballs/customer/example/-/example-1.0.0.tgz" });
@@ -95,10 +95,11 @@ test("serves tarballs as immutable binary artifacts and rejects escaped paths", 
   } finally { await rm(root, { recursive: true, force: true }); }
 });
 
-test("rewrites only tarball origins without mutating source metadata", () => {
-  const metadata = { versions: { "1.0.0": { dist: { tarball: "http://registry.invalid/tarballs/customer/example/-/example-1.0.0.tgz" } } } };
+test("projects complete package identities without mutating source metadata", () => {
+  const metadata = { name: "@customer/example", versions: { "1.0.0": { name: "@customer/example", version: "1.0.0", dist: { tarball: "http://registry.invalid/tarballs/customer/example/-/example-1.0.0.tgz" } } } };
   const rewritten = rewriteMetadataTarballOrigins(metadata, "https://registry.example.test");
-  assert.equal(rewritten.versions["1.0.0"].dist.tarball, "https://registry.example.test/tarballs/customer/example/-/example-1.0.0.tgz");
+  assert.deepEqual(rewriteMetadataTarballOrigins(metadata, "https://registry.example.test/"), rewritten);
+  assert.equal(rewritten.versions["1.0.0"].dist.tarball, "https://registry.example.test/@customer/example/-/example-1.0.0.tgz");
   assert.equal(metadata.versions["1.0.0"].dist.tarball, "http://registry.invalid/tarballs/customer/example/-/example-1.0.0.tgz");
 });
 
@@ -169,4 +170,39 @@ test("a tarball opened before activation is measured and streamed from one snaps
     assert.equal(headers["content-length"], Buffer.byteLength("1.0.0"));
     assert.deepEqual(Buffer.concat(chunks), Buffer.from("1.0.0", "utf8"));
   } finally { await rm(host, { recursive: true, force: true }); }
+});
+
+test("canonical routes retain complete scoped prerelease and build identities", async () => {
+  const root = await registryFixture();
+  try {
+    for (const version of ["0.9.6-dev.2", "0.9.6-dev.2+build.7"]) {
+      await writeRegistrySnapshot(root, version);
+      const response = await registryRequest(root, { path: "/@customer%2Fexample" });
+      const projected = JSON.parse(response.body).versions[version].dist.tarball;
+      assert.equal(projected, `http://registry.example.test/@customer/example/-/example-${version}.tgz`);
+      for (const path of [new URL(projected).pathname, `/@customer%2Fexample/-/example-${version}.tgz`]) {
+        const artifact = await registryRequest(root, { path });
+        assert.equal(artifact.status, 200);
+        assert.equal(artifact.body.toString(), version);
+      }
+      for (const path of [`/@customer/example/-/example-2.tgz`, `/@other/example/-/example-${version}.tgz`, `/@customer/example/-/@customer/example-${version}.tgz`]) {
+        assert.equal((await registryRequest(root, { path })).status, 404);
+      }
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+test("canonical unscoped hyphenated package routes use metadata identity, not suffix parsing", async () => {
+  const root = await registryFixture();
+  try {
+    const name = "hyphenated-package";
+    const version = "1.2.3-next-test.9";
+    const artifact = `tarballs/${name}/-/${name}-${version}.tgz`;
+    await mkdir(join(root, "tarballs", name, "-"), { recursive: true });
+    await writeFile(join(root, artifact), version);
+    await writeFile(join(root, "metadata", `${name}.json`), JSON.stringify({name, versions: {[version]: {name, version, dist: {tarball: `https://registry.invalid/${artifact}`}}}}));
+    const response = await registryRequest(root, {path: `/${name}/-/${name}-${version}.tgz`});
+    assert.equal(response.status, 200);
+    assert.equal(response.body.toString(), version);
+  } finally { await rm(root, { recursive: true, force: true }); }
 });
