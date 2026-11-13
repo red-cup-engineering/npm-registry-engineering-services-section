@@ -3,7 +3,10 @@ import { createServer } from "node:http";
 import { join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 
-const PACKAGE_NAME = /^(?:@[a-z0-9-]+\/)?[a-z0-9][a-z0-9._-]*$/u;
+import validatePackageName from "validate-npm-package-name";
+
+/** Canonical npm package-name admission, shared by snapshot and HTTP receiving. */
+export const isNpmPackageName = (name) => typeof name === "string" && validatePackageName(name).validForNewPackages;
 
 function inside(root, candidate) {
   const displacement = relative(root, candidate);
@@ -46,7 +49,7 @@ export function createPackageRegistryServer({ registryDirectory, openFile = open
         return;
       }
       const type = contentType(target);
-      if (type === "application/json" && PACKAGE_NAME.test(decodeURIComponent(url.pathname).replace(/^\/+/, ""))) {
+      if (type === "application/json" && isNpmPackageName(decodeURIComponent(url.pathname).replace(/^\/+/, ""))) {
         const metadata = rewriteMetadataTarballOrigins(JSON.parse(await readFile(target, "utf8")), new URL(request.url ?? "/", `http://${request.headers.host ?? "127.0.0.1"}`).origin);
         const body = Buffer.from(`${JSON.stringify(metadata)}\n`, "utf8");
         response.writeHead(200, { "content-type": type, "content-length": body.byteLength, "cache-control": "no-cache" });
@@ -78,7 +81,7 @@ export function createPackageRegistryServer({ registryDirectory, openFile = open
 
 /** Derive a registry tarball path from the complete package identity. */
 function packageTarballPath(name, version) {
-  if (!PACKAGE_NAME.test(name) || typeof version !== "string" || !/^[0-9A-Za-z.+-]+$/.test(version)) {
+  if (!isNpmPackageName(name) || typeof version !== "string" || !/^[0-9A-Za-z.+-]+$/.test(version)) {
     throw new Error("Invalid package tarball identity");
   }
   const leaf = name.slice(name.lastIndexOf("/") + 1);
@@ -105,7 +108,7 @@ export async function resolvePackageRegistryRequest({ registryDirectory, request
   if (decoded.endsWith(".tgz") && !decoded.startsWith("tarballs/")) {
     const boundary = decoded.indexOf("/-/");
     const name = boundary < 0 ? null : decoded.slice(0, boundary);
-    if (!name || !PACKAGE_NAME.test(name)) return null;
+    if (!name || !isNpmPackageName(name)) return null;
     const metadataPath = join(root, "metadata", `${encodeURIComponent(name)}.json`);
     if (!(await exists(metadataPath))) return null;
     const metadata = JSON.parse(await readFile(metadataPath, "utf8"));
@@ -116,7 +119,7 @@ export async function resolvePackageRegistryRequest({ registryDirectory, request
     if (!version?.dist?.tarball) return null;
     relativeTarget = decodeURIComponent(new URL(version.dist.tarball).pathname).replace(/^\/+/, "");
   }
-  const target = decoded !== "registry-receipt.json" && PACKAGE_NAME.test(decoded) && !decoded.includes(".tgz")
+  const target = decoded !== "registry-receipt.json" && isNpmPackageName(decoded) && !decoded.includes(".tgz")
     ? join(root, "metadata", `${encodeURIComponent(decoded)}.json`)
     : resolve(root, relativeTarget);
   if (!inside(root, target) || !(await exists(target)) || !(await stat(target)).isFile()) return null;
