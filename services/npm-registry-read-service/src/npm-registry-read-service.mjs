@@ -5,8 +5,9 @@ import { parseArgs } from "node:util";
 
 import validatePackageName from "validate-npm-package-name";
 
-/** Canonical npm package-name admission, shared by snapshot and HTTP receiving. */
-export const isNpmPackageName = (name) => typeof name === "string" && validatePackageName(name).validForNewPackages;
+/** Existing npm registry identity admission, shared by snapshot and HTTP receiving.
+ * Publication warnings (for example the public punycode package) are not lookup errors. */
+export const isNpmPackageName = (name) => typeof name === "string" && validatePackageName(name).validForOldPackages;
 
 function inside(root, candidate) {
   const displacement = relative(root, candidate);
