@@ -72,7 +72,7 @@ test("a metadata update never changes what a published version is", async (t) =>
   }
   const removed = await read(f); delete removed.versions["1.0.0"];
   const removal = await f.put(name, removed);
-  assert.equal(removal.status, 409); assert.match((await removal.json()).error, /1\.0\.0 is published; a version is never removed/u);
+  assert.equal(removal.status, 409); assert.match((await removal.json()).error, /1\.0\.0 is published; a version is removed with npm unpublish/u);
   const retagged = await read(f); retagged["dist-tags"].latest = "1.0.0";
   assert.equal((await f.put(name, retagged)).status, 409);
   const added = await read(f); added.versions["2.0.0"] = { ...added.versions["1.1.0"], version: "2.0.0" };
@@ -117,7 +117,7 @@ test("dist-tags are set, read and removed at their own endpoints", async (t) => 
   assert.equal(JSON.stringify((await stored(f)).versions["1.0.0"]).includes("beta"), false);
 });
 
-test("real npm: deprecate, undeprecate and dist-tag work against the registry; unpublish and republish do not", { timeout: 120_000 }, async (t) => {
+test("real npm: deprecate, undeprecate, dist-tag and unpublish work against the registry; republish does not", { timeout: 120_000 }, async (t) => {
   const f = await liveRegistry(t);
   await f.publishPackage(name, "1.0.0");
   await f.publishPackage(name, "1.1.0");
@@ -152,13 +152,22 @@ test("real npm: deprecate, undeprecate and dist-tag work against the registry; u
   await assert.rejects(f.npm(["dist-tag", "rm", name, "latest"]), /latest|400/u);
   await assert.rejects(f.npm(["dist-tag", "rm", name, "never-was"]), /404|never-was/u);
 
-  // a version is never replaced, and npm unpublish is not a way around it
+  // a version is never replaced
   const original = Buffer.from(await (await fetch(packument.versions["1.0.0"].dist.tarball)).arrayBuffer());
   await assert.rejects(f.publishPackage(name, "1.0.0", { "index.mjs": "export const version = 'replaced';\n" }, {}, ["--tag", "replay"]), /409|already published|never replaced/u);
-  await assert.rejects(f.npm(["unpublish", `${name}@1.0.0`, "--force"]), /405|never removed/u);
-  await assert.rejects(f.npm(["unpublish", name, "--force"]), /405|never removed/u);
   assert.deepEqual(Buffer.from(await (await fetch(packument.versions["1.0.0"].dist.tarball)).arrayBuffer()), original);
-  assert.deepEqual(Object.keys((await f.packument(name)).versions), ["1.0.0", "1.1.0", "2.0.0"]);
+
+  // npm unpublish removes a version and its tarball; latest moves to the highest version left
+  const removedTarball = packument.versions["2.0.0"].dist.tarball;
+  await f.npm(["unpublish", `${name}@2.0.0`, "--force"]);
+  packument = await f.packument(name);
+  assert.deepEqual(Object.keys(packument.versions), ["1.0.0", "1.1.0"]);
+  assert.equal(packument["dist-tags"].latest, "1.1.0");
+  assert.equal((await fetch(removedTarball)).status, 404);
+  // and the whole package, leaving nothing in the store
+  await f.npm(["unpublish", name, "--force"]);
+  assert.equal((await fetch(`${f.origin}/${name}`)).status, 404);
+  assert.equal((await fetch(packument.versions["1.0.0"].dist.tarball)).status, 404);
 });
 
 test("real npm: deprecate without a credential is refused", { timeout: 60_000 }, async (t) => {
@@ -168,4 +177,35 @@ test("real npm: deprecate without a credential is refused", { timeout: 60_000 },
   await writeFile(f.env.NPM_CONFIG_USERCONFIG, `registry=${f.origin}\n`);
   await assert.rejects(f.npm(["deprecate", `${name}@1.0.0`, "anonymous"]), /401|credential|ENEEDAUTH/u);
   assert.equal((await f.packument(name)).versions["1.0.0"].deprecated, undefined);
+});
+
+test("unpublish removes versions' facts, leaves and blobs, then the whole package; it needs a publisher and a house name", async (t) => {
+  const { packagedVersion } = await import("./support/tarball.mjs");
+  const { readdir } = await import("node:fs/promises");
+  const f = await registryFixture(t);
+  const target = "@registry-fixture/removed";
+  for (const version of ["1.0.0", "1.1.0", "2.0.0"]) assert.equal((await f.publish(packagedVersion(target, version))).status, 201);
+  const blobs = async () => (await readdir(join(f.storage, "-", "blobs"), { recursive: true, withFileTypes: true })).filter(entry => entry.isFile()).length;
+  const heldBlobs = await blobs();
+  const packument = await (await f.request(`/${target}`)).json();
+  const less = { ...packument, versions: { "1.0.0": packument.versions["1.0.0"], "1.1.0": packument.versions["1.1.0"] } };
+  const put = (body, headers = { authorization }) => f.request(`/${target}/-rev/${packument._rev}`, { method: "PUT", headers: { ...headers, "content-type": "application/json" }, body: JSON.stringify(body) });
+  assert.equal((await put(less, {})).status, 401);
+  const removed = await put(less);
+  assert.equal(removed.status, 200, await removed.clone().text());
+  assert.deepEqual((await removed.json()).removed, ["2.0.0"]);
+  const after = await (await f.request(`/${target}`)).json();
+  assert.deepEqual(Object.keys(after.versions), ["1.0.0", "1.1.0"]);
+  assert.equal(after["dist-tags"].latest, "1.1.0");
+  assert.doesNotMatch(await readFile(join(f.storage, target, "facts.jsonl"), "utf8"), /2\.0\.0/u);
+  assert.equal((await f.request(`/${target}/-/removed-2.0.0.tgz`)).status, 404);
+  assert.equal(await blobs(), heldBlobs - 1);
+  assert.equal((await f.request(`/${target}/-/removed-2.0.0.tgz/-rev/${after._rev}`, { method: "DELETE", headers: { authorization } })).status, 200);
+  assert.equal((await f.request(`/${target}/-/removed-1.0.0.tgz/-rev/${after._rev}`, { method: "DELETE", headers: { authorization } })).status, 409);
+  assert.equal((await f.request(`/left-pad/-rev/1-x`, { method: "DELETE", headers: { authorization } })).status, 403);
+  const whole = await f.request(`/${target}/-rev/${after._rev}`, { method: "DELETE", headers: { authorization } });
+  assert.equal(whole.status, 200, await whole.clone().text());
+  assert.equal((await f.request(`/${target}`)).status, 404);
+  assert.equal(await blobs(), heldBlobs - 3);
+  await assert.rejects(readdir(join(f.storage, target)), { code: "ENOENT" });
 });

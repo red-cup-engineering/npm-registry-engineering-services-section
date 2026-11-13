@@ -400,3 +400,29 @@ test("a packument nothing projects is served as its stored bytes, with its store
   const head = await f.request("/" + encodeURIComponent(name), { method: "HEAD" });
   assert.equal(head.status, 200); assert.equal((await head.arrayBuffer()).byteLength, 0);
 });
+
+test("npm unpublish removes a version's archive and metadata entry, then the whole package and its objects", async t => {
+  const f = await fixture(t);
+  for (const version of ["1.0.0", "1.1.0"]) {
+    const p = publication(version); p.body["dist-tags"] = { latest: version };
+    assert.equal((await f.put(p.body)).status, 201);
+  }
+  const packument = await (await f.request("/" + name)).json();
+  const less = { ...packument, versions: { "1.0.0": packument.versions["1.0.0"] }, "dist-tags": { latest: "1.0.0" } };
+  const unpublish = (path, init) => f.request(path, { ...init, headers: { authorization, "content-type": "application/json", ...init.headers } });
+  assert.equal((await f.request("/" + name + "/-rev/" + packument._rev, { method: "PUT", body: JSON.stringify(less) })).status, 401);
+  const removed = await unpublish("/" + name + "/-rev/" + packument._rev, { method: "PUT", body: JSON.stringify(less) });
+  assert.equal(removed.status, 200, await removed.clone().text());
+  assert.deepEqual((await removed.json()).removed, ["1.1.0"]);
+  const after = await (await f.request("/" + name)).json();
+  assert.deepEqual(Object.keys(after.versions), ["1.0.0"]);
+  assert.equal(after["dist-tags"].latest, "1.0.0");
+  assert.equal(f.bucket.objects.has(archiveKey("1.1.0")), false);
+  assert.equal((await unpublish("/" + name + "/-/r2-example-1.1.0.tgz/-rev/" + after._rev, { method: "DELETE" })).status, 200);
+  assert.equal((await unpublish("/" + name + "/-/r2-example-1.0.0.tgz/-rev/" + after._rev, { method: "DELETE" })).status, 409);
+  assert.equal(f.bucket.objects.has(archiveKey("1.0.0")), true);
+  const whole = await unpublish("/" + name + "/-rev/" + after._rev, { method: "DELETE" });
+  assert.equal(whole.status, 200, await whole.clone().text());
+  assert.equal((await f.request("/" + name)).status, 404);
+  assert.deepEqual([...f.bucket.objects.keys()].filter(key => key.includes("r2-example")), []);
+});

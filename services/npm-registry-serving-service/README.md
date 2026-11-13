@@ -19,7 +19,7 @@ One accountable original input per package/version is received before effects. A
 
 What the registry knows about a house package is what has happened to it, kept
 as EAVT rows (`{e, a, v, t}`, the shape `eavt-services-section` reads) in an
-append-only journal per package, and its tarballs, each kept once under its
+journal per package (appended to, and rewritten only when versions are removed), and its tarballs, each kept once under its
 RFC 6920 SHA-256 NI address:
 
 ```
@@ -226,7 +226,13 @@ facts about versions, all of it authenticated:
   `.../dist-tags/<tag>`, DELETE `.../dist-tags/<tag>`, on house packages only. A
   tag must name a published version and must not be a valid semver range;
   `latest` is moved, not removed.
-- `npm unpublish` (PUT `/-rev/`, DELETE) is a 405: versions are never removed.
+- `npm unpublish` removes a version (PUT `/<name>/-rev/<rev>` with the packument
+  less it), its tarball and blob, or the whole package (DELETE
+  `/<name>/-rev/<rev>`), for a publisher, on house names only. A tag naming a
+  removed version goes with it; `latest` moves to the highest version left. The
+  R2 profile does the same to its metadata and archive objects. Peers refill a
+  node from what they hold, so a package is removed from canonical R2 first, then
+  from each node.
 - `npm owner` is a 409: maintainers are the publishers of record.
 
 ## Memory is bounded by admission
@@ -268,8 +274,8 @@ package. They cover:
   npm-derived fields, sign-in tokens and htpasswd reload, audit filtering, and
   the hosted-application contract.
 - **Real clients**: the installed npm client publishes, installs, deprecates,
-  tags, signs in at a terminal, logs out, and is refused unpublish and
-  republication. The installed pnpm client publishes and installs, and its
+  tags, unpublishes a version and then the package, signs in at a terminal,
+  logs out, and is refused republication. The installed pnpm client publishes and installs, and its
   cached metadata is revalidated with a 304.
 
 The publish-gate tests cover each violation kind against real tarballs built
@@ -338,7 +344,7 @@ standalone process; both are the same registry over the same store.
 
 What the registry knows about a Group package is what has happened to it, kept
 as EAVT rows (`{e, a, v, t}`, the shape `eavt-services-section` reads) in an
-append-only journal per package, and its tarballs, each kept once under its
+journal per package (appended to, and rewritten only when versions are removed), and its tarballs, each kept once under its
 RFC 6920 SHA-256 NI address:
 
 ```
@@ -522,7 +528,13 @@ facts about versions, all of it authenticated:
   `.../dist-tags/<tag>`, DELETE `.../dist-tags/<tag>`, on Group packages only. A
   tag must name a published version and must not be a valid semver range;
   `latest` is moved, not removed.
-- `npm unpublish` (PUT `/-rev/`, DELETE) is a 405: versions are never removed.
+- `npm unpublish` removes a version (PUT `/<name>/-rev/<rev>` with the packument
+  less it), its tarball and blob, or the whole package (DELETE
+  `/<name>/-rev/<rev>`), for a publisher, on house names only. A tag naming a
+  removed version goes with it; `latest` moves to the highest version left. The
+  R2 profile does the same to its metadata and archive objects. Peers refill a
+  node from what they hold, so a package is removed from canonical R2 first, then
+  from each node.
 - `npm owner` is a 409: maintainers are the publishers of record.
 
 ## Memory is bounded by admission
@@ -554,8 +566,8 @@ package. They cover:
   npm-derived fields, sign-in tokens and htpasswd reload, audit filtering, and
   the hosted-application contract.
 - **Real clients**: the installed npm client publishes, installs, deprecates,
-  tags, signs in at a terminal, logs out, and is refused unpublish and
-  republication. The installed pnpm client publishes and installs, and its
+  tags, unpublishes a version and then the package, signs in at a terminal,
+  logs out, and is refused republication. The installed pnpm client publishes and installs, and its
   cached metadata is revalidated with a 304.
 
 The publish-gate tests cover each violation kind against real tarballs built

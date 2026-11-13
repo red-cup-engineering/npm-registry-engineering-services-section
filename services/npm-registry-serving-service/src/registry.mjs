@@ -9,7 +9,7 @@ import { isDeepStrictEqual } from "node:util";
 import semver from "semver";
 import { createCredentials } from "./credentials.mjs";
 import { boundedMetadata } from "./metadata-cache.mjs";
-import { DEPRECATION, DIST_TAG, PUBLICATION, README, packageEntity, versionEntity } from "./facts.mjs";
+import { DEPRECATION, DIST_TAG, PUBLICATION, README, packageEntity, versionEntity, versionOf } from "./facts.mjs";
 import { distTags, foldPackage, installManifest, renderAbbreviated, renderFull, renderStoreLayout, renderVersion, searchEntry, selectVersion } from "./projection.mjs";
 import { checkPublication, DEFAULT_HOUSE_SCOPES } from "./publish-gate.mjs";
 import { receiveArtifactFromPeers, receivePeers, receivePeersHeld } from "./peers.mjs";
@@ -38,9 +38,10 @@ import { readTarball } from "./tarball-reader.mjs";
  *   integrity it already holds. With `publicTarballs: "proxy"` it is fetched from the uplink, checked against its
  *   shasum and kept only if `cachePublicTarballs`. A tarball already held is served either way.
  * - Changing anything takes a publisher (credentials.mjs): Basic against htpasswd, or a Bearer token `npm login`
- *   obtained. A version, once published, is never replaced: its tarball, integrity and manifest are fixed. Only
- *   facts about versions are added: deprecations (`npm deprecate` is a GET then a PUT of the whole packument, with
- *   no attachments) and dist-tags (set and removed at /-/package/<name>/dist-tags/<tag>).
+ *   obtained. A version, once published, is never replaced: its tarball, integrity and manifest are fixed. Facts
+ *   about versions are added: deprecations (`npm deprecate` is a GET then a PUT of the whole packument, with no
+ *   attachments) and dist-tags (set and removed at /-/package/<name>/dist-tags/<tag>). `npm unpublish` removes a
+ *   version, or the whole package, with its tarballs.
  * - A new version is read before it is stored, statically (see publish-gate.mjs): its tarball is opened in memory and
  *   nothing in it runs. A version whose `exports` or `bin` name files it does not ship, or whose modules import a
  *   house package it does not declare, at a version or subpath the registry cannot resolve, is refused with a 400
@@ -410,7 +411,7 @@ export function createNpmRegistry({
       const unattached = offered.filter(version => !state.versions.has(version));
       if (unattached.length > 0) return refusal(400, `${name}@${unattached.join(", ")} would be new, and a new version is published with its attached tarball`);
       const removed = published.filter(version => !offered.includes(version));
-      if (removed.length > 0) return refusal(409, `${name}@${removed.join(", ")} is published; a version is never removed`);
+      if (removed.length > 0) return refusal(409, `${name}@${removed.join(", ")} is published; a version is removed with npm unpublish`);
       const full = projected(name, renderFull(state, { origin }));
       if (body["dist-tags"] !== undefined && !isDeepStrictEqual(body["dist-tags"], full["dist-tags"])) {
         return refusal(409, "dist-tags are changed at /-/package/<name>/dist-tags/<tag>, not through the packument");
@@ -504,6 +505,37 @@ export function createNpmRegistry({
       if (!state.tags.has(tag)) return refusal(404, `${name} has no dist-tag ${tag}`);
       await appendFacts(name, [{ e: packageEntity(name), a: DIST_TAG, v: { tag, version: null }, t: now().toISOString() }]);
       return json({ ok: "dist-tag removed" });
+    }).catch(unreceived);
+  }
+
+  /**
+   * Remove versions of a house package with their tarballs, or the whole package when `kept` is undefined: what
+   * `npm unpublish` asks. Removed versions' facts leave the journal; a tag naming one goes with it, and `latest`
+   * moves to the highest version left. Removing every version removes the package.
+   */
+  async function unpublish(name, kept) {
+    return store.lock(name, async () => {
+      const read = await heldFacts(name);
+      if (read === undefined) return refusal(404, `${name} is not in this registry`);
+      const state = foldPackage(name, read.rows);
+      // A client's packument leaves quarantined versions out; leaving them out of its PUT does not remove them.
+      const removed = [...state.versions.keys()].filter(version => kept === undefined || (!kept.includes(version) && !quarantined(name, version)));
+      if (removed.length === 0) return refusal(400, `${name}: the packument removes no version`);
+      for (const version of removed) await store.discard(name, version, state.versions.get(version).artifact);
+      if (removed.length === state.versions.size) await store.erase(name);
+      else {
+        const gone = new Set(removed);
+        const rows = read.rows.filter(row => !gone.has(versionOf(name, row.e)) && !(row.a === DIST_TAG && gone.has(row.v?.version)));
+        const left = [...state.versions.keys()].filter(version => !gone.has(version));
+        if (!left.includes(foldPackage(name, rows).tags.get("latest"))) {
+          rows.push({ e: packageEntity(name), a: DIST_TAG, v: { tag: "latest", version: semver.maxSatisfying(left, "*") ?? semver.rsort([...left])[0] }, t: now().toISOString() });
+        }
+        await store.replace(name, rows);
+        const replaced = await store.read(name);
+        await store.materialize(name, renderStoreLayout(foldPackage(name, replaced.rows), { origin, revision: revisionOf(replaced) }));
+      }
+      houseViews.forget(name);
+      return json({ ok: "unpublished", success: true, removed });
     }).catch(unreceived);
   }
 
@@ -672,8 +704,28 @@ export function createNpmRegistry({
     catch { return refusal(400, "invalid package path encoding"); }
     const { name, rest } = parsed;
     if (!admittedName(name)) return refusal(404, "not found");
-    // npm unpublish is a PUT to <name>/-rev/<rev> or a DELETE of a package or tarball. A version is never removed.
-    if (rest.includes("-rev") || method === "DELETE") return refusal(405, "a published version is never removed; deprecate it (npm deprecate) instead of unpublishing it");
+    // npm unpublish: DELETE <name>/-rev/<rev> removes the package; PUT <name>/-rev/<rev> with the packument less some
+    // versions removes those; DELETE <name>/-/<file>/-rev/<rev> then asks for a removed version's tarball, already gone.
+    // A node whose house packages are published elsewhere still removes: a removal makes no version its peers lack.
+    if (rest.includes("-rev") || method === "DELETE") {
+      const user = await credentials.authenticated(request);
+      if (!user) return refusal(401, "unpublishing needs a publisher's credential");
+      if (!isPrivate(name)) return refusal(403, `${name} is not a house package name`);
+      const revision = rest.indexOf("-rev");
+      if (method === "DELETE" && revision === 0 && rest.length === 2) return serialized(() => unpublish(name));
+      if (method === "PUT" && revision === 0 && rest.length === 2) {
+        const read = await boundedJson(request, maxPublishBytes);
+        if (read.refusal) return read.refusal;
+        if (!record(read.body) || read.body.name !== name || !record(read.body.versions)) return refusal(400, "an unpublish PUT is the package's packument less the versions it removes");
+        return serialized(() => unpublish(name, Object.keys(read.body.versions)));
+      }
+      if (method === "DELETE" && rest[0] === "-" && revision === 2 && rest.length === 4) {
+        const view = await houseView(name);
+        const advertised = view !== undefined && [...view.state.versions.values()].some(published => published.artifact?.file === rest[1]);
+        return advertised ? refusal(409, `${rest[1]} is a published version's tarball; unpublish the version`) : json({ ok: "tarball removed", success: true });
+      }
+      return refusal(405, "a package is unpublished at <name>/-rev/<rev>");
+    }
     if (rest.length === 0) {
       if (method === "GET" || method === "HEAD") {
         const install = wantsAbbreviated(request.headers.get("accept") ?? "");
@@ -732,5 +784,5 @@ export function createNpmRegistry({
     return refusal(404, "not found");
   }
 
-  return Object.freeze({ handle, store, isPrivate, origin });
+  return Object.freeze({ handle, store, isPrivate, origin, unpublish });
 }

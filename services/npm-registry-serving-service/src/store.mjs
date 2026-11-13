@@ -9,7 +9,8 @@ import { admittedRow, legacyRows } from "./facts.mjs";
 /**
  * The registry's package store on disk, under one `storage` directory:
  *
- *   <name>/facts.jsonl            the package's facts (facts.mjs), one EAVT row per line, only ever appended
+ *   <name>/facts.jsonl            the package's facts (facts.mjs), one EAVT row per line, appended; replaced whole
+ *                                 only when versions are removed
  *   -/blobs/sha-256/<d0d1>/<d>    every tarball once, named by its RFC 6920 SHA-256 NI address (the shared
  *                                 ni-path formula locates it; nothing indexes it)
  *   <name>/package.json           the packument as the earlier Verdaccio-layout store held it, and
@@ -89,6 +90,27 @@ export function createPackageStore({ storage, lockWaitMs = 30_000, lockStaleMs =
       await handle.write(Buffer.from(`${rows.map((row) => JSON.stringify(row)).join("\n")}\n`, "utf8"));
       await handle.sync();
     } finally { await handle.close(); }
+  }
+
+  /** Replace the package's journal with `rows`: how a removal takes versions out. The caller holds the package's lock. */
+  async function replace(name, rows) {
+    for (const row of rows) admittedRow(row);
+    await writeAtomic(journalPath(name), rows.length === 0 ? "" : `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
+  }
+
+  /** Remove a removed version's tarball: its leaf, npm's scoped attachment and its blob. A tarball's bytes name its
+   *  package and version, so its blob is no other version's. */
+  async function discard(name, version, artifact) {
+    if (typeof artifact?.file === "string" && !artifact.file.includes("/") && !artifact.file.startsWith(".")) await rm(leafPath(name, artifact.file), { force: true });
+    if (name.startsWith("@")) await rm(join(storage, name, `${name}-${version}.tgz`), { force: true });
+    if (typeof artifact?.ni === "string" && isNiUri(artifact.ni)) await rm(blobPath(artifact.ni), { force: true });
+  }
+
+  /** Remove everything the store holds for a package but its lock, which the lock's holder removes with the
+   *  directory. The caller holds the package's lock and has discarded its tarballs' blobs. */
+  async function erase(name) {
+    const entries = await readdir(directoryOf(name)).catch((error) => { if (error.code === "ENOENT") return []; throw error; });
+    for (const entry of entries) if (entry !== ".lock") await rm(join(directoryOf(name), entry), { recursive: true, force: true });
   }
 
   /** Replace a file whole: readers see the old bytes or the new, never part. */
@@ -242,7 +264,7 @@ export function createPackageStore({ storage, lockWaitMs = 30_000, lockStaleMs =
   }
 
   return Object.freeze({
-    storage, read, sourceOf, append, lock, storeBlob, measure, adoptBlob, artifactPath, scopedAttachmentPath, linkLeaf, placeLeaf, names,
+    storage, read, sourceOf, append, replace, discard, erase, lock, storeBlob, measure, adoptBlob, artifactPath, scopedAttachmentPath, linkLeaf, placeLeaf, names,
     readLeaf: (name, file) => readBytes(leafPath(name, file)),
     leafPath,
     readLayout: async (name) => { const bytes = await readBytes(layoutPath(name)); return bytes === undefined ? undefined : JSON.parse(bytes.toString("utf8")); },

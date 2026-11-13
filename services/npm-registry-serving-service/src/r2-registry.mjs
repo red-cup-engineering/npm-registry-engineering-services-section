@@ -422,6 +422,64 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     }
   }
 
+  /** A version's archive file: the one its tarball URL names, else npm's canonical `name-version.tgz`. */
+  const archiveFile = (name, version, manifest) => {
+    try { if (typeof manifest?.dist?.tarball === "string") return decodeURIComponent(new URL(manifest.dist.tarball).pathname.split("/").pop()); }
+    catch { /* not a URL: the canonical name below */ }
+    return name.split("/").pop() + "-" + version + ".tgz";
+  };
+
+  /**
+   * `npm unpublish`: remove versions of a house package with their archives, or the whole package when `offered` is
+   * undefined. `offered` is the packument npm PUTs back less the removed versions; its dist-tags are kept where they
+   * name a version left, and `latest` falls back to the most recently published version left. The metadata changes
+   * first, conditionally, so no served document names an archive about to go.
+   */
+  async function unpublish(request, name, offered) {
+    try {
+      await authorize(request, name);
+      const before = await metadata(name, false);
+      if (!before) throw new Refusal(404, "package is not in this registry");
+      const versions = Object.keys(before.document.versions);
+      // A client's packument leaves quarantined versions out; leaving them out of its PUT does not remove them.
+      const removed = versions.filter(version => offered === undefined
+        || (!Object.hasOwn(offered.versions, version) && !conservation.conflict(name, version)));
+      if (removed.length === 0) throw new Refusal(400, "the packument removes no version");
+      if (removed.length === versions.length) await bucket.delete(metadataKey(name));
+      else {
+        const left = versions.filter(version => !removed.includes(version));
+        const tags = Object.fromEntries(Object.entries({ ...before.document["dist-tags"], ...(record(offered["dist-tags"]) ? offered["dist-tags"] : {}) })
+          .filter(([, version]) => left.includes(version)));
+        const time = Object.fromEntries(Object.entries(before.document.time ?? {}).filter(([key]) => !removed.includes(key)));
+        tags.latest ??= [...left].sort((a, b) => String(time[a] ?? "").localeCompare(String(time[b] ?? ""))).pop();
+        const document = { ...before.document, versions: Object.fromEntries(left.map(version => [version, before.document.versions[version]])),
+          "dist-tags": tags, time: { ...time, modified: new Date().toISOString() } };
+        const { _rev: previousRevision, ...revisionContent } = document;
+        document._rev = "r2-" + digest("sha256", JSON.stringify(revisionContent));
+        const written = await bucket.put(metadataKey(name), Buffer.from(JSON.stringify(document)), {
+          onlyIf: { etagMatches: before.object.etag },
+          httpMetadata: { contentType: "application/json", cacheControl: "no-cache" },
+        });
+        if (written === null) throw new Refusal(409, "metadata changed while unpublishing; nothing was removed");
+      }
+      for (const version of removed) {
+        await bucket.delete(archiveKey(name, archiveFile(name, version, before.document.versions[version])));
+        await bucket.delete(CUSTODY + name + "/" + version + ".json");
+      }
+      const lingering = [];
+      for (const version of removed) {
+        const key = archiveKey(name, archiveFile(name, version, before.document.versions[version]));
+        if (await bucket.head(key) !== null) lingering.push(key);
+      }
+      if (removed.length === versions.length && await bucket.head(metadataKey(name)) !== null) lingering.push(metadataKey(name));
+      if (lingering.length) throw new Refusal(502, "unpublished objects are still held", { lingering });
+      return json({ ok: true, id: name, removed });
+    } catch (error) {
+      return json({ error: error instanceof Refusal ? error.message : "the registry operation did not produce a qualified result", ...(error.fields ?? {}) },
+        error instanceof Refusal ? error.status : 502, error.headers ?? {});
+    }
+  }
+
   async function fetchRequest(request) {
     try {
       if (new URL(request.url).origin !== config.origin) throw new Refusal(400, "request has another registry origin");
@@ -464,7 +522,28 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       }
       const parsed = parsePackagePath(url.pathname), name = parsed.name, rest = parsed.rest;
       if (!admittedName(name)) throw new Refusal(404, "not found");
-      if (method === "DELETE" || rest.includes("-rev")) throw new Refusal(405, "published versions are never removed");
+      // npm unpublish: DELETE <name>/-rev/<rev> removes the package; PUT <name>/-rev/<rev> with the packument less some
+      // versions removes those; DELETE <name>/-/<file>/-rev/<rev> then asks for a removed version's archive, already gone.
+      if (method === "DELETE" || rest.includes("-rev")) {
+        const revision = rest.indexOf("-rev");
+        if (method === "DELETE" && revision === 0 && rest.length === 2) return unpublish(request, name);
+        if (method === "PUT" && revision === 0 && rest.length === 2) {
+          const body = readJson(await boundedBytes(request.body, config.maxMetadataBytes, request.headers.get("content-length")), "unpublish packument");
+          if (!record(body) || body.name !== name || !record(body.versions))
+            throw new Refusal(400, "an unpublish PUT is the package's packument less the versions it removes");
+          return unpublish(request, name, body);
+        }
+        if (method === "DELETE" && rest[0] === "-" && revision === 2 && rest.length === 4) {
+          if (!rest[1].endsWith(".tgz") || rest[1].startsWith(".") || rest[1].includes("\\")) throw new Refusal(404, "not found");
+          await authorize(request, name);
+          const held = await metadata(name, false);
+          if (held && Object.entries(held.document.versions).some(([version, manifest]) => archiveFile(name, version, manifest) === rest[1]))
+            throw new Refusal(409, rest[1] + " is a published version's archive; unpublish the version");
+          await bucket.delete(archiveKey(name, rest[1]));
+          return json({ ok: true, id: name });
+        }
+        throw new Refusal(405, "a package is unpublished at <name>/-rev/<rev>");
+      }
       if (method === "PUT" && rest.length === 0) return publish(request, name);
       if (method !== "GET" && method !== "HEAD") throw new Refusal(405, "only standard npm prepared publication may write this registry");
       if (!isPrivate(name)) {
