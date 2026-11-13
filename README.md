@@ -32,7 +32,7 @@ its README.
 | Package | Present responsibility | Release status |
 | --- | --- | --- |
 | `npm-package-tree-discovery-service` | Walks package trees, admits explicitly declared release candidates, and reports deliberate skips/collisions. | Releasable CLI |
-| `npm-registry-graph-services-section` | Derives dependency, history, and witness graphs from registry receipts and renders dependency/history DOT. | Releasable CLI |
+| `npm-registry-graph-engineering-services-section` | Derives dependency, history, and witness graphs from registry receipts and renders dependency/history DOT. | Releasable CLI |
 | `npm-registry-read-service` | Serves the built registry's read-only npm face: health checks, packuments, tarballs, and receipt files; `serve-npm-registry-read` deploys that face as a standalone process. | Releasable library and CLI |
 | `npm-registry-receipt-recovery-service` | Rebuilds and validates a registry receipt from served metadata and tarballs. | Releasable library |
 | `npm-artifact-integrity-service` | Measures package-artifact bytes and npm SHA-1/SHA-512 digests, then verifies declared measurements. | Releasable library |
@@ -97,7 +97,7 @@ fallbacks.
 
 ## Verdaccio
 
-`verdaccio-services-section` is the earlier private registry. Its store layout
+`verdaccio-engineering-services-section` is the earlier private registry. Its store layout
 (`<name>/package.json` beside the tarballs) is the one
 `npm-registry-serving-service` received as facts and still writes as a
 projection, so a Verdaccio pointed at that store serves it. Nothing publishes

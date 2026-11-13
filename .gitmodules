@@ -1,5 +1,5 @@
-[submodule "services/verdaccio-services-section"]
-	path = services/verdaccio-services-section
+[submodule "services/verdaccio-engineering-services-section"]
+	path = services/verdaccio-engineering-services-section
 	url = https://github.com/red-cup-engineering/verdaccio-engineering-services-section.git
 	branch = main
 [submodule "services/npm-registry-snapshot-engineering-services-section"]
