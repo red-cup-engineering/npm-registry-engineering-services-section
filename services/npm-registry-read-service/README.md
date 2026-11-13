@@ -35,3 +35,8 @@ A read-only npm snapshot serves GET and HEAD and preserves the artifact path whe
 and [public API](docs/API.md).
 
 Run `npm ci`, then `npm test` and `npm run test:consumer`.
+
+Packuments expose conventional `NAME/-/LEAF-VERSION.tgz` URLs. The read service
+resolves these against complete name/version entries in snapshot metadata, so
+scopes, hyphenated names and prerelease identities are not inferred from suffixes.
+Snapshot storage paths and artifact bytes remain unchanged.
