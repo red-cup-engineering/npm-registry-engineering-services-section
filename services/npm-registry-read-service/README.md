@@ -31,8 +31,7 @@ artifact path; installation and service management remain host operations.
 
 ## Quickstart
 
-A read-only npm snapshot serves GET and HEAD and preserves the artifact path when rewriting public URLs. See the [runnable example](examples/quickstart.test.mjs)
-and [public API](docs/API.md).
+A read-only npm snapshot serves GET and HEAD and preserves the artifact path when rewriting public URLs. See the [runnable example](examples/quickstart.test.mjs).
 
 Run `npm ci`, then `npm test` and `npm run test:consumer`.
 

@@ -11,7 +11,6 @@ Installs packages from an npm registry into a clean temporary directory and chec
 
 ## Quickstart
 
-Inspect the installed package surface and select an exact registry release. See the [runnable example](examples/quickstart.test.mjs)
-and [public API](docs/API.md).
+Inspect the installed package surface and select an exact registry release. See the [runnable example](examples/quickstart.test.mjs).
 
 Run `npm ci`, then `npm test` and `npm run test:consumer`.

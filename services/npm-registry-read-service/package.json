@@ -19,7 +19,6 @@
     "deploy",
     "README.md",
     "package.json",
-    "docs/API.md",
     "examples/quickstart.test.mjs"
   ],
   "publishConfig": {

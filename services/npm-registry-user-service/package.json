@@ -18,7 +18,6 @@
     "src",
     "scripts",
     "package.json",
-    "docs/API.md",
     "examples/quickstart.test.mjs"
   ],
   "publishConfig": {
