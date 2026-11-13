@@ -206,3 +206,29 @@ test("canonical unscoped hyphenated package routes use metadata identity, not su
     assert.equal(response.body.toString(), version);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
+
+test("serves standard dotted and underscored npm scopes through canonical metadata and tarball routes", async () => {
+  const root = await mkdtemp(join(tmpdir(), "npm-registry-scope-"));
+  try {
+    for (const name of ["@cto.af/wtf8", "@scope_name/package.name"]) {
+      const [scope, leaf] = name.slice(1).split("/");
+      const artifact = `tarballs/${scope}/${leaf}/-/${leaf}-1.0.0.tgz`;
+      await mkdir(join(root, "metadata"), { recursive: true });
+      await mkdir(join(root, "tarballs", scope, leaf, "-"), { recursive: true });
+      await writeFile(join(root, artifact), name);
+      await writeFile(join(root, "metadata", encodeURIComponent(name) + ".json"), JSON.stringify({
+        name, versions: { "1.0.0": { name, version: "1.0.0", dist: { tarball: "http://registry.invalid/" + artifact } } },
+      }));
+      const metadata = await registryRequest(root, { path: "/" + encodeURIComponent(name) });
+      assert.equal(metadata.status, 200);
+      assert.equal(JSON.parse(metadata.body).name, name);
+      const npmTarball = await registryRequest(root, { path: `/${name}/-/${leaf}-1.0.0.tgz` });
+      assert.equal(npmTarball.status, 200);
+      assert.equal(npmTarball.body.toString(), name);
+    }
+    for (const invalid of ["@scope/../escape", "@scope/package/extra", "@scope/space name", "@scope/UPPER"]) {
+      const response = await registryRequest(root, { path: "/" + encodeURIComponent(invalid) });
+      assert.equal(response.status, 404);
+    }
+  } finally { await rm(root, { recursive: true, force: true }); }
+});
