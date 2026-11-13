@@ -6,7 +6,7 @@ import { PassThrough } from "node:stream";
 import { finished } from "node:stream/promises";
 import test from "node:test";
 
-import { createPackageRegistryServer, resolvePackageRegistryRequest, rewriteMetadataTarballOrigins } from "../src/npm-registry-read-service.mjs";
+import { createPackageRegistryServer, resolvePackageRegistryRequest, rewriteMetadataTarballOrigins, isNpmPackageName } from "../src/npm-registry-read-service.mjs";
 
 async function writeRegistrySnapshot(root, version = "1.0.0") {
   await mkdir(join(root, "metadata"), { recursive: true });
@@ -231,4 +231,12 @@ test("serves standard dotted and underscored npm scopes through canonical metada
       assert.equal(response.status, 404);
     }
   } finally { await rm(root, { recursive: true, force: true }); }
+});
+
+
+test("registry lookup admits existing public npm identities without publication-name warnings", () => {
+  assert.equal(isNpmPackageName("punycode"), true);
+  assert.equal(isNpmPackageName("@cto.af/wtf8"), true);
+  assert.equal(isNpmPackageName("@scope/../escape"), false);
+  assert.equal(isNpmPackageName("not a package"), false);
 });
