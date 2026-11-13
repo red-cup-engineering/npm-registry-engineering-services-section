@@ -2,7 +2,7 @@
 	path = services/verdaccio-services-section
 	url = https://github.com/red-cup-engineering/verdaccio-engineering-services-section.git
 	branch = main
-[submodule "services/npm-registry-snapshot-services-section"]
-	path = services/npm-registry-snapshot-services-section
+[submodule "services/npm-registry-snapshot-engineering-services-section"]
+	path = services/npm-registry-snapshot-engineering-services-section
 	url = https://github.com/red-cup-engineering/npm-registry-snapshot-engineering-services-section.git
 	branch = main
