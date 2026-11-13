@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { canonicalJson } from "@red-cup-engineering/json-services-section/canonical-json";
+import { canonicalJson } from "@red-cup-engineering/json-engineering-services-section/canonical-json";
 import worker, { createR2Registry } from "../src/r2-registry.mjs";
 import { registryFixture, authorization, publishBody } from "./support/registry.mjs";
 import { packagedVersion } from "./support/tarball.mjs";

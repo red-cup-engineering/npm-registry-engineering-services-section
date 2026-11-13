@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { writeFile } from "node:fs/promises";
 import { discoverPackages, loadIgnoreDirectoryNames } from "../src/discover-npm-packages.mjs";
-import { argument, repeatedArgument, requiredArgument } from "@red-cup-engineering/javascript-node-services-section/argv";
+import { argument, repeatedArgument, requiredArgument } from "@red-cup-engineering/javascript-node-engineering-services-section/argv";
 
 const root = requiredArgument("--root");
 const ignoreFiles = repeatedArgument("--ignore-file");

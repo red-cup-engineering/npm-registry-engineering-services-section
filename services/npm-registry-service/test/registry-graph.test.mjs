@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
-import { deriveRegistryGraph, groupRegistryGraphDefects, renderRegistryGraphDot } from "@red-cup-engineering/npm-registry-graph-services-section";
+import { deriveRegistryGraph, groupRegistryGraphDefects, renderRegistryGraphDot } from "@red-cup-engineering/npm-registry-graph-engineering-services-section";
 
 // The sandbox running these tests refuses TCP connections to listeners the
 // test itself opens, so the HTTP face is exercised through an injected fetch

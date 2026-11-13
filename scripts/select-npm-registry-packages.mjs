@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 import { once } from "node:events";
 import { readFile } from "node:fs/promises";
-import { freezeJson } from "@red-cup-engineering/json-services-section";
-import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-services-section";
-import { parseJavascriptArgv } from "@red-cup-engineering/javascript-node-services-section/argv";
+import { freezeJson } from "@red-cup-engineering/json-engineering-services-section";
+import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-engineering-services-section";
+import { parseJavascriptArgv } from "@red-cup-engineering/javascript-node-engineering-services-section/argv";
 import { readJavascriptFileExportDocumentation } from "@red-cup-engineering/read-javascript-file-export-documentation-service";
 
 const EXACT_RELEASE = /^(?:(@[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)|([a-z0-9][a-z0-9._-]*))@(\d+\.\d+\.\d+(?:-[0-9a-z.-]+)?(?:\+[0-9a-z.-]+)?)$/iu;

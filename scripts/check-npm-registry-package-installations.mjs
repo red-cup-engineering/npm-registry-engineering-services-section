@@ -5,12 +5,12 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { promisify } from "node:util";
-import { freezeJson } from "@red-cup-engineering/json-services-section";
+import { freezeJson } from "@red-cup-engineering/json-engineering-services-section";
 import { inspectInstalledNpmPackage } from "@red-cup-engineering/inspect-installed-npm-package-service";
-import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-services-section";
-import { parseJavascriptArgv } from "@red-cup-engineering/javascript-node-services-section/argv";
+import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-engineering-services-section";
+import { parseJavascriptArgv } from "@red-cup-engineering/javascript-node-engineering-services-section/argv";
 import { readJavascriptFileExportDocumentation } from "@red-cup-engineering/read-javascript-file-export-documentation-service";
-import { selectNpmRegistryPackages } from "@red-cup-engineering/npm-registry-services-section/select-npm-registry-packages";
+import { selectNpmRegistryPackages } from "@red-cup-engineering/npm-registry-engineering-services-section/select-npm-registry-packages";
 
 const executeNpm = promisify(execFile);
 

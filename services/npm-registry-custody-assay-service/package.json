@@ -20,7 +20,7 @@
   ],
   "dependencies": {
     "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "^0.3.3",
-    "@red-cup-engineering/javascript-node-services-section": "^0.4.2"
+    "@red-cup-engineering/javascript-node-engineering-services-section": "^0.4.2"
   },
   "scripts": {
     "test": "node --test test/*.test.mjs",

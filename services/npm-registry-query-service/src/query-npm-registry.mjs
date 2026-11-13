@@ -3,7 +3,7 @@ import {
   readNpmPackument,
   readNpmRegistryReceipt,
   readNpmRegistryRelease,
-} from "@red-cup-engineering/npm-registry-services-section/read-npm-registry-resource";
+} from "@red-cup-engineering/npm-registry-engineering-services-section/read-npm-registry-resource";
 import { readPackageInterfaces } from "./package-interfaces.mjs";
 
 export { packageBinaries, readPackageInterfaces } from "./package-interfaces.mjs";

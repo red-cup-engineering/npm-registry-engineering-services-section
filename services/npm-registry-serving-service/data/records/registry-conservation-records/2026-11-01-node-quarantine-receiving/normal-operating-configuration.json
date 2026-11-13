@@ -92,7 +92,7 @@
       "version": "0.2.5-dev.42"
     },
     {
-      "name": "@red-cup-engineering/paid-data-endpoint-service",
+      "name": "@red-cup-engineering/x402-paid-data-endpoint-services-section",
       "version": "0.6.1-dev.61"
     },
     {
@@ -100,7 +100,7 @@
       "version": "0.1.4-dev.0"
     },
     {
-      "name": "@red-cup-engineering/json-services-section",
+      "name": "@red-cup-engineering/json-engineering-services-section",
       "version": "0.4.2-dev.269"
     }
   ],

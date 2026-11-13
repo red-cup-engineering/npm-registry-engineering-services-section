@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
 
-import { deriveRegistryGraph, groupRegistryGraphDefects, renderRegistryGraphDot } from "@red-cup-engineering/npm-registry-graph-services-section";
+import { deriveRegistryGraph, groupRegistryGraphDefects, renderRegistryGraphDot } from "@red-cup-engineering/npm-registry-graph-engineering-services-section";
 
 const { values } = parseArgs({
   options: {

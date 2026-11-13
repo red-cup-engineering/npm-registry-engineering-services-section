@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
-import { internals } from "@red-cup-engineering/cloudflare-r2-services-section/r2-sigv4";
+import { internals } from "@red-cup-engineering/cloudflare-r2-engineering-services-section/r2-sigv4";
 
 /**
  * The R2 bucket binding r2-registry.mjs uses (get, head, put with onlyIf, delete), served over R2's S3 API so the

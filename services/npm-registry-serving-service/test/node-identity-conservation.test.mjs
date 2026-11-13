@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import { canonicalJson } from "@red-cup-engineering/json-services-section/canonical-json";
+import { canonicalJson } from "@red-cup-engineering/json-engineering-services-section/canonical-json";
 import { identityConservationOf, IDENTITY_CONSERVATION_RECORD } from "../src/application.mjs";
 import { foldPackage } from "../src/projection.mjs";
 import { bucketPeer, receivePeers } from "../src/peers.mjs";

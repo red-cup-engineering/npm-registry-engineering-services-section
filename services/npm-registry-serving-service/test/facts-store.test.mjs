@@ -5,7 +5,7 @@ import { appendFile, mkdir, readFile, readdir, stat, utimes, writeFile } from "n
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
-import { makeNiUri } from "@red-cup-engineering/uri-services-section/ni-uri";
+import { makeNiUri } from "@red-cup-engineering/uri-engineering-services-section/ni-uri";
 import { removePublicLeftovers } from "../src/leftovers.mjs";
 import { receiveStore } from "../src/reception.mjs";
 import { createNpmRegistry } from "../src/registry.mjs";

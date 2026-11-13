@@ -10,7 +10,7 @@
   "type": "module",
   "license": "MIT",
   "dependencies": {
-    "@red-cup-engineering/npm-registry-graph-services-section": "^0.6.1",
+    "@red-cup-engineering/npm-registry-graph-engineering-services-section": "^0.6.1",
     "@red-cup-engineering/npm-registry-snapshot-publication-service": "^0.0.1"
   },
   "bin": {
@@ -27,7 +27,7 @@
     "node": ">=22"
   },
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-services-section": "^0.5.0"
+    "@red-cup-engineering/jsnode-package-engineering-services-section": "^0.5.0"
   },
   "funding": {
     "type": "individual",

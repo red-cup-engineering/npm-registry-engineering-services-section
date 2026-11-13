@@ -22,7 +22,7 @@
     "package.json"
   ],
   "dependencies": {
-    "@red-cup-engineering/javascript-node-services-section": "0.4.1"
+    "@red-cup-engineering/javascript-node-engineering-services-section": "0.4.1"
   },
   "publishConfig": {
     "access": "public",
@@ -44,7 +44,7 @@
     "node": ">=22"
   },
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-services-section": "0.3.0"
+    "@red-cup-engineering/jsnode-package-engineering-services-section": "0.3.0"
   },
   "funding": {
     "type": "individual",

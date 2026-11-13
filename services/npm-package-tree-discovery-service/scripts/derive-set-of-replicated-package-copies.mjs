@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { deriveReplicatedPackageCopies } from "../src/replicated-package-copies.mjs";
-import { argument, requiredArgument } from "@red-cup-engineering/javascript-node-services-section/argv";
+import { argument, requiredArgument } from "@red-cup-engineering/javascript-node-engineering-services-section/argv";
 
 const root = requiredArgument("--root");
 const format = argument("--format") ?? "summary";

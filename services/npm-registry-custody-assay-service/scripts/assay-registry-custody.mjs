@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { assayRegistryCustody, quarantineRegistryCustodyDefects } from "../src/index.mjs";
-import { argument, repeatedArgument, requiredArgument } from "@red-cup-engineering/javascript-node-services-section/argv";
+import { argument, repeatedArgument, requiredArgument } from "@red-cup-engineering/javascript-node-engineering-services-section/argv";
 
 const storageRoot = requiredArgument("--storage-root");
 const ownedScopes = repeatedArgument("--owned-scope");

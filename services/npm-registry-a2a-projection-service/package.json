@@ -30,7 +30,7 @@
   "devDependencies": {
     "@a2a-js/sdk": "1.0.0-beta.0",
     "@red-cup-engineering/a2a-rmn-part-service": "workspace:*",
-    "@red-cup-engineering/jsnode-package-services-section": "workspace:*"
+    "@red-cup-engineering/jsnode-package-engineering-services-section": "workspace:*"
   },
   "funding": {
     "type": "individual",

@@ -3,7 +3,7 @@ import { createReadStream } from "node:fs";
 import { link, mkdir, open, readdir, readFile, rename, rm, rmdir, stat, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { niPathSegments } from "@red-cup-engineering/computer-content-address-engineering-services-section/ni-path";
-import { isNiUri, makeNiUri } from "@red-cup-engineering/uri-services-section/ni-uri";
+import { isNiUri, makeNiUri } from "@red-cup-engineering/uri-engineering-services-section/ni-uri";
 import { admittedRow, legacyRows } from "./facts.mjs";
 
 /**

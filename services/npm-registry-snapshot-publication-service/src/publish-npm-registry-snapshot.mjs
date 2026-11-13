@@ -56,13 +56,13 @@ function localLeaseBroker() {
 
 async function loadPublicationCapabilities() {
   const [coordinator, manifest, carrier, packing, assembly, verification, activation] = await Promise.all([
-    import("@red-cup-engineering/semiotic-npm-registry-services-section/npm-registry-release-coordinator-service"),
-    import("@red-cup-engineering/semiotic-npm-registry-services-section/released-manifest"),
-    import("@red-cup-engineering/semiotic-npm-registry-services-section/project-npm-carrier"),
-    import("@red-cup-engineering/npm-package-services-section/pack-npm-package"),
-    import("@red-cup-engineering/npm-registry-snapshot-services-section/assemble-package-registry-snapshot"),
-    import("@red-cup-engineering/npm-registry-snapshot-services-section/verify-package-registry-snapshot"),
-    import("@red-cup-engineering/npm-registry-snapshot-services-section/activate-verified-package-registry-snapshot"),
+    import("@red-cup-engineering/semiotic-npm-registry-engineering-services-section/npm-registry-release-coordinator-service"),
+    import("@red-cup-engineering/semiotic-npm-registry-engineering-services-section/released-manifest"),
+    import("@red-cup-engineering/semiotic-npm-registry-engineering-services-section/project-npm-carrier"),
+    import("@red-cup-engineering/npm-package-engineering-services-section/pack-npm-package"),
+    import("@red-cup-engineering/npm-registry-snapshot-engineering-services-section/assemble-package-registry-snapshot"),
+    import("@red-cup-engineering/npm-registry-snapshot-engineering-services-section/verify-package-registry-snapshot"),
+    import("@red-cup-engineering/npm-registry-snapshot-engineering-services-section/activate-verified-package-registry-snapshot"),
   ]);
   return {
     coordinate: coordinator.coordinateNpmRegistryRelease,

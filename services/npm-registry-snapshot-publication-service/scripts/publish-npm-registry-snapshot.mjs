@@ -9,7 +9,7 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
 
-import { runMain } from "@red-cup-engineering/javascript-file-services-section/javascript-file-main-guard";
+import { runMain } from "@red-cup-engineering/javascript-file-engineering-services-section/javascript-file-main-guard";
 
 import { publishNpmRegistrySnapshot } from "../src/publish-npm-registry-snapshot.mjs";
 
