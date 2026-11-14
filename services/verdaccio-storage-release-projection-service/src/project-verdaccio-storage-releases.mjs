@@ -1,11 +1,13 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
+import { isDeepStrictEqual } from "node:util";
 import { gunzipSync } from "node:zlib";
 import { join, resolve } from "node:path";
 
 const SOVEREIGN_NAME = /^@[a-z0-9-]+\/[a-z0-9._-]+$/u;
 const EXACT_VERSION = /^\d+\.\d+\.\d+$/u;
-const DEPENDENCY_FIELDS = ["dependencies", "optionalDependencies", "peerDependencies", "devDependencies"];
+const RUNTIME_DEPENDENCY_FIELDS = ["dependencies", "optionalDependencies", "peerDependencies"];
+const DEPENDENCY_FIELDS = [...RUNTIME_DEPENDENCY_FIELDS, "devDependencies"];
 const LOCAL_PROTOCOL = /^(?:workspace:|file:|link:)/u;
 
 export const EXCLUSION_REASONS = Object.freeze({
@@ -70,13 +72,30 @@ function artifactManifest(bytes) {
   throw new Error("artifact does not contain package/package.json");
 }
 
-function localDependency(manifest) {
+function localDependency(manifest, source) {
   for (const field of DEPENDENCY_FIELDS) {
     for (const [name, value] of Object.entries(manifest[field] ?? {})) {
-      if (typeof value === "string" && LOCAL_PROTOCOL.test(value)) return { field, name, value };
+      if (typeof value === "string" && LOCAL_PROTOCOL.test(value)) return { source, field, name, value };
     }
   }
   return null;
+}
+
+// Snapshot assembly publishes the packument, while installs read the archive.
+// Both must advertise the same runtime dependency graph.
+function matchRuntimeDependencies(manifest, artifact, release) {
+  for (const field of RUNTIME_DEPENDENCY_FIELDS) {
+    const dependencyMap = (record, source) => {
+      if (!Object.hasOwn(record, field)) return {};
+      const value = record[field];
+      if (!value || typeof value !== "object" || Array.isArray(value) ||
+          Object.values(value).some(specifier => typeof specifier !== "string" || specifier.length === 0))
+        hardRefuse(release, `${source} ${field} is not a dependency map`);
+      return value;
+    };
+    if (!isDeepStrictEqual(dependencyMap(manifest, "packument"), dependencyMap(artifact, "archive")))
+      hardRefuse(release, `archive disagrees with packument ${field}`);
+  }
 }
 
 function identityExclusion(name, version, ownedScopes, ownedUnscopedNames) {
@@ -131,9 +150,10 @@ export async function projectVerdaccioStorageReleases({ storageRoot, ownedScopes
       const evidence = { name, version, manifest, artifactPath: join(packageDirectory(root, name), filename), measurement };
       if (rejection !== null) { exclusions.push(excluded({ ...evidence, reason: rejection.reason, detail: rejection.detail })); continue; }
       if (!EXACT_VERSION.test(version) || manifest.version !== version) { exclusions.push(excluded({ ...evidence, reason: EXCLUSION_REASONS.NON_EXACT_VERSION, detail: "packument version must be exact x.y.z and equal manifest.version" })); continue; }
-      const local = localDependency(manifest);
+      const local = localDependency(artifact, "archive") ?? localDependency(manifest, "packument");
       if (local !== null) { exclusions.push(excluded({ ...evidence, reason: EXCLUSION_REASONS.LOCAL_DEPENDENCY_PROTOCOL, detail: local })); continue; }
-      admitted.push(Object.freeze({ manifest: Object.freeze({ ...manifest }), artifactPath: join(packageDirectory(root, name), filename), measurement }));
+      matchRuntimeDependencies(manifest, artifact, `${name}@${version}`);
+      admitted.push(Object.freeze({ manifest: Object.freeze({ ...manifest }), artifactPath: join(packageDirectory(root, name), filename), integrity: measurement.integrity, measurement }));
     }
   }
   admitted.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name) || a.manifest.version.localeCompare(b.manifest.version, undefined, { numeric: true }));

@@ -22,6 +22,10 @@ no trustworthy carrier to project.
 Only exact `x.y.z`, scoped sovereign names accepted by snapshot assembly are
 admitted. `@emsenn/*`, unscoped releases, and any manifest retaining
 `workspace:`, `file:`, or `link:` dependency protocols are excluded explicitly.
+The protocol check reads both the measured archive's embedded manifest and the
+registry packument; an exclusion identifies which one supplied the dependency.
+For admitted releases the two runtime dependency maps must agree (absent and
+empty maps are equivalent). A disagreement is not safe snapshot input.
 
 ```sh
 project-verdaccio-storage-releases \
@@ -30,7 +34,7 @@ project-verdaccio-storage-releases \
 ```
 
 The JSON result contains `admitted` entries shaped for snapshot assembly:
-`{ manifest, artifactPath, measurement }`. `excluded` is legacy
+`{ manifest, artifactPath, integrity, measurement }`. `excluded` is legacy
 custody-evidence only; it is not a receipt or a candidate snapshot.
 The service contains no registry writes and does not claim dependency closure.
 
