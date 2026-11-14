@@ -153,7 +153,7 @@ export async function projectVerdaccioStorageReleases({ storageRoot, ownedScopes
       const local = localDependency(artifact, "archive") ?? localDependency(manifest, "packument");
       if (local !== null) { exclusions.push(excluded({ ...evidence, reason: EXCLUSION_REASONS.LOCAL_DEPENDENCY_PROTOCOL, detail: local })); continue; }
       matchRuntimeDependencies(manifest, artifact, `${name}@${version}`);
-      admitted.push(Object.freeze({ manifest: Object.freeze({ ...manifest }), artifactPath: join(packageDirectory(root, name), filename), measurement }));
+      admitted.push(Object.freeze({ manifest: Object.freeze({ ...manifest }), artifactPath: join(packageDirectory(root, name), filename), integrity: measurement.integrity, measurement }));
     }
   }
   admitted.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name) || a.manifest.version.localeCompare(b.manifest.version, undefined, { numeric: true }));

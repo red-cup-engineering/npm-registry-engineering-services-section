@@ -47,6 +47,9 @@ test("projects the production scoped Verdaccio layout into snapshot release inpu
   assert.equal(result.admitted[0].manifest.version, "1.2.3");
   assert.match(result.admitted[0].artifactPath, /@red-cup-engineering\/alpha\/alpha-1\.2\.3\.tgz$/u);
   assert.equal(result.admitted[0].measurement.bytes > 0, true);
+  assert.match(result.admitted[0].integrity, /^sha512-[A-Za-z0-9+/]{86}==$/u,
+    "snapshot assembly requires top-level measured integrity");
+  assert.equal(result.admitted[0].integrity, result.admitted[0].measurement.integrity);
   assert.equal(JSON.stringify(result).includes("this must never appear"), false);
 }));
 

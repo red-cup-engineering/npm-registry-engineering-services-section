@@ -34,7 +34,7 @@ project-verdaccio-storage-releases \
 ```
 
 The JSON result contains `admitted` entries shaped for snapshot assembly:
-`{ manifest, artifactPath, measurement }`. `excluded` is legacy
+`{ manifest, artifactPath, integrity, measurement }`. `excluded` is legacy
 custody-evidence only; it is not a receipt or a candidate snapshot.
 The service contains no registry writes and does not claim dependency closure.
 
