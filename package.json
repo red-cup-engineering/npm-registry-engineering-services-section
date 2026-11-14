@@ -17,7 +17,9 @@
     "./check-npm-registry-package-installations": "./scripts/check-npm-registry-package-installations.mjs",
     "./npm-artifact-integrity-service": "./scripts/npm-artifact-integrity-service.mjs",
     "./read-npm-registry-resource": "./scripts/read-npm-registry-resource.mjs",
-    "./select-npm-registry-packages": "./scripts/select-npm-registry-packages.mjs"
+    "./select-npm-registry-packages": "./scripts/select-npm-registry-packages.mjs",
+    "./admit-npm-package-archive": "./scripts/admit-npm-package-archive.mjs",
+    "./packed-carrier-archive": "./scripts/packed-carrier-archive.mjs"
   },
   "scripts": {
     "test": "run-package-tests",
@@ -42,6 +44,8 @@
     "test/npm-artifact-integrity-service.test.mjs",
     "test/read-npm-registry-resource.test.mjs",
     "test/registry-cli-arguments.test.mjs",
-    "test/select-npm-registry-packages.test.mjs"
+    "test/select-npm-registry-packages.test.mjs",
+    "test/admit-npm-package-archive.test.mjs",
+    "test/packed-carrier-archive.test.mjs"
   ]
 }

@@ -75,6 +75,15 @@ including discovery and release-binding validation. The packing service owns
 the isolated `npm pack` invocation and tarball validation, while snapshot
 assembly owns only the immutable registry artifact.
 
+## Archive admission
+
+The artifact-integrity service exports `./admit-npm-package-archive` for
+producers and snapshot consumers. It admits gzip tar bytes against an exact
+package name, version, SHA-512 integrity and runtime dependency maps from
+the supplied release manifest. It reads the archive without extracting or
+installing anything and rejects missing, duplicate or oversized manifests.
+It returns measured archive identity, not a source or publication receipt.
+
 ## Release-first bootstrap and verification
 
 Bootstrap from leaves outward:
