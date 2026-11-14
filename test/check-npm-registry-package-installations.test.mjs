@@ -3,7 +3,7 @@ import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
-import { checkNpmRegistryPackageInstallations } from "../scripts/check-npm-registry-package-installations.mjs";
+import { checkNpmRegistryPackageInstallations } from "@red-cup-engineering/npm-registry-engineering-services-section/check-npm-registry-package-installations";
 
 test("returns one explicit installation defect per failed selected release", async () => {
   const root = await mkdtemp(join(tmpdir(), "registry-installation-check-test-"));

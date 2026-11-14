@@ -9,7 +9,7 @@ import {
   measureArtifactFile,
   verifyArtifactBytes,
   verifyArtifactFile,
-} from "../scripts/npm-artifact-integrity-service.mjs";
+} from "@red-cup-engineering/npm-registry-engineering-services-section/npm-artifact-integrity-service";
 
 const HELLO = Object.freeze({
   bytes: 5,

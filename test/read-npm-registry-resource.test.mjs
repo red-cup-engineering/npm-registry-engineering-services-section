@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { openNpmRegistry, readNpmPackument, readNpmRegistryReceipt, readNpmRegistryRelease } from "../scripts/read-npm-registry-resource.mjs";
+import { openNpmRegistry, readNpmPackument, readNpmRegistryReceipt, readNpmRegistryRelease } from "@red-cup-engineering/npm-registry-engineering-services-section/read-npm-registry-resource";
 
 test("reads byte-preserving registry resources and resolves the selected release", async (t) => {
   const root = await mkdtemp(join(tmpdir(), "npm-registry-reader-"));
