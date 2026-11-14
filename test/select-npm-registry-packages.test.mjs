@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { selectNpmRegistryPackages } from "../scripts/select-npm-registry-packages.mjs";
+import { selectNpmRegistryPackages } from "@red-cup-engineering/npm-registry-engineering-services-section/select-npm-registry-packages";
 
 const packages = [
   { name: "@customer/example", version: "1.0.0", digest: "one" },

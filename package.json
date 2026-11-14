@@ -1,18 +1,17 @@
 {
   "name": "@red-cup-engineering/npm-registry-engineering-services-section",
-  "version": "0.1.2",
+  "version": "0.1.3-dev.0",
   "description": "Holds the services for npm registries. Use when working on the private npm registry or reading any npm registry's packages, versions, and dependencies.",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/red-cup-engineering/npm-registry-engineering-services-section.git"
   },
   "dependencies": {
-    "@red-cup-engineering/computer-file-engineering-services-section": "0.4.0",
-    "@red-cup-engineering/json-engineering-services-section": "0.4.0",
-    "@red-cup-engineering/jsonl-engineering-services-section": "0.1.0",
-    "@red-cup-engineering/inspect-installed-npm-package-service": "0.3.2",
-    "@red-cup-engineering/javascript-node-engineering-services-section": "0.3.2",
-    "@red-cup-engineering/read-javascript-file-export-documentation-service": "0.1.5"
+    "@red-cup-engineering/computer-file-engineering-services-section": "0.8.7-dev.1",
+    "@red-cup-engineering/json-engineering-services-section": "0.4.3-dev.0",
+    "@red-cup-engineering/jsonl-engineering-services-section": "0.1.3-dev.0",
+    "@red-cup-engineering/inspect-installed-npm-package-service": "0.3.3-dev.1",
+    "@red-cup-engineering/read-javascript-file-export-documentation-service": "0.2.1-dev.1"
   },
   "exports": {
     "./check-npm-registry-package-installations": "./scripts/check-npm-registry-package-installations.mjs",
@@ -25,7 +24,7 @@
     "check": "check-package-syntax"
   },
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-engineering-services-section": "0.2.4"
+    "@red-cup-engineering/jsnode-package-engineering-services-section": "0.6.1-dev.6"
   },
   "files": [
     "README.md",
@@ -37,5 +36,12 @@
   "funding": {
     "type": "individual",
     "url": "https://github.com/561-group/.github/blob/main/TIPS.md"
-  }
+  },
+  "receivingTests": [
+    "test/check-npm-registry-package-installations.test.mjs",
+    "test/npm-artifact-integrity-service.test.mjs",
+    "test/read-npm-registry-resource.test.mjs",
+    "test/registry-cli-arguments.test.mjs",
+    "test/select-npm-registry-packages.test.mjs"
+  ]
 }

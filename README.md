@@ -108,3 +108,7 @@ this section are additional registry capabilities over registry artifacts.
 They read registry.561.group or its snapshots, or publish to it; none of them
 is another registry. Keep each service's read state, guarantees, and package
 population explicit.
+
+## Native receiving prerequisite
+
+The selection and installation-check commands use strict native Node argument parsing for `--help`/`-h`, retaining their JSONL and request admission contracts. All portable original suites and CLI argument tests are shipped and enrolled in `receivingTests`. Tests use temporary local data and injected fetch/process boundaries, not a live registry installation. Exact supplier selections refer to the genuine current native cohort. Source and packed behavior evidence does not establish issued registry artifacts, frozen installation of this package, or production activation; no frozen dependency lock is supplied by this source candidate.

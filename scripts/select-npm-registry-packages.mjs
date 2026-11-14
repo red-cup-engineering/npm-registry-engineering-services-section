@@ -3,7 +3,7 @@ import { once } from "node:events";
 import { readFile } from "node:fs/promises";
 import { freezeJson } from "@red-cup-engineering/json-engineering-services-section";
 import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-engineering-services-section";
-import { parseJavascriptArgv } from "@red-cup-engineering/javascript-node-engineering-services-section/argv";
+import { parseArgs } from "node:util";
 import { readJavascriptFileExportDocumentation } from "@red-cup-engineering/read-javascript-file-export-documentation-service";
 
 const EXACT_RELEASE = /^(?:(@[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)|([a-z0-9][a-z0-9._-]*))@(\d+\.\d+\.\d+(?:-[0-9a-z.-]+)?(?:\+[0-9a-z.-]+)?)$/iu;
@@ -38,8 +38,8 @@ export function selectNpmRegistryPackages(request) {
 }
 
 if (import.meta.main) {
-  const parsed = parseJavascriptArgv({ type: "JavascriptArgvParsingRequest", version: 1, argumentVector: { type: "JavascriptArgumentVector", version: 1, arguments: process.argv }, options: { help: { type: "boolean", short: "h", default: false } }, allowPositionals: false, strict: true });
-  if (parsed.options.help) {
+  const parsed = parseArgs({ args: process.argv.slice(2), options: { help: { type: "boolean", short: "h", default: false } }, allowPositionals: false, strict: true });
+  if (parsed.values.help) {
     const source = await readFile(new URL(import.meta.url), "utf8");
     const [documentation] = readJavascriptFileExportDocumentation({ type: "TextFileRead", path: "scripts/select-npm-registry-packages.mjs", text: source });
     const helpOutput = `${documentation.name} — ${documentation.description}\n\n${documentation.signature}\n`;
