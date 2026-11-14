@@ -121,3 +121,27 @@ test("published runtime dependency metadata must describe the exact measured arc
   });
   assert.equal((await project()).admitted.length, 1);
 }));
+
+test("explicit exact development selection admits only that owned, measured prerelease", async () => fixture(async (root) => {
+  const name = "@causeway-services/news-fixture";
+  const other = "@causeway-services/unselected";
+  const version = "0.1.12-dev.77";
+  await release(root, name, version);
+  await release(root, other, version);
+  await index(root, [name, other]);
+  const project = (extras = {}) => projectVerdaccioStorageReleases({ storageRoot: root, ownedScopes: ["causeway-services"], ...extras });
+  assert.equal((await project()).admitted.length, 0, "default remains stable-only");
+  const exact = `${name}@${version}`;
+  const output = await project({ developmentReleases: [exact] });
+  assert.deepEqual(output.admitted.map(({manifest}) => [manifest.name, manifest.version]), [[name, version]]);
+  assert.deepEqual(output.excluded.map(({ name, reason }) => [name, reason]), [[other, EXCLUSION_REASONS.NON_EXACT_VERSION]]);
+  assert.equal(output.admitted[0].integrity, output.admitted[0].measurement.integrity);
+  const cli = fileURLToPath(new URL("../scripts/project-verdaccio-storage-releases.mjs", import.meta.url));
+  assert.deepEqual(JSON.parse(execFileSync(process.execPath, [cli, "--storage-root", root, "--owned-scope",
+    "causeway-services", "--development-release", exact], { encoding: "utf8", timeout: 3000 })), output);
+  for (const invalid of [`${name}@latest`, `${name}@^0.1.12-dev.77`, `${name}@0.1.12-dev.077`,
+    `${name}@0.1.12-rc.1`, `${name}@0.1.12-dev.77+other`])
+    await assert.rejects(project({ developmentReleases: [invalid] }), /exact scoped development release/u);
+  await assert.rejects(project({ developmentReleases: [`${name}@0.1.12-dev.78`] }), /selected development release not admitted/u);
+  await assert.rejects(project({ ownedScopes: ["unknown"], developmentReleases: [exact] }), /selected development release not admitted/u);
+}));

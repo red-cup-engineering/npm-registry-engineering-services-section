@@ -24,6 +24,9 @@
     "pack:dry-run": "npm pack --dry-run --ignore-scripts",
     "test:consumer": "node --test examples/quickstart.test.mjs"
   },
+  "dependencies": {
+    "semver": "7.7.2"
+  },
   "engines": {
     "node": ">=22"
   },

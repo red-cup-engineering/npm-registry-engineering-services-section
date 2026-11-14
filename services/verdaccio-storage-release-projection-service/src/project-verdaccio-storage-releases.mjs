@@ -1,3 +1,4 @@
+import { parse } from "semver";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
@@ -5,7 +6,25 @@ import { gunzipSync } from "node:zlib";
 import { join, resolve } from "node:path";
 
 const SOVEREIGN_NAME = /^@[a-z0-9-]+\/[a-z0-9._-]+$/u;
-const EXACT_VERSION = /^\d+\.\d+\.\d+$/u;
+const exactCore = value => {
+  const version = parse(value);
+  return version && version.version === value && version.build.length === 0 ? version : null;
+};
+const stable = value => exactCore(value)?.prerelease.length === 0;
+function selectedDevelopmentReleases(selectors) {
+  if (!Array.isArray(selectors)) throw new TypeError("developmentReleases must be an array");
+  const selected = new Set();
+  for (const selector of selectors) {
+    const cut = typeof selector === "string" ? selector.lastIndexOf("@") : -1;
+    const name = cut > 0 ? selector.slice(0, cut) : "";
+    const version = cut > 0 ? exactCore(selector.slice(cut + 1)) : null;
+    if (!SOVEREIGN_NAME.test(name) || version?.prerelease.length !== 2 ||
+        version.prerelease[0] !== "dev" || !Number.isSafeInteger(version.prerelease[1]))
+      throw new TypeError("expected an exact scoped development release (name@x.y.z-dev.N)");
+    selected.add(selector);
+  }
+  return selected;
+}
 const RUNTIME_DEPENDENCY_FIELDS = ["dependencies", "optionalDependencies", "peerDependencies"];
 const DEPENDENCY_FIELDS = [...RUNTIME_DEPENDENCY_FIELDS, "devDependencies"];
 const LOCAL_PROTOCOL = /^(?:workspace:|file:|link:)/u;
@@ -117,10 +136,12 @@ function hardRefuse(surface, detail) {
  * Projects only explicit, indexed ownership from Verdaccio's legacy storage.
  * It reads, hashes, and artifact-attests each candidate, but writes nothing.
  */
-export async function projectVerdaccioStorageReleases({ storageRoot, ownedScopes, ownedUnscopedNames = [] } = {}) {
+export async function projectVerdaccioStorageReleases({ storageRoot, ownedScopes, ownedUnscopedNames = [], developmentReleases = [] } = {}) {
   if (typeof storageRoot !== "string" || storageRoot === "") throw new TypeError("storageRoot must be a non-empty string");
   if (!Array.isArray(ownedScopes) || ownedScopes.length === 0 || ownedScopes.some((scope) => typeof scope !== "string" || scope === "")) throw new TypeError("ownedScopes must name at least one scope");
   if (!Array.isArray(ownedUnscopedNames) || ownedUnscopedNames.some((name) => typeof name !== "string" || name === "")) throw new TypeError("ownedUnscopedNames must be an array of non-empty names");
+  const selectedDevelopment = selectedDevelopmentReleases(developmentReleases);
+  const receivedDevelopment = new Set();
   const root = resolve(storageRoot);
   const scopes = new Set(ownedScopes);
   const unscoped = new Set(ownedUnscopedNames);
@@ -149,13 +170,21 @@ export async function projectVerdaccioStorageReleases({ storageRoot, ownedScopes
       if (artifact?.name !== name || artifact?.version !== version) hardRefuse(`${name}@${version}`, "artifact package manifest identity/version does not equal packument release");
       const evidence = { name, version, manifest, artifactPath: join(packageDirectory(root, name), filename), measurement };
       if (rejection !== null) { exclusions.push(excluded({ ...evidence, reason: rejection.reason, detail: rejection.detail })); continue; }
-      if (!EXACT_VERSION.test(version) || manifest.version !== version) { exclusions.push(excluded({ ...evidence, reason: EXCLUSION_REASONS.NON_EXACT_VERSION, detail: "packument version must be exact x.y.z and equal manifest.version" })); continue; }
+      const releaseIdentity = `${name}@${version}`;
+      if ((!stable(version) && !selectedDevelopment.has(releaseIdentity)) || manifest.version !== version) {
+        exclusions.push(excluded({ ...evidence, reason: EXCLUSION_REASONS.NON_EXACT_VERSION,
+          detail: "packument version must be an exact stable version or an explicitly selected development release, and match manifest.version" }));
+        continue;
+      }
       const local = localDependency(artifact, "archive") ?? localDependency(manifest, "packument");
       if (local !== null) { exclusions.push(excluded({ ...evidence, reason: EXCLUSION_REASONS.LOCAL_DEPENDENCY_PROTOCOL, detail: local })); continue; }
-      matchRuntimeDependencies(manifest, artifact, `${name}@${version}`);
+      matchRuntimeDependencies(manifest, artifact, releaseIdentity);
+      if (selectedDevelopment.has(releaseIdentity)) receivedDevelopment.add(releaseIdentity);
       admitted.push(Object.freeze({ manifest: Object.freeze({ ...manifest }), artifactPath: join(packageDirectory(root, name), filename), integrity: measurement.integrity, measurement }));
     }
   }
+  for (const selector of selectedDevelopment)
+    if (!receivedDevelopment.has(selector)) hardRefuse(selector, "selected development release not admitted");
   admitted.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name) || a.manifest.version.localeCompare(b.manifest.version, undefined, { numeric: true }));
   exclusions.sort((a, b) => a.name.localeCompare(b.name) || String(a.version).localeCompare(String(b.version)) || a.reason.localeCompare(b.reason));
   const excludedByReason = Object.fromEntries(Object.values(EXCLUSION_REASONS).map((reason) => [reason, exclusions.filter((item) => item.reason === reason).length]));
