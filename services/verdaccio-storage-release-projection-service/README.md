@@ -19,8 +19,13 @@ attachments, digest disagreement, or a disagreement between the tarball's
 `package/package.json` and the packument is a hard refusal: such a release has
 no trustworthy carrier to project.
 
-Only exact `x.y.z`, scoped sovereign names accepted by snapshot assembly are
-admitted. `@emsenn/*`, unscoped releases, and any manifest retaining
+By default only exact stable `x.y.z` releases with scoped sovereign names
+are admitted. An operator may explicitly request a retained development
+prerelease with `--development-release @scope/package@x.y.z-dev.N` (repeatable)
+or the API's `developmentReleases` array. This does not admit other prereleases
+or relax scope, identity, integrity or dependency checks. A requested release
+that cannot be admitted fails the whole projection; absence is never an empty
+success. This does not publish or set registry tags. `@emsenn/*`, unscoped releases, and any manifest retaining
 `workspace:`, `file:`, or `link:` dependency protocols are excluded explicitly.
 The protocol check reads both the measured archive's embedded manifest and the
 registry packument; an exclusion identifies which one supplied the dependency.
