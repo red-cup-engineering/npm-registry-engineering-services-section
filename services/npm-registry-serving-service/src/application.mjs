@@ -15,7 +15,7 @@ const HOSTNAME = /^(?=.{1,253}$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9
 const CONFIGURATION = new Set([
   "hosts", "origin", "storage", "htpasswd", "tokens", "privateScopes", "privateNames", "uplink", "houseScopes",
   "publishGate", "cachePublicTarballs", "publicTarballs", "uplinkMaxAgeMs", "maxPublishBytes", "maxUplinkTarballBytes", "receiveAtStart",
-  "peers", "peerRefreshMs", "canonicalPublication", "identityConservation",
+  "peers", "peerRefreshMs", "canonicalPublication", "identityConservation", "releasesOnly",
 ]);
 
 /** A registry configuration as admitted: every key known, hosts named, the origin one of them. */
@@ -76,7 +76,7 @@ export function registryFor(configuration, { log = (line) => process.stderr.writ
     privateScopes: admitted.privateScopes, privateNames: admitted.privateNames, uplink: admitted.uplink,
     cachePublicTarballs: admitted.cachePublicTarballs, publicTarballs: admitted.publicTarballs, uplinkMaxAgeMs: admitted.uplinkMaxAgeMs,
     peers: (admitted.peers ?? []).map(specification => peerFromSpecification(specification)), peerRefreshMs: admitted.peerRefreshMs, canonicalPublication: admitted.canonicalPublication, houseScopes: admitted.houseScopes, publishGate: admitted.publishGate,
-    identityConservation: identityConservationOf(admitted),
+    identityConservation: identityConservationOf(admitted), releasesOnly: admitted.releasesOnly === true,
     maxPublishBytes: admitted.maxPublishBytes, maxUplinkTarballBytes: admitted.maxUplinkTarballBytes,
   });
   const ready = (async () => {

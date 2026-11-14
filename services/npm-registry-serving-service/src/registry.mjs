@@ -70,7 +70,7 @@ export function createNpmRegistry({
   publicMetadataBytes = 32 * 1024 * 1024, houseMetadataBytes = 32 * 1024 * 1024, cachePublicTarballs = false, publicTarballs = "redirect",
   houseScopes = [...new Set([...DEFAULT_HOUSE_SCOPES, ...privateScopes])], publishGate = true,
   maxPublishBytes = 64 * 1024 * 1024, maxUplinkTarballBytes = 64 * 1024 * 1024, heapPressure = heapNearLimit,
-  peers = [], peerMissMs = 30_000, peerRefreshMs = 60_000, canonicalPublication, identityConservation, fetch: fetchImpl = fetch, now = () => new Date(),
+  peers = [], peerMissMs = 30_000, peerRefreshMs = 60_000, canonicalPublication, identityConservation, releasesOnly = false, fetch: fetchImpl = fetch, now = () => new Date(),
 }) {
   if (typeof storage !== "string" || !storage) throw new TypeError("the registry needs its package storage directory");
   if (publicTarballs !== "redirect" && publicTarballs !== "proxy") throw new TypeError("publicTarballs is \"redirect\" or \"proxy\"");
@@ -86,7 +86,11 @@ export function createNpmRegistry({
   const isPrivate = (name) => privateNames.includes(name) || privateScopes.some((scope) => name.startsWith(`${scope}/`));
   // The Worker's own conservation over this node's origin and house names: an untyped or foreign record fails here, at start.
   const conservation = registryIdentityConservation(identityConservation, { origin, privateScopes, privateNames });
-  const quarantined = (name, version) => typeof version === "string" && conservation.conflict(name, version) !== undefined;
+  // A registry of releases (`releasesOnly`) holds no prerelease of a house package: a version with a prerelease
+  // part (1.2.0-dev.3) is withheld exactly as a quarantined one is. It is left out of every document, no tag names
+  // it, peers do not bring it in, and publishing it is refused. Development versions stay where they are made.
+  const prerelease = (version) => releasesOnly && semver.valid(version) !== null && semver.prerelease(version) !== null;
+  const quarantined = (name, version) => typeof version === "string" && (prerelease(version) || conservation.conflict(name, version) !== undefined);
   // Every metadata route names the same bounded package path. Keep the
   // existing no-dot-segment/no-leading-dash admission, including on tag URLs.
   const houseName = (name) => {
@@ -98,7 +102,7 @@ export function createNpmRegistry({
   const json = (value, status = 200, headers = {}) => Response.json(value, { status, headers });
   const refusal = (status, error) => json({ error }, status);
   // The Worker's refusal of a quarantined version, its tag and its archive (r2-registry.mjs refuseConflict).
-  const quarantine = () => refusal(409, "package version is quarantined for conflicting immutable identities");
+  const quarantine = () => refusal(409, releasesOnly ? "package version is withheld: this registry holds releases only (no prerelease versions), and quarantines conflicting immutable identities" : "package version is quarantined for conflicting immutable identities");
   const etagOf = (body) => `"${createHash("sha256").update(body).digest("base64url").slice(0, 32)}"`;
   const revisionOf = (read) => `${read.rows.length}-${read.digest.slice(0, 32)}`;
 
@@ -140,11 +144,23 @@ export function createNpmRegistry({
     return conservation.project(name, versions === undefined ? document : { ...document, versions });
   }
   /** A house package's full document as served: quarantined versions and their tags left out, their evidence carried. */
-  const servedFull = (view) => projected(view.state.name, renderFull(view.state, { origin, revision: view.revision }));
+  /**
+   * A registry of releases serves releases: a prerelease this store already holds is left out, a tag that names one
+   * is left out, and `latest` names the highest release when no held tag does, so an install still finds one.
+   */
+  function releases(document) {
+    if (!releasesOnly) return document;
+    const versions = Object.fromEntries(Object.entries(document.versions).filter(([version]) => !prerelease(version)));
+    const tags = Object.fromEntries(Object.entries(document["dist-tags"] ?? {}).filter(([, version]) => Object.hasOwn(versions, version)));
+    const held = Object.keys(versions);
+    if (tags.latest === undefined && held.length > 0) tags.latest = held.sort(semver.rcompare)[0];
+    return { ...document, versions, "dist-tags": tags };
+  }
+  const servedFull = (view) => releases(projected(view.state.name, renderFull(view.state, { origin, revision: view.revision })));
   /** The install metadata as served: what the served full document still holds, with the same evidence. */
   function servedAbbreviated(view) {
     const document = renderAbbreviated(view.state, { origin });
-    if (!conservation.projects(view.state.name)) return document;
+    if (!conservation.projects(view.state.name) && !releasesOnly) return document;
     const full = servedFull(view);
     const versions = Object.fromEntries(Object.entries(document.versions).filter(([version]) => Object.hasOwn(full.versions, version)));
     return { ...document, "dist-tags": full["dist-tags"], versions, "x-561-registry-conflicts": full["x-561-registry-conflicts"] };
@@ -152,7 +168,7 @@ export function createNpmRegistry({
   /** Search selects only from the same identity-checked versions and tags the packument serves. */
   function servedSearch(view) {
     let state = view.state;
-    if (conservation.projects(state.name)) {
+    if (conservation.projects(state.name) || releasesOnly) {
       const full = servedFull(view);
       state = { ...state,
         versions: new Map([...state.versions].filter(([version]) => Object.hasOwn(full.versions, version))),

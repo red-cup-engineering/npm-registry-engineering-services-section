@@ -159,3 +159,16 @@ test("a node that names its canonical publication receiver refuses house publica
   assert.deepEqual(packument["dist-tags"], { latest: "1.0.0" });
   await assert.rejects(node(t, [], { canonicalPublication: "https://registry.example/path" }), /scheme and host/u);
 });
+
+test("a registry of releases withholds prereleases: peers do not bring them in, no document or tag names them, publishing one is refused", async t => {
+  const theirs = await node(t, ["1.0.0", "1.1.0-dev.2"]);
+  const mine = await node(t, [], { peers: [bucketPeer({ name: "bucket", bucket: await bucketOf(theirs) })], releasesOnly: true });
+  const document = await (await mine.request("/" + encodeURIComponent(name))).json();
+  assert.deepEqual(Object.keys(document.versions), ["1.0.0"], "the release is received, the development version is not");
+  assert.equal(document["dist-tags"].latest, "1.0.0");
+  assert.equal((await mine.request("/" + encodeURIComponent(name) + "/1.1.0-dev.2")).status, 409);
+  const refused = await mine.publish(packagedVersion(name, "1.2.0-dev.0"));
+  assert.equal(refused.status, 409);
+  assert.match((await refused.json()).error, /releases only/);
+  assert.equal((await mine.publish(packagedVersion(name, "1.2.0"))).status, 201, "a release is published as ever");
+});

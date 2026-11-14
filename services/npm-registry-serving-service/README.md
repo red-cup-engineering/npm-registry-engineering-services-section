@@ -15,6 +15,10 @@ One accountable original input per package/version is received before effects. A
 
 `npm test` includes the native and R2 protocol suites. Separate integration receiving uses `test:landed-registry-port` with `GITHUB_LANDING_PUBLICATION_MODULE` and `PREPARED_NPM_PUBLICATION_INPUT` selecting the original producer/input; `test:legacy-r2-publication` uses `LEGACY_R2_PUBLICATION_CLI` to receive the exact held legacy source. Those locators select receiving inputs and grant no fabrication or publishing authority. See the operative requirements/design for the protocol and automatic18822 transport contract.
 
+## A registry of releases
+
+With `"releasesOnly": true` in its configuration a registry holds releases and nothing else. A version with a prerelease part (`1.2.0-dev.3`) is withheld the way a quarantined version is: no document names it, no tag names it, peers do not bring it in, and publishing it is refused with 409. `latest` names the highest release when no held tag does. Because the publish gate already refuses a version whose house dependency no published version satisfies, a release that depends on a development version cannot be published to such a registry.
+
 ## Data: facts, blobs, and what is projected from them
 
 What the registry knows about a house package is what has happened to it, kept
@@ -339,6 +343,10 @@ This package is the Group npm registry (registry.561.group): the npm registry
 protocol as npm and pnpm speak it, served from the Group's package facts. It
 runs as a MetroPlat hosted application on an instance's own listener, or as a
 standalone process; both are the same registry over the same store.
+
+## A registry of releases
+
+With `"releasesOnly": true` in its configuration a registry holds releases and nothing else. A version with a prerelease part (`1.2.0-dev.3`) is withheld the way a quarantined version is: no document names it, no tag names it, peers do not bring it in, and publishing it is refused with 409. `latest` names the highest release when no held tag does. Because the publish gate already refuses a version whose house dependency no published version satisfies, a release that depends on a development version cannot be published to such a registry.
 
 ## Data: facts, blobs, and what is projected from them
 
