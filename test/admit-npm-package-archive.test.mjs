@@ -47,3 +47,17 @@ test("the gate refuses missing or duplicate embedded manifests", () => {
   for (const bytes of [archive(), archive(tarMember(identity), tarMember(identity))])
     assert.throws(() => admit(bytes), { code: "INVALID_NPM_ARCHIVE_MANIFEST" });
 });
+
+test("required and optional peer edges cannot disagree between archive and packument", () => {
+  const required = { ...identity, peerDependencies: { helper: "1.0.0" } };
+  const optional = { ...required, peerDependenciesMeta: { helper: { optional: true } } };
+  const explicitRequired = { ...required, peerDependenciesMeta: { helper: { optional: false } } };
+  assert.doesNotThrow(() => admit(archive(tarMember(optional)), optional));
+  assert.doesNotThrow(() => admit(archive(tarMember(explicitRequired)), required));
+  for (const [embedded, supplied] of [[optional, required], [required, optional]]) {
+    assert.throws(() => admit(archive(tarMember(embedded)), supplied),
+      { code: "NPM_ARCHIVE_DEPENDENCY_MISMATCH" });
+  }
+  assert.throws(() => admit(archive(tarMember({ ...required, peerDependenciesMeta: { helper: { optional: "true" } } })), required),
+    { code: "INVALID_NPM_ARCHIVE_MANIFEST" });
+});

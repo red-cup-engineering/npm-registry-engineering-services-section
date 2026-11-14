@@ -22,6 +22,24 @@ function dependencyMap(manifest, field) {
   return keys;
 }
 
+// npm resolves required and optional peers differently. Compare effective
+// optionality of declared peers, not incidental order or explicit false.
+function optionalPeerNames(manifest) {
+  if (!Object.hasOwn(manifest, "peerDependenciesMeta")) return [];
+  const metadata = manifest.peerDependenciesMeta;
+  if (!metadata || typeof metadata !== "object" || Array.isArray(metadata))
+    refuse("INVALID_NPM_ARCHIVE_MANIFEST", "invalid peerDependenciesMeta map");
+  const peers = dependencyMap(manifest, "peerDependencies");
+  return Object.keys(peers).filter(name => {
+    if (!Object.hasOwn(metadata, name)) return false;
+    const record = metadata[name];
+    if (!record || typeof record !== "object" || Array.isArray(record) ||
+        (Object.hasOwn(record, "optional") && typeof record.optional !== "boolean"))
+      refuse("INVALID_NPM_ARCHIVE_MANIFEST", "invalid peer dependency optionality");
+    return record.optional === true;
+  }).sort();
+}
+
 /**
  * Admit an exact immutable npm archive against a publisher's supplied release
  * manifest and SHA-512. No filesystem reads, extraction, install or registry
@@ -57,5 +75,7 @@ export function admitNpmPackageArchive(bytes, { manifest, integrity } = {}) {
     if (field !== "devDependencies" && !isDeepStrictEqual(supplied, observed))
       refuse("NPM_ARCHIVE_DEPENDENCY_MISMATCH", `npm archive disagrees with the supplied release in ${field}`);
   }
+  if (!isDeepStrictEqual(optionalPeerNames(manifest), optionalPeerNames(embedded)))
+    refuse("NPM_ARCHIVE_DEPENDENCY_MISMATCH", "npm archive disagrees with the supplied release in optional peer dependencies");
   return Object.freeze({ name: embedded.name, version: embedded.version, measurement });
 }
