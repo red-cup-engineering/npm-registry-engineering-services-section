@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -81,4 +83,38 @@ test("hard-refuses missing attachments, mismatched digests, and mismatched artif
   await release(root, "@red-cup-engineering/identity", "1.0.0", { artifactManifest: { name: "@red-cup-engineering/other", version: "1.0.0" } });
   await index(root, ["@red-cup-engineering/identity"]);
   await assert.rejects(projectVerdaccioStorageReleases({ storageRoot: root, ownedScopes: ["red-cup-engineering"] }), /artifact package manifest identity\/version/u);
+}));
+
+test("an exact archive with a local dependency is excluded even if metadata omits it", async () => fixture(async (root) => {
+  const name = "@causeway-services/news-fixture", version = "0.1.11";
+  await release(root, name, version, {
+    artifactManifest: { name, version, dependencies: { "local-site-content": "workspace:*" } },
+  });
+  await index(root, [name]);
+  const result = await projectVerdaccioStorageReleases({ storageRoot: root, ownedScopes: ["causeway-services"] });
+  const cli = fileURLToPath(new URL("../scripts/project-verdaccio-storage-releases.mjs", import.meta.url));
+  const snapshotInput = JSON.parse(execFileSync(process.execPath,
+    [cli, "--storage-root", root, "--owned-scope", "causeway-services"], { encoding: "utf8", timeout: 3000 }));
+  assert.deepEqual(snapshotInput, result);
+  assert.deepEqual(result.admitted, []);
+  assert.deepEqual(result.excluded.map(({ reason, detail }) => ({ reason, detail })), [{
+    reason: EXCLUSION_REASONS.LOCAL_DEPENDENCY_PROTOCOL,
+    detail: { source: "archive", field: "dependencies", name: "local-site-content", value: "workspace:*" },
+  }]);
+}));
+
+test("published runtime dependency metadata must describe the exact measured archive", async () => fixture(async (root) => {
+  const name = "@red-cup-engineering/consumer", version = "1.0.0";
+  const project = () => projectVerdaccioStorageReleases({ storageRoot: root, ownedScopes: ["red-cup-engineering"] });
+  await index(root, [name]);
+  await release(root, name, version, {
+    manifest: { dependencies: { shared: "1.0.0" } },
+    artifactManifest: { name, version, dependencies: { shared: "2.0.0" } },
+  });
+  await assert.rejects(project(), /archive disagrees with packument dependencies/u);
+  await release(root, name, version, {
+    manifest: { dependencies: { shared: "1.0.0", another: "3.0.0" } },
+    artifactManifest: { name, version, dependencies: { another: "3.0.0", shared: "1.0.0" }, optionalDependencies: {} },
+  });
+  assert.equal((await project()).admitted.length, 1);
 }));
