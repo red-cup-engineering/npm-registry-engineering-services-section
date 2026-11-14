@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { once } from "node:events";
 import { readFile } from "node:fs/promises";
-import { freezeJson } from "@red-cup-engineering/json-engineering-services-section";
+import { freezeJson } from "@red-cup-engineering/json-engine";
 import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-engineering-services-section";
 import { parseArgs } from "node:util";
 import { readJavascriptFileExportDocumentation } from "@red-cup-engineering/read-javascript-file-export-documentation-service";

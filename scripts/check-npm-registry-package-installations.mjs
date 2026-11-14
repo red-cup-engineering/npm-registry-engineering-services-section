@@ -5,7 +5,7 @@ import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { promisify } from "node:util";
-import { freezeJson } from "@red-cup-engineering/json-engineering-services-section";
+import { freezeJson } from "@red-cup-engineering/json-engine";
 import { inspectInstalledNpmPackage } from "@red-cup-engineering/inspect-installed-npm-package-service";
 import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-engineering-services-section";
 import { parseArgs } from "node:util";

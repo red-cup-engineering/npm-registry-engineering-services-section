@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import semver from "semver";
-import { canonicalJson } from "@red-cup-engineering/json-engineering-services-section/canonical-json";
+import { canonicalJson } from "@red-cup-engineering/json-engine/canonical-json";
 import { admittedName, parsePackagePath } from "./prepared-publication.mjs";
 
 const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
