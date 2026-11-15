@@ -1,15 +1,14 @@
 #!/usr/bin/env node
 import { execFile } from "node:child_process";
+import { createHash } from "node:crypto";
 import { once } from "node:events";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, resolve } from "node:path";
 import { promisify } from "node:util";
-import { freezeJson } from "@red-cup-engineering/json-engine";
+import { freezeJson } from "@red-cup-engineering/json-engine/freeze-json";
 import { inspectInstalledNpmPackage } from "@red-cup-engineering/inspect-installed-npm-package-service";
-import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-engineering-services-section";
 import { parseArgs } from "node:util";
-import { readJavascriptFileExportDocumentation } from "@red-cup-engineering/read-javascript-file-export-documentation-service";
 import { selectNpmRegistryPackages } from "@red-cup-engineering/npm-registry-engineering-services-section/select-npm-registry-packages";
 
 const executeNpm = promisify(execFile);
@@ -32,7 +31,48 @@ function registryUrl(candidate) {
   } catch { throw new TypeError("registry receipt must carry an HTTP or HTTPS registry URL"); }
 }
 
+function releaseHasArtifact(row) {
+  const digest = row.integrity;
+  if (typeof digest !== "string" || !/^sha512-[A-Za-z0-9+/]{86}==$/u.test(digest)
+      || Buffer.from(digest.slice(7), "base64").toString("base64") !== digest.slice(7)) return false;
+  try {
+    const url = new URL(row.tarball);
+    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password
+      && !url.search && !url.hash && url.href === row.tarball;
+  } catch { return false; }
+}
+
+async function inspectInstallLock(projectRoot, row) {
+  const defect = field => ({ law: "registry-installed-artifact", field });
+  let lock, bytes;
+  try {
+    bytes = await readFile(join(projectRoot, "package-lock.json"));
+    lock = JSON.parse(bytes.toString("utf8"));
+  } catch (error) {
+    if (!(error instanceof SyntaxError) && error?.code !== "ENOENT") throw error;
+    return { binding: null, defects: [defect("package-lock")] };
+  }
+  const item = lock?.packages?.["node_modules/" + row.name];
+  if (![2, 3].includes(lock?.lockfileVersion) || !item || typeof item !== "object" || Array.isArray(item))
+    return { binding: null, defects: [defect("package-lock")] };
+  const defects = [];
+  if (item.link === true) defects.push(defect("link"));
+  if (item.version !== row.version) defects.push(defect("version"));
+  if (item.integrity !== row.integrity) defects.push(defect("integrity"));
+  if (item.resolved !== row.tarball) defects.push(defect("resolved"));
+  return { binding: defects.length ? null : {
+    lockfileVersion: lock.lockfileVersion,
+    lockfileSha256: createHash("sha256").update(bytes).digest("hex"),
+    integrity: row.integrity,
+    tarball: row.tarball,
+  }, defects };
+}
+
 async function installAndInspect(row, context) {
+  if (!releaseHasArtifact(row))
+    return freezeJson({ type: "NpmRegistryPackageInstallationCheckRead", version: 1, name: row.name, packageVersion: row.version,
+      installed: false, inspection: null, artifactBinding: null,
+      defects: [{ law: "registry-release-artifact", diagnostic: "Receipt must identify an exact tarball and canonical SHA-512 integrity" }] });
   const projectRoot = await mkdtemp(join(context.temporaryParent, "npm-registry-installation-check-"));
   try {
     await writeFile(join(projectRoot, "package.json"), '{"private":true}\n');
@@ -45,17 +85,20 @@ async function installAndInspect(row, context) {
       NPM_CONFIG_WORKSPACES: "false",
     };
     try {
-      const installation = await context.execute("npm", ["install", "--prefix", projectRoot, "--registry", context.registry, "--ignore-scripts", "--workspaces=false", "--include-workspace-root=false", "--no-package-lock", "--save-exact", "--no-audit", "--no-fund", `${row.name}@${row.version}`], { env: environment, signal: context.signal, maxBuffer: 16 * 1024 * 1024 });
+      const installation = await context.execute("npm", ["install", "--prefix", projectRoot, "--registry", context.registry, "--ignore-scripts", "--workspaces=false", "--include-workspace-root=false", "--package-lock=true", "--save-exact", "--no-audit", "--no-fund", `${row.name}@${row.version}`], { env: environment, signal: context.signal, maxBuffer: 16 * 1024 * 1024 });
       if (installation.error || installation.signal || (installation.status !== undefined && installation.status !== 0)) throw Object.assign(new Error(installation.error?.message ?? installation.stderr ?? "npm installation failed"), { code: installation.error?.code, spawnError: installation.error?.message ?? null });
     } catch (error) {
-      return freezeJson({ type: "NpmRegistryPackageInstallationCheckRead", version: 1, name: row.name, packageVersion: row.version, installed: false, inspection: null, defects: [{ law: "registry-package-installation", diagnostic: error.stderr || error.stdout || error.message, code: error.code ?? null, spawnError: error.spawnError ?? null }] });
+      return freezeJson({ type: "NpmRegistryPackageInstallationCheckRead", version: 1, name: row.name, packageVersion: row.version, installed: false, inspection: null, artifactBinding: null, defects: [{ law: "registry-package-installation", diagnostic: error.stderr || error.stdout || error.message, code: error.code ?? null, spawnError: error.spawnError ?? null }] });
     }
     const packageRoot = join(projectRoot, "node_modules", ...row.name.split("/"));
+    let lock;
+    try { lock = await inspectInstallLock(projectRoot, row); }
+    catch { lock = { binding: null, defects: [{ law: "registry-installed-artifact", field: "package-lock" }] }; }
     try {
       const inspection = await inspectInstalledNpmPackage({ type: "InstalledNpmPackageInspectionRequest", version: 1, packageRoot, expectedName: row.name, expectedVersion: row.version, projectRoot });
-      return freezeJson({ type: "NpmRegistryPackageInstallationCheckRead", version: 1, name: row.name, packageVersion: row.version, installed: true, inspection, defects: inspection.defects });
+      return freezeJson({ type: "NpmRegistryPackageInstallationCheckRead", version: 1, name: row.name, packageVersion: row.version, installed: true, inspection, artifactBinding: lock.binding, defects: [...lock.defects, ...inspection.defects] });
     } catch (error) {
-      return freezeJson({ type: "NpmRegistryPackageInstallationCheckRead", version: 1, name: row.name, packageVersion: row.version, installed: true, inspection: null, defects: [{ law: "installed-package-inspection", diagnostic: error.message, code: error.code ?? null }] });
+      return freezeJson({ type: "NpmRegistryPackageInstallationCheckRead", version: 1, name: row.name, packageVersion: row.version, installed: true, inspection: null, artifactBinding: lock.binding, defects: [...lock.defects, { law: "installed-package-inspection", diagnostic: error.message, code: error.code ?? null }] });
     }
   } finally {
     await rm(projectRoot, { recursive: true, force: true });
@@ -92,11 +135,13 @@ export async function checkNpmRegistryPackageInstallations(request, capabilities
 if (import.meta.main) {
   const parsed = parseArgs({ args: process.argv.slice(2), options: { help: { type: "boolean", short: "h", default: false } }, allowPositionals: false, strict: true });
   if (parsed.values.help) {
+    const {readJavascriptFileExportDocumentation} = await import("@red-cup-engineering/read-javascript-file-export-documentation-service");
     const source = await readFile(new URL(import.meta.url), "utf8");
     const [documentation] = readJavascriptFileExportDocumentation({ type: "TextFileRead", path: "scripts/check-npm-registry-package-installations.mjs", text: source });
     const helpOutput = `${documentation.name} — ${documentation.description}\n\n${documentation.signature}\n`;
     if (!process.stdout.write(helpOutput)) await once(process.stdout, "drain");
   } else {
+    const {parseLines, serializeLines} = await import("@red-cup-engineering/jsonl-engineering-services-section");
     process.stdin.setEncoding("utf8");
     let text = "";
     for await (const chunk of process.stdin) text += chunk;

@@ -99,6 +99,11 @@ Bootstrap from leaves outward:
    temporary directory, and checks the files and declared faces that were
    actually shipped.
 
+The installer requires a measured tarball URL and SHA-512 from the registry
+receipt. It checks the new npm lock against both, then separately checks the
+installed package identity and interfaces. A matching version alone is not
+acceptance; a missing lock or different archive is a refusal.
+
 That last step is the required exact-artifact test: unit tests and a local
 workspace import are useful, but cannot prove that the packed tarball can be
 installed and run without source-tree, `workspace:`, `file:`, or `link:`

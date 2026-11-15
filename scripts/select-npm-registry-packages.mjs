@@ -1,10 +1,8 @@
 #!/usr/bin/env node
 import { once } from "node:events";
 import { readFile } from "node:fs/promises";
-import { freezeJson } from "@red-cup-engineering/json-engine";
-import { parseLines, serializeLines } from "@red-cup-engineering/jsonl-engineering-services-section";
+import { freezeJson } from "@red-cup-engineering/json-engine/freeze-json";
 import { parseArgs } from "node:util";
-import { readJavascriptFileExportDocumentation } from "@red-cup-engineering/read-javascript-file-export-documentation-service";
 
 const EXACT_RELEASE = /^(?:(@[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)|([a-z0-9][a-z0-9._-]*))@(\d+\.\d+\.\d+(?:-[0-9a-z.-]+)?(?:\+[0-9a-z.-]+)?)$/iu;
 
@@ -40,11 +38,13 @@ export function selectNpmRegistryPackages(request) {
 if (import.meta.main) {
   const parsed = parseArgs({ args: process.argv.slice(2), options: { help: { type: "boolean", short: "h", default: false } }, allowPositionals: false, strict: true });
   if (parsed.values.help) {
+    const {readJavascriptFileExportDocumentation} = await import("@red-cup-engineering/read-javascript-file-export-documentation-service");
     const source = await readFile(new URL(import.meta.url), "utf8");
     const [documentation] = readJavascriptFileExportDocumentation({ type: "TextFileRead", path: "scripts/select-npm-registry-packages.mjs", text: source });
     const helpOutput = `${documentation.name} — ${documentation.description}\n\n${documentation.signature}\n`;
     if (!process.stdout.write(helpOutput)) await once(process.stdout, "drain");
   } else {
+    const {parseLines, serializeLines} = await import("@red-cup-engineering/jsonl-engineering-services-section");
     process.stdin.setEncoding("utf8");
     let text = "";
     for await (const chunk of process.stdin) text += chunk;
