@@ -30,7 +30,7 @@
   "dependencies": {
     "@red-cup-engineering/npm-package-engineering-services-section": "0.2.1",
     "@red-cup-engineering/npm-registry-snapshot-engineering-services-section": "0.1.2",
-    "@red-cup-engineering/semiotic-npm-registry-engineering-services-section": "0.1.1",
+    "@red-cup-engineering/semiotic-npm-registry-engineering-services-section": "0.1.2",
     "@red-cup-engineering/javascript-file-engineering-services-section": "0.1.3"
   },
   "devDependencies": {
