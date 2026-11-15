@@ -13,8 +13,7 @@
     "README.md"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "bin": {
     "publish-npm-registry-snapshot": "./scripts/publish-npm-registry-snapshot.mjs"
