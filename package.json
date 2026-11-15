@@ -26,7 +26,7 @@
     "check": "check-package-syntax"
   },
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-engineering-services-section": "0.6.1-dev.6"
+    "@red-cup-engineering/jsnode-package-engineering-services-section": "^0.6.2"
   },
   "files": [
     "README.md",
