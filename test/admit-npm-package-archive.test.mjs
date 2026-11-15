@@ -61,3 +61,30 @@ test("required and optional peer edges cannot disagree between archive and packu
   assert.throws(() => admit(archive(tarMember({ ...required, peerDependenciesMeta: { helper: { optional: "true" } } })), required),
     { code: "INVALID_NPM_ARCHIVE_MANIFEST" });
 });
+
+test("release metadata cannot claim different runtime and platform constraints than the archive", () => {
+  for (const [field, supplied, embedded] of [
+    ["engines", { node: ">=22" }, { node: ">=24" }],
+    ["os", ["linux"], ["darwin"]],
+    ["cpu", ["x64"], ["arm64"]],
+    ["libc", "glibc", "musl"],
+  ]) {
+    const manifest = { ...identity, [field]: supplied };
+    assert.throws(() => admit(archive(tarMember({ ...identity, [field]: embedded })), manifest),
+      { code: "NPM_ARCHIVE_COMPATIBILITY_MISMATCH" });
+  }
+});
+
+test("runtime constraint comparison admits npm scalar and list declarations without changing platform selectors", () => {
+  const manifest = { ...identity, engines: { node: ">=22", npm: ">=10" }, os: "linux",
+    cpu: ["arm64", "x64"], libc: ["!musl"] };
+  const embedded = { ...identity, engines: { npm: ">=10", node: ">=22" }, os: ["linux"],
+    cpu: ["x64", "arm64", "x64"], libc: "!musl" };
+  assert.equal(admit(archive(tarMember(embedded)), manifest).name, identity.name);
+});
+
+test("a malformed platform selector does not become an unrestricted platform", () => {
+  for (const malformed of [true, ["linux", 4], [""], ["!"]])
+    assert.throws(() => admit(archive(tarMember({ ...identity, os: malformed }))),
+      { code: "INVALID_NPM_ARCHIVE_MANIFEST" });
+});
