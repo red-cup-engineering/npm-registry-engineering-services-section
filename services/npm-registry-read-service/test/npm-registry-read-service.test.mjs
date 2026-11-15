@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
+import { get } from "node:http";
+import { once } from "node:events";
 import { mkdir, mkdtemp, open, rename, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { PassThrough } from "node:stream";
+import { PassThrough, Readable } from "node:stream";
 import { finished } from "node:stream/promises";
 import test from "node:test";
 
@@ -239,4 +241,88 @@ test("registry lookup admits existing public npm identities without publication-
   assert.equal(isNpmPackageName("@cto.af/wtf8"), true);
   assert.equal(isNpmPackageName("@scope/../escape"), false);
   assert.equal(isNpmPackageName("not a package"), false);
+});
+
+test("an interrupted archive cannot finish as a successful transfer or stop later reads", { timeout: 3000 }, async () => {
+  const root = await registryFixture();
+  const archive = "/@customer/example/-/example-1.0.0.tgz";
+  let attempts = 0, closed = false;
+  const server = createPackageRegistryServer({
+    registryDirectory: root,
+    openFile: async path => {
+      const file = await open(path);
+      if (++attempts !== 1) return file;
+      return {
+        stat: () => file.stat(),
+        close: async () => { await file.close(); closed = true; },
+        createReadStream: () => new Readable({
+          read() {
+            this.push(Buffer.from("1."));
+            this._read = () => {};
+            setImmediate(() => this.destroy(Object.assign(new Error("fixture I/O interrupted"), { code: "EIO" })));
+          },
+        }),
+      };
+    },
+  });
+  const request = target => new Promise((resolve, reject) => {
+    get(new URL(target, `http://127.0.0.1:${server.address().port}`), response => {
+      const chunks = [];
+      response.on("data", chunk => chunks.push(chunk));
+      response.on("error", () => {}); // completion, not the client error wording, is the contract
+      response.on("close", () => resolve({
+        complete: response.complete, status: response.statusCode, bytes: Buffer.concat(chunks),
+      }));
+    }).on("error", error => error.code === "ECONNRESET" ? resolve({ complete: false }) : reject(error));
+  });
+  try {
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+    const broken = await request(archive);
+    assert.equal(broken.complete, false);
+    const good = await request(archive);
+    assert.equal(good.complete, true);
+    assert.equal(good.status, 200);
+    assert.deepEqual(good.bytes, Buffer.from("1.0.0"));
+    assert.equal(closed, true);
+  } finally {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test("client disconnect releases the archive input and descriptor", { timeout: 3000 }, async () => {
+  const root = await registryFixture();
+  let release;
+  const released = new Promise(resolve => { release = resolve; });
+  let input;
+  const server = createPackageRegistryServer({
+    registryDirectory: root,
+    openFile: async path => {
+      const file = await open(path);
+      return {
+        stat: () => file.stat(),
+        close: async () => { await file.close(); release(); },
+        createReadStream: () => (input = new Readable({
+          read() { this.push(Buffer.from("1.")); this._read = () => {}; },
+        })),
+      };
+    },
+  });
+  try {
+    server.listen(0, "127.0.0.1");
+    await once(server, "listening");
+    const request = get(`http://127.0.0.1:${server.address().port}/@customer/example/-/example-1.0.0.tgz`);
+    const [response] = await once(request, "response");
+    response.on("error", () => {});
+    await once(response, "data");
+    response.destroy();
+    await released;
+    assert.equal(input.destroyed, true);
+  } finally {
+    server.closeAllConnections();
+    await new Promise(resolve => server.close(resolve));
+    await rm(root, { recursive: true, force: true });
+  }
 });

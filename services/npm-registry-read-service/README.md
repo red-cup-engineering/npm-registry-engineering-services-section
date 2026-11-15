@@ -23,7 +23,9 @@ serve-npm-registry-read --registry /srv/red-cup/npm-registry/host/current --host
 snapshot directory at process start: after an atomic symlink replacement, the
 same long-lived server opens subsequent files beneath the new snapshot. A
 request already streaming a tarball holds one file descriptor and therefore
-finishes from one complete immutable artifact, not a mixture.
+uses one immutable artifact, not a mixture. A read failure after headers
+terminates that response rather than sending a partial success or taking down
+the reader. Client disconnects cancel the open archive stream.
 
 `deploy/npm-registry-read.service` is a tracked deployment record, not an
 installed unit. It pins the Node runtime artifact and the released package

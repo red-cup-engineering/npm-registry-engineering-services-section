@@ -2,6 +2,7 @@ import { access, open, readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
+import { pipeline } from "node:stream/promises";
 
 import validatePackageName from "validate-npm-package-name";
 
@@ -63,18 +64,23 @@ export function createPackageRegistryServer({ registryDirectory, openFile = open
       const file = await openFile(target);
       try {
         const size = (await file.stat()).size;
+        const stream = request.method === "HEAD" || size === 0
+          ? null : file.createReadStream({ start: 0, end: size - 1 });
         response.writeHead(200, { "content-type": type, "content-length": size, "cache-control": "public, immutable" });
-        if (request.method === "HEAD" || size === 0) {
-          await file.close();
-          response.end();
-        } else {
-          file.createReadStream({ start: 0, end: size - 1 }).pipe(response);
-        }
-      } catch (error) {
+        if (stream) await pipeline(stream, response);
+        else response.end();
+      } finally {
         await file.close().catch(() => {});
-        throw error;
       }
     } catch (error) {
+      // Pipeline terminates an interrupted response and cancels the file stream
+      // on client disconnect. Once headers are committed, never append a JSON
+      // error to the already-framed archive or try to send a second status.
+      if (response.destroyed) return;
+      if (response.headersSent) {
+        response.destroy();
+        return;
+      }
       response.writeHead(500, { "content-type": "application/json" }).end(`${JSON.stringify({ error: error.message })}\n`);
     }
   });
