@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-registry-serving-service",
-  "version": "0.2.8-dev.0",
+  "version": "0.2.9-dev.0",
   "private": false,
   "type": "module",
   "description": "Serves the house's npm packages natively from their facts: an append-only journal per package and its tarballs by RFC 6920 NI address, projected to the npm registry protocol npm and pnpm speak (conditional requests, login tokens, search, audit), standalone or as a MetroPlat hosted application. Reads every published version statically and refuses one whose files, dependencies and imports do not hold together.",
