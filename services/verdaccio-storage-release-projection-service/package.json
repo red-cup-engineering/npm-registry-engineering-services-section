@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/verdaccio-storage-release-projection-service",
-  "version": "0.1.1",
+  "version": "0.1.2-dev.0",
   "description": "Read-only projection of legacy Verdaccio storage releases into verified snapshot assembly inputs.",
   "type": "module",
   "private": false,

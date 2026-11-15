@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/package-installation-check-service",
-  "version": "1.0.1",
+  "version": "1.0.2-dev.0",
   "description": "Installs packages from an npm registry into a clean temporary directory and checks that everything they ship actually resolves and runs. Use when verifying that published packages really install and import cleanly.",
   "type": "module",
   "license": "MIT",
