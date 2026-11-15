@@ -38,7 +38,7 @@
     "@red-cup-engineering/npm-registry-engineering-services-section": "^0.1.3"
   },
   "devDependencies": {
-    "@red-cup-engineering/jsnode-package-engineering-services-section": "^0.3.0"
+    "@red-cup-engineering/jsnode-package-engineering-services-section": "^0.6.2"
   },
   "funding": {
     "type": "individual",
