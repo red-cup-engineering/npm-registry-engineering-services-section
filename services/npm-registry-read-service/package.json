@@ -23,8 +23,7 @@
     "test"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "bin": {
     "serve-npm-registry-read": "./scripts/serve-npm-registry-read.mjs"
