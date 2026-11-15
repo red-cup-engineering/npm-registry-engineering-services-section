@@ -16,7 +16,7 @@
     "./peers": "./src/peers.mjs"
   },
   "dependencies": {
-    "@red-cup-engineering/computer-content-address-engineering-services-section": "^0.2.5",
+    "@red-cup-engineering/computer-content-address-engineering-services-section": "^0.3.0",
     "@red-cup-engineering/javascript-parser-service": "^0.2.0",
     "@red-cup-engineering/uri-engineering-services-section": "^0.1.7",
     "bcryptjs": "2.4.3",
