@@ -21,8 +21,7 @@
     "examples/quickstart.test.mjs"
   ],
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "bin": {
     "manage-registry-user": "./scripts/manage-registry-user.mjs"

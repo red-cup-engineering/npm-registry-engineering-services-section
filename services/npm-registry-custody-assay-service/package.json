@@ -6,8 +6,7 @@
   "private": false,
   "license": "MIT",
   "publishConfig": {
-    "access": "public",
-    "provenance": true
+    "access": "public"
   },
   "exports": "./src/index.mjs",
   "bin": {
