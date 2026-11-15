@@ -25,6 +25,11 @@ function contentType(path) {
   return "text/plain; charset=utf-8";
 }
 
+function packumentRequestName(decoded) {
+  return decoded !== "registry-receipt.json" && !decoded.includes(".tgz") && isNpmPackageName(decoded)
+    ? decoded : null;
+}
+
 export function createPackageRegistryServer({ registryDirectory, openFile = open }) {
   // `resolve` is deliberately lexical: HOST/current remains in every target
   // pathname. Do not replace this with fs.realpath; activation atomically
@@ -51,8 +56,13 @@ export function createPackageRegistryServer({ registryDirectory, openFile = open
         return;
       }
       const type = contentType(target);
-      if (type === "application/json" && isNpmPackageName(decodeURIComponent(url.pathname).replace(/^\/+/, ""))) {
-        const metadata = rewriteMetadataTarballOrigins(JSON.parse(await readFile(target, "utf8")), new URL(request.url ?? "/", `http://${request.headers.host ?? "127.0.0.1"}`).origin);
+      const decoded = decodeURIComponent(url.pathname).replace(/^\/+/, "");
+      const requestedName = packumentRequestName(decoded);
+      if (type === "application/json" && (requestedName || decoded === "registry-receipt.json")) {
+        const source = JSON.parse(await readFile(target, "utf8"));
+        const metadata = requestedName === null ? source : rewriteMetadataTarballOrigins(
+          source, new URL(request.url ?? "/", `http://${request.headers.host ?? "127.0.0.1"}`).origin, requestedName,
+        );
         const body = Buffer.from(`${JSON.stringify(metadata)}\n`, "utf8");
         response.writeHead(200, { "content-type": type, "content-length": body.byteLength, "cache-control": "no-cache" });
         response.end(request.method === "HEAD" ? undefined : body);
@@ -95,14 +105,28 @@ function packageTarballPath(name, version) {
   return `${name}/-/${leaf}-${version}.tgz`;
 }
 
+function assertPackumentIdentity(metadata, expectedName) {
+  if (!isNpmPackageName(expectedName) || metadata?.name !== expectedName) {
+    throw new Error("Inconsistent package identity in registry packument");
+  }
+  const versions = metadata.versions ?? {};
+  if (typeof versions !== "object" || Array.isArray(versions)) {
+    throw new Error("Inconsistent package identity in registry packument");
+  }
+  for (const [key, release] of Object.entries(versions)) {
+    if (release?.name !== expectedName || release?.version !== key) {
+      throw new Error("Inconsistent package identity in registry packument");
+    }
+  }
+}
+
 /** Project immutable snapshot artifacts onto conventional npm registry routes. */
-export function rewriteMetadataTarballOrigins(metadata, origin) {
+export function rewriteMetadataTarballOrigins(metadata, origin, expectedName = metadata?.name) {
+  assertPackumentIdentity(metadata, expectedName);
   const rewritten = structuredClone(metadata);
   for (const [key, version] of Object.entries(rewritten.versions ?? {})) {
-    if (typeof version?.dist?.tarball === "string") {
-      const name = version.name ?? rewritten.name;
-      if (version.version !== key || (rewritten.name && name !== rewritten.name)) throw new Error("Inconsistent package tarball identity");
-      version.dist.tarball = new URL(`/${packageTarballPath(name, key)}`, origin).href;
+    if (typeof version.dist?.tarball === "string") {
+      version.dist.tarball = new URL(`/${packageTarballPath(expectedName, key)}`, origin).href;
     }
   }
   return rewritten;
@@ -119,6 +143,7 @@ export async function resolvePackageRegistryRequest({ registryDirectory, request
     const metadataPath = join(root, "metadata", `${encodeURIComponent(name)}.json`);
     if (!(await exists(metadataPath))) return null;
     const metadata = JSON.parse(await readFile(metadataPath, "utf8"));
+    assertPackumentIdentity(metadata, name);
     // Match the whole name/version from the authoritative packument. Never
     // infer a version by splitting hyphens in package or prerelease names.
     const version = Object.entries(metadata.versions ?? {}).find(([key, value]) =>
@@ -126,8 +151,9 @@ export async function resolvePackageRegistryRequest({ registryDirectory, request
     if (!version?.dist?.tarball) return null;
     relativeTarget = decodeURIComponent(new URL(version.dist.tarball).pathname).replace(/^\/+/, "");
   }
-  const target = decoded !== "registry-receipt.json" && isNpmPackageName(decoded) && !decoded.includes(".tgz")
-    ? join(root, "metadata", `${encodeURIComponent(decoded)}.json`)
+  const requestedName = packumentRequestName(decoded);
+  const target = requestedName
+    ? join(root, "metadata", `${encodeURIComponent(requestedName)}.json`)
     : resolve(root, relativeTarget);
   if (!inside(root, target) || !(await exists(target)) || !(await stat(target)).isFile()) return null;
   return target;

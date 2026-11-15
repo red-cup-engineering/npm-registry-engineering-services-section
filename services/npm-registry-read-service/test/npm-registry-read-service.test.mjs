@@ -326,3 +326,38 @@ test("client disconnect releases the archive input and descriptor", { timeout: 3
     await rm(root, { recursive: true, force: true });
   }
 });
+
+test("a labeled package never serves a different packument's metadata or tarball", async t => {
+  const root = await registryFixture();
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const server = createPackageRegistryServer({ registryDirectory: root });
+  server.listen(0, "127.0.0.1");
+  await once(server, "listening");
+  t.after(() => new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve())));
+  const base = `http://127.0.0.1:${server.address().port}`;
+  const part = "/@customer%2Fexample";
+  const artifact = "/@customer/example/-/example-1.0.0.tgz";
+  const metadataPath = join(root, "metadata", "%40customer%2Fexample.json");
+  const original = { name: "@customer/example", versions: {
+    "1.0.0": { name: "@customer/example", version: "1.0.0",
+      dist: { tarball: "http://registry.invalid/tarballs/customer/example/-/example-1.0.0.tgz" } },
+  } };
+  for (const wrong of [
+    { ...original, name: "@customer/different" },
+    { ...original, versions: { "1.0.0": { ...original.versions["1.0.0"], name: "@customer/different" } } },
+    { ...original, versions: { "1.0.0": { name: "@customer/example", version: "2.0.0" } } },
+  ]) {
+    await writeFile(metadataPath, JSON.stringify(wrong));
+    for (const route of [part, artifact]) {
+      const response = await fetch(base + route);
+      assert.equal(response.status, 500);
+      assert.match((await response.json()).error, /inconsistent package identity/iu);
+    }
+  }
+  await writeFile(metadataPath, JSON.stringify(original));
+  const received = await fetch(base + part);
+  assert.equal(received.status, 200);
+  const selected = (await received.json()).versions["1.0.0"].dist.tarball;
+  assert.equal(selected, base + artifact);
+  assert.equal(await (await fetch(selected)).text(), "1.0.0");
+});
