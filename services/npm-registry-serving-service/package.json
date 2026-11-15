@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-registry-serving-service",
-  "version": "0.2.5",
+  "version": "0.2.6-dev.0",
   "private": false,
   "type": "module",
   "description": "Serves the house's npm packages natively from their facts: an append-only journal per package and its tarballs by RFC 6920 NI address, projected to the npm registry protocol npm and pnpm speak (conditional requests, login tokens, search, audit), standalone or as a MetroPlat hosted application. Reads every published version statically and refuses one whose files, dependencies and imports do not hold together.",
@@ -16,13 +16,13 @@
     "./peers": "./src/peers.mjs"
   },
   "dependencies": {
-    "@red-cup-engineering/computer-content-address-engineering-services-section": "0.2.1",
-    "@red-cup-engineering/javascript-parser-service": "0.1.0",
-    "@red-cup-engineering/uri-engineering-services-section": "0.1.3",
+    "@red-cup-engineering/computer-content-address-engineering-services-section": "0.2.5",
+    "@red-cup-engineering/javascript-parser-service": "0.2.0",
+    "@red-cup-engineering/uri-engineering-services-section": "0.1.7",
     "bcryptjs": "2.4.3",
     "semver": "7.7.2",
     "@red-cup-engineering/json-engine": "0.5.0",
-    "@red-cup-engineering/cloudflare-r2-engineering-services-section": "0.7.1"
+    "@red-cup-engineering/cloudflare-r2-engineering-services-section": "0.7.2"
   },
   "scripts": {
     "test": "node --test --test-concurrency=1 test/*.test.mjs",
