@@ -10,8 +10,8 @@
     "@red-cup-engineering/computer-file-engineering-services-section": "0.8.8",
     "@red-cup-engineering/json-engine": "0.5.0",
     "@red-cup-engineering/jsonl-engineering-services-section": "0.1.4",
-    "@red-cup-engineering/inspect-installed-npm-package-service": "0.3.2",
-    "@red-cup-engineering/read-javascript-file-export-documentation-service": "0.2.0"
+    "@red-cup-engineering/inspect-installed-npm-package-service": "0.3.3",
+    "@red-cup-engineering/read-javascript-file-export-documentation-service": "0.2.1"
   },
   "exports": {
     "./check-npm-registry-package-installations": "./scripts/check-npm-registry-package-installations.mjs",
