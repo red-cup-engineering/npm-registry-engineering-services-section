@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { discoverDecommissionedPackages } from "../src/decommissioned-package-candidates.mjs";
-import { argument, requiredArgument } from "@red-cup-engineering/javascript-node-engineering-services-section/argv";
+import { argument, requiredArgument } from "@red-cup-engineering/parse-javascript-argv-service";
 
 const root = requiredArgument("--root");
 const format = argument("--format") ?? "summary";

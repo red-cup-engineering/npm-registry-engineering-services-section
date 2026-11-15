@@ -22,7 +22,7 @@
     "package.json"
   ],
   "dependencies": {
-    "@red-cup-engineering/javascript-node-engineering-services-section": "^0.4.3"
+    "@red-cup-engineering/parse-javascript-argv-service": "^0.3.0"
   },
   "publishConfig": {
     "access": "public"

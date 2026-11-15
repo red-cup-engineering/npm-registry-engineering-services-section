@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { purgeIdenticalPackageReplicas } from "../src/replicated-package-copies.mjs";
-import { requiredArgument } from "@red-cup-engineering/javascript-node-engineering-services-section/argv";
+import { requiredArgument } from "@red-cup-engineering/parse-javascript-argv-service";
 
 const root = requiredArgument("--root");
 const apply = process.argv.includes("--apply");
