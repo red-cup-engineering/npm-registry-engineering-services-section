@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-registry-service",
-  "version": "0.2.0",
+  "version": "0.2.1-dev.0",
   "description": "Temporary compatibility facade for the npm registry release coordinator and read/graph command surfaces.",
   "repository": {
     "type": "git",
