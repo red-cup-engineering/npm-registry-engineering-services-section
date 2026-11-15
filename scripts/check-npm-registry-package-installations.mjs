@@ -129,6 +129,8 @@ export async function checkNpmRegistryPackageInstallations(request, capabilities
   }
   await Promise.all(Array.from({ length: Math.min(request.concurrency, selection.packages.length) }, () => work()));
   const defects = reads.flatMap((read) => read.defects.map((defect) => ({ name: read.name, packageVersion: read.packageVersion, ...defect })));
+  if (reads.length === 0)
+    defects.push({ law: "registry-installation-selection", diagnostic: "No exact registry releases were selected for installation" });
   return freezeJson({ type: "NpmRegistryPackageInstallationsCheckReceipt", version: 1, registry, selection, concurrency: request.concurrency, reads, conformant: defects.length === 0, defects });
 }
 
