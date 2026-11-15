@@ -194,3 +194,47 @@ test("an installation assay executes once for each exact release even when selec
   assert.equal(receipt.reads.length, 1);
   assert.equal(receipt.conformant, false);
 });
+
+test("receipt registry addresses with credentials or URL parameters are refused before starting the assay", async t => {
+  const root = await mkdtemp(join(tmpdir(), "registry-unsafe-endpoint-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const registryReceiptPath = join(root, "registry.json");
+  const npmConfigPath = join(root, "npmrc");
+  await writeFile(npmConfigPath, "");
+  const request = { type: "NpmRegistryPackageInstallationsCheckRequest", version: 1,
+    registryReceiptPath, npmConfigPath, selections: [], concurrency: 1 };
+  let invoked = false;
+  for (const invalid of ["https://example-user:fixture-marker@registry.example.test/",
+    "https://registry.example.test/?fixture-marker=1", "https://registry.example.test/#fixture-marker",
+    "https://registry.example.test/?", "https://registry.example.test/#"]) {
+    await writeFile(registryReceiptPath, JSON.stringify({ registry: invalid, packages: [row("example", "1.0.0")] }));
+    await assert.rejects(() => checkNpmRegistryPackageInstallations(request, {
+      temporaryParent: root, execute() { invoked = true; throw Error("fixture transport"); },
+    }), error => error instanceof TypeError && /credential-free/u.test(error.message) &&
+      !error.message.includes("fixture-marker"));
+  }
+  assert.equal(invoked, false);
+});
+
+test("a tarball URL ending in an empty query or fragment cannot be an exact artifact locator", async t => {
+  const root = await mkdtemp(join(tmpdir(), "registry-unsafe-carrier-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const registryReceiptPath = join(root, "registry.json");
+  const npmConfigPath = join(root, "npmrc");
+  await writeFile(npmConfigPath, "");
+  const request = { type: "NpmRegistryPackageInstallationsCheckRequest", version: 1,
+    registryReceiptPath, npmConfigPath, selections: [], concurrency: 1 };
+  const selection = row("example", "1.0.0");
+  let invoked = false;
+  for (const delimiter of ["?", "#"]) {
+    await writeFile(registryReceiptPath, JSON.stringify({ registry, packages: [
+      { ...selection, tarball: selection.tarball + delimiter },
+    ] }));
+    const receipt = await checkNpmRegistryPackageInstallations(request, {
+      temporaryParent: root, execute() { invoked = true; throw Error("fixture transport"); },
+    });
+    assert.equal(receipt.conformant, false);
+    assert.equal(receipt.reads[0].defects[0].law, "registry-release-artifact");
+  }
+  assert.equal(invoked, false);
+});
