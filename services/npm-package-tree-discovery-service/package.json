@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-package-tree-discovery-service",
-  "version": "0.0.1",
+  "version": "0.0.2-dev.0",
   "description": "Walks a directory tree for package.json files and reports explicitly declared npm release candidates and deliberate skip reasons. Use when a registry build needs a policy-governed package list without hand-maintenance.",
   "repository": {
     "type": "git",
@@ -22,7 +22,7 @@
     "package.json"
   ],
   "dependencies": {
-    "@red-cup-engineering/javascript-node-engineering-services-section": "0.4.1"
+    "@red-cup-engineering/javascript-node-engineering-services-section": "0.4.3"
   },
   "publishConfig": {
     "access": "public",
