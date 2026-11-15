@@ -157,3 +157,40 @@ test("an exact installed version is not proof of the receipt's artifact", async 
   assert.equal(executed,false);
   assert.equal(refused.defects[0].law,"registry-release-artifact");
 });
+
+test("an empty registry receipt cannot certify a conformant installation assay", async t => {
+  const root = await mkdtemp(join(tmpdir(), "registry-empty-selection-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const registryReceiptPath = join(root, "registry.json");
+  const npmConfigPath = join(root, "npmrc");
+  await writeFile(registryReceiptPath, JSON.stringify({ registry, packages: [] }));
+  await writeFile(npmConfigPath, "");
+  const request = { type: "NpmRegistryPackageInstallationsCheckRequest", version: 1,
+    registryReceiptPath, npmConfigPath, selections: [], concurrency: 1 };
+  const receipt = await checkNpmRegistryPackageInstallations(request, {
+    temporaryParent: root,
+    execute() { assert.fail("an empty assay must not execute npm"); },
+  });
+  assert.equal(receipt.conformant, false);
+  assert.deepEqual(receipt.reads, []);
+  assert.equal(receipt.defects[0].law, "registry-installation-selection");
+});
+
+test("an installation assay executes once for each exact release even when selectors overlap", async t => {
+  const root = await mkdtemp(join(tmpdir(), "registry-overlap-selection-"));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const registryReceiptPath = join(root, "registry.json");
+  const npmConfigPath = join(root, "npmrc");
+  await writeFile(registryReceiptPath, JSON.stringify({ registry, packages: [row("@customer/example", "1.0.0")] }));
+  await writeFile(npmConfigPath, "");
+  const request = { type: "NpmRegistryPackageInstallationsCheckRequest", version: 1,
+    registryReceiptPath, npmConfigPath, selections: ["@customer/example", "@customer/example@1.0.0"], concurrency: 2 };
+  let executions = 0;
+  const receipt = await checkNpmRegistryPackageInstallations(request, {
+    temporaryParent: root,
+    execute() { executions += 1; throw Error("fixture transport refused"); },
+  });
+  assert.equal(executions, 1);
+  assert.equal(receipt.reads.length, 1);
+  assert.equal(receipt.conformant, false);
+});

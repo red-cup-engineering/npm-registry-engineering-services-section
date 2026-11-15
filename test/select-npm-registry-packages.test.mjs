@@ -23,3 +23,18 @@ test("refuses absent, ambiguous, and malformed selections", () => {
   assert.throws(() => selectNpmRegistryPackages({ type: "NpmRegistryPackageSelectionRequest", version: 1, packages, selections: ["@customer/absent"] }), /absent/);
   assert.throws(() => selectNpmRegistryPackages({ type: "NpmRegistryPackageSelectionRequest", version: 1, packages, selections: [3] }), TypeError);
 });
+
+test("overlapping package-name and exact selectors schedule one immutable release", () => {
+  const row = { name: "@example/one", version: "1.0.0" };
+  const selected = selectNpmRegistryPackages({ type: "NpmRegistryPackageSelectionRequest", version: 1,
+    packages: [row], selections: ["@example/one", "@example/one@1.0.0"] });
+  assert.deepEqual(selected.packages, [row]);
+  assert.equal(selected.selections.length, 2);
+});
+
+test("a receipt with duplicate exact coordinates is never a single source of authority", () => {
+  const row = { name: "@example/one", version: "1.0.0" };
+  assert.throws(() => selectNpmRegistryPackages({ type: "NpmRegistryPackageSelectionRequest", version: 1,
+    packages: [row, { ...row, tarball: "https://elsewhere.example/one.tgz" }], selections: [] }),
+  /duplicate release coordinate/u);
+});

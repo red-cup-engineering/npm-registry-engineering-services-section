@@ -10,27 +10,47 @@ const EXACT_RELEASE = /^(?:(@[a-z0-9][a-z0-9._-]*\/[a-z0-9][a-z0-9._-]*)|([a-z0-
  * Selects exact package releases from one npm registry package reading without consulting the registry again.
  *
  * @param {object} request An NpmRegistryPackageSelectionRequest@1 carrying package rows and name or exact-release selectors.
- * @returns {object} An immutable NpmRegistryPackageSelection@1 preserving selected package rows in selector order.
- * @throws {Error} When a selector is absent or version-ambiguous.
+ * @returns {object} An immutable NpmRegistryPackageSelection@1 preserving first selection order, with one row per exact release.
+ * @throws {Error} When a selector is absent or version-ambiguous, or the receipt repeats a release coordinate.
  */
 export function selectNpmRegistryPackages(request) {
   if (request === null || typeof request !== "object" || Array.isArray(request)) throw new TypeError("input must be an NpmRegistryPackageSelectionRequest");
   if (Object.keys(request).sort().join(",") !== "packages,selections,type,version") throw new TypeError("request must carry exactly packages, selections, type, and version");
   if (request.type !== "NpmRegistryPackageSelectionRequest" || request.version !== 1) throw new TypeError("request type and version must be NpmRegistryPackageSelectionRequest@1");
   if (!Array.isArray(request.packages) || !Array.isArray(request.selections) || !request.selections.every((selection) => typeof selection === "string" && selection.length > 0)) throw new TypeError("packages and string selections must be arrays");
-  for (const row of request.packages) if (row === null || typeof row !== "object" || Array.isArray(row) || typeof row.name !== "string" || typeof row.version !== "string" || !`${row.name}@${row.version}`.match(EXACT_RELEASE)) throw new TypeError("each package row must carry an exact npm name and version");
+  const byCoordinate = new Map();
+  const byName = new Map();
+  for (const row of request.packages) {
+    if (row === null || typeof row !== "object" || Array.isArray(row) ||
+        typeof row.name !== "string" || typeof row.version !== "string")
+      throw new TypeError("each package row must carry an exact npm name and version");
+    const coordinate = `${row.name}@${row.version}`;
+    const match = coordinate.match(EXACT_RELEASE);
+    if (!match || (match[1] ?? match[2]) !== row.name || match[3] !== row.version)
+      throw new TypeError("each package row must carry an exact npm name and version");
+    if (byCoordinate.has(coordinate)) throw new Error(`duplicate release coordinate: ${coordinate}`);
+    byCoordinate.set(coordinate, row);
+    const named = byName.get(row.name) ?? [];
+    named.push(row);
+    byName.set(row.name, named);
+  }
 
-  const selected = [];
   const selections = [...new Set(request.selections)];
-  if (selections.length === 0) selected.push(...request.packages);
+  const distinct = new Set();
+  const selected = [];
+  if (selections.length === 0) {
+    for (const row of byCoordinate.values()) selected.push(row);
+  }
   for (const selection of selections) {
     const exact = selection.match(EXACT_RELEASE);
-    const matches = exact
-      ? request.packages.filter(({ name, version }) => name === (exact[1] ?? exact[2]) && version === exact[3])
-      : request.packages.filter(({ name }) => name === selection);
+    const matches = exact ? [byCoordinate.get(selection)].filter(Boolean) : byName.get(selection) ?? [];
     if (matches.length === 0) throw new Error(`package selection is absent: ${selection}`);
     if (matches.length > 1) throw new Error(`package selection is version-ambiguous: ${selection}`);
-    selected.push(matches[0]);
+    const row = matches[0];
+    if (!distinct.has(row)) {
+      distinct.add(row);
+      selected.push(row);
+    }
   }
   return freezeJson({ type: "NpmRegistryPackageSelection", version: 1, selections, packages: selected });
 }
