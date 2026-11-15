@@ -23,23 +23,27 @@ function exactRequest(request) {
   return request;
 }
 
-function registryUrl(candidate) {
+/** Parse receipt evidence without ever treating embedded credentials or URL parameters as authority. */
+function receiptHttpAddress(candidate) {
+  if (typeof candidate !== "string" || /[\u0000-\u0020\u007f?#]/u.test(candidate)) return null;
   try {
     const url = new URL(candidate);
-    if (!['http:', 'https:'].includes(url.protocol)) throw new Error();
-    return url.href;
-  } catch { throw new TypeError("registry receipt must carry an HTTP or HTTPS registry URL"); }
+    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password ? url : null;
+  } catch { return null; }
+}
+
+function registryUrl(candidate) {
+  const url = receiptHttpAddress(candidate);
+  if (!url) throw new TypeError("registry receipt must carry a credential-free HTTP or HTTPS registry URL without parameters");
+  return url.href;
 }
 
 function releaseHasArtifact(row) {
   const digest = row.integrity;
   if (typeof digest !== "string" || !/^sha512-[A-Za-z0-9+/]{86}==$/u.test(digest)
       || Buffer.from(digest.slice(7), "base64").toString("base64") !== digest.slice(7)) return false;
-  try {
-    const url = new URL(row.tarball);
-    return ["http:", "https:"].includes(url.protocol) && !url.username && !url.password
-      && !url.search && !url.hash && url.href === row.tarball;
-  } catch { return false; }
+  const tarball = receiptHttpAddress(row.tarball);
+  return tarball !== null && tarball.href === row.tarball;
 }
 
 async function inspectInstallLock(projectRoot, row) {
