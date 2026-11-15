@@ -1,6 +1,6 @@
 {
   "name": "@red-cup-engineering/npm-registry-query-service",
-  "version": "0.3.3-dev.0",
+  "version": "0.3.4-dev.0",
   "description": "Answers whether a package exists in a built or live npm registry, searches package names, and reads direct dependencies, dependents, and standard package interfaces without deriving a whole graph.",
   "repository": {
     "type": "git",
