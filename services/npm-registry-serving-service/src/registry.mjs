@@ -1,4 +1,4 @@
-import { admittedName, admittedPublication, parsePackagePath as parse, repositoryOf, tarballName } from "./prepared-publication.mjs";
+import { validatedName, validatedPublication, parsePackagePath as parse, repositoryOf, tarballName } from "./prepared-publication.mjs";
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { dirname, join } from "node:path";
@@ -79,7 +79,7 @@ export function createNpmRegistry({
     throw new TypeError("canonicalPublication is the canonical receiver's scheme and host, with no path");
   // A node whose house packages are published elsewhere holds what its peers hold: a publication or tag change
   // here would make a version no other node or the canonical registry has.
-  const elsewhere = name => refusal(403, `${name} is published at ${canonicalPublication}; this registry receives house packages from its peers and is not written to`);
+  const elsewhere = name => rejection(403, `${name} is published at ${canonicalPublication}; this registry receives house packages from its peers and is not written to`);
   if (typeof origin !== "string" || !/^https?:\/\/[^/]+$/u.test(origin)) throw new TypeError("the registry's origin is a scheme and host, with no path");
   const upstream = uplink.replace(/\/+$/u, "");
   const store = createPackageStore({ storage, storeArchive });
@@ -95,15 +95,15 @@ export function createNpmRegistry({
   // Every metadata route names the same bounded package path. Keep the
   // existing no-dot-segment/no-leading-dash admission, including on tag URLs.
   const houseName = (name) => {
-    if (!admittedName(name)) throw new TypeError("metadata requires one bounded package name");
+    if (!validatedName(name)) throw new TypeError("metadata requires one bounded package name");
     return name;
   };
 
   const record = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
   const json = (value, status = 200, headers = {}) => Response.json(value, { status, headers });
-  const refusal = (status, error) => json({ error }, status);
+  const rejection = (status, error) => json({ error }, status);
   // The Worker's refusal of a quarantined version, its tag and its archive (r2-registry.mjs refuseConflict).
-  const quarantine = () => refusal(409, releasesOnly ? "package version is withheld: this registry holds releases only (no prerelease versions), and quarantines conflicting immutable identities" : "package version is quarantined for conflicting immutable identities");
+  const quarantine = () => rejection(409, releasesOnly ? "package version is withheld: this registry holds releases only (no prerelease versions), and quarantines conflicting immutable identities" : "package version is quarantined for conflicting immutable identities");
   const etagOf = (body) => `"${createHash("sha256").update(body).digest("base64url").slice(0, 32)}"`;
   const revisionOf = (read) => `${read.rows.length}-${read.digest.slice(0, 32)}`;
 
@@ -376,10 +376,10 @@ export function createNpmRegistry({
   }
 
   /** The publish gate over every version of an admitted publication: a 400 naming every violation, or undefined. */
-  async function gate(name, admitted) {
+  async function gate(name, validated) {
     const problems = [];
-    for (const [version] of admitted.manifests) {
-      const bytes = admitted.artifacts.get(`${name.split("/").pop()}-${version}.tgz`);
+    for (const [version] of validated.manifests) {
+      const bytes = validated.artifacts.get(`${name.split("/").pop()}-${version}.tgz`);
       const violations = await checkPublication({ name, version, bytes, houseScopes, publishedPackument: fullPackument });
       for (const { kind, message } of violations) problems.push({ version, kind, message });
     }
@@ -421,7 +421,7 @@ export function createNpmRegistry({
     await store.materialize(name, renderStoreLayout(foldPackage(name, read.rows), { origin, revision: revisionOf(read) }));
   }
   const unreceived = (error) => {
-    if (error.code === "UNRECEIVED") return refusal(500, error.message);
+    if (error.code === "UNRECEIVED") return rejection(500, error.message);
     throw error;
   };
 
@@ -429,30 +429,30 @@ export function createNpmRegistry({
   async function updateMetadata(name, body) {
     return store.lock(name, async () => {
       const read = await heldFacts(name);
-      if (read === undefined) return refusal(400, `${name} is not published; a package is first published with its tarball`);
+      if (read === undefined) return rejection(400, `${name} is not published; a package is first published with its tarball`);
       const state = foldPackage(name, read.rows);
       // The packument a client read leaves quarantined versions out; they are neither offered nor changed here.
       if (Object.keys(body.versions).some(version => quarantined(name, version))) return quarantine();
       const published = [...state.versions.keys()].filter(version => !quarantined(name, version)), offered = Object.keys(body.versions);
       const unattached = offered.filter(version => !state.versions.has(version));
-      if (unattached.length > 0) return refusal(400, `${name}@${unattached.join(", ")} would be new, and a new version is published with its attached tarball`);
+      if (unattached.length > 0) return rejection(400, `${name}@${unattached.join(", ")} would be new, and a new version is published with its attached tarball`);
       const removed = published.filter(version => !offered.includes(version));
-      if (removed.length > 0) return refusal(409, `${name}@${removed.join(", ")} is published; a version is removed with npm unpublish`);
+      if (removed.length > 0) return rejection(409, `${name}@${removed.join(", ")} is published; a version is removed with npm unpublish`);
       const full = projected(name, renderFull(state, { origin }));
       if (body["dist-tags"] !== undefined && !isDeepStrictEqual(body["dist-tags"], full["dist-tags"])) {
-        return refusal(409, "dist-tags are changed at /-/package/<name>/dist-tags/<tag>, not through the packument");
+        return rejection(409, "dist-tags are changed at /-/package/<name>/dist-tags/<tag>, not through the packument");
       }
       if (body.maintainers !== undefined && !isDeepStrictEqual(body.maintainers, full.maintainers ?? [])) {
-        return refusal(409, `${name}'s maintainers are its publishers of record; they are not changed here`);
+        return rejection(409, `${name}'s maintainers are its publishers of record; they are not changed here`);
       }
       const rows = [], at = now().toISOString();
       for (const version of published) {
-        if (!record(body.versions[version])) return refusal(400, `${name}@${version} must be a manifest`);
+        if (!record(body.versions[version])) return rejection(400, `${name}@${version} must be a manifest`);
         const { deprecated: was, ...fixed } = renderVersion(state, version, { origin });
         const { deprecated: offeredMessage, ...offeredManifest } = body.versions[version];
-        if (offeredMessage !== undefined && typeof offeredMessage !== "string") return refusal(400, `${name}@${version}: deprecated is a message`);
+        if (offeredMessage !== undefined && typeof offeredMessage !== "string") return rejection(400, `${name}@${version}: deprecated is a message`);
         const changed = [...new Set([...Object.keys(fixed), ...Object.keys(offeredManifest)])].filter(key => !isDeepStrictEqual(fixed[key], offeredManifest[key]));
-        if (changed.length > 0) return refusal(409, `${name}@${version} is already published; a version is never replaced, and only its "deprecated" message may change here (differs in: ${changed.join(", ")})`);
+        if (changed.length > 0) return rejection(409, `${name}@${version} is already published; a version is never replaced, and only its "deprecated" message may change here (differs in: ${changed.join(", ")})`);
         if ((offeredMessage || undefined) !== (was || undefined)) rows.push({ e: versionEntity(name, version), a: DEPRECATION, v: offeredMessage || null, t: at });
       }
       if (rows.length > 0) await appendFacts(name, rows);
@@ -467,40 +467,40 @@ export function createNpmRegistry({
     // As the Worker: a quarantined version, or a tag naming one, is refused before anything is read or written.
     if (record(body?.versions) && Object.keys(body.versions).some(version => quarantined(name, version))) return quarantine();
     if (record(body?.["dist-tags"]) && Object.values(body["dist-tags"]).some(version => quarantined(name, version))) return quarantine();
-    if (record(body) && Object.hasOwn(body, "x-561-registry-conflicts")) return refusal(400, "conflict evidence is an operator-derived view, not publication metadata");
+    if (record(body) && Object.hasOwn(body, "x-561-registry-conflicts")) return rejection(400, "conflict evidence is an operator-derived view, not publication metadata");
     return store.lock(name, async () => {
       const read = await heldFacts(name);
       const state = read === undefined ? foldPackage(name, []) : foldPackage(name, read.rows);
       if (record(body?.versions)) for (const version of Object.keys(body.versions)) {
-        if (state.versions.has(version)) return refusal(409, `${name}@${version} is already published; a version is never replaced`);
+        if (state.versions.has(version)) return rejection(409, `${name}@${version} is already published; a version is never replaced`);
       }
-      let admitted;
-      try { admitted = admittedPublication(name, body, state); }
-      catch (error) { if (error instanceof TypeError) return refusal(400, error.message); throw error; }
-      const refused = publishGate ? await gate(name, admitted) : undefined;
-      if (refused) return refused;
+      let validated;
+      try { validated = validatedPublication(name, body, state); }
+      catch (error) { if (error instanceof TypeError) return rejection(400, error.message); throw error; }
+      const rejected = publishGate ? await gate(name, validated) : undefined;
+      if (rejected) return rejected;
       // Validate the complete transaction against occupied artifact names before
       // writing anything. A later interrupted write may leave unadvertised bytes,
       // but never alters a prior artifact or advertises an incomplete one.
-      for (const [file, bytes] of admitted.artifacts) {
+      for (const [file, bytes] of validated.artifacts) {
         const existing = await store.readLeaf(name, file);
-        if (existing !== undefined && !existing.equals(bytes)) return refusal(409, `${file} already has different bytes`);
+        if (existing !== undefined && !existing.equals(bytes)) return rejection(409, `${file} already has different bytes`);
       }
       const placed = new Map();
       try {
-        for (const [file, bytes] of admitted.artifacts) {
+        for (const [file, bytes] of validated.artifacts) {
           const ni = await store.storeBlob(bytes);
           await store.placeLeaf(name, file, ni, bytes);
           placed.set(file, { ni, size: bytes.length });
         }
-      } catch (error) { if (error.code === "ARTIFACT_CONFLICT") return refusal(409, error.message); throw error; }
+      } catch (error) { if (error.code === "ARTIFACT_CONFLICT") return rejection(409, error.message); throw error; }
       const at = now().toISOString(), rows = [];
       let readme = typeof body.readme === "string" && body.readme !== "" ? body.readme : undefined;
-      for (const [version, { deprecated, ...manifest }] of admitted.manifests) {
+      for (const [version, { deprecated, ...manifest }] of validated.manifests) {
         const file = `${name.split("/").pop()}-${version}.tgz`;
         rows.push({ e: versionEntity(name, version), a: PUBLICATION, v: { manifest: { ...manifest, _npmUser: { name: user } }, artifact: { file, ...placed.get(file) } }, t: at });
         if (typeof deprecated === "string" && deprecated !== "") rows.push({ e: versionEntity(name, version), a: DEPRECATION, v: deprecated, t: at });
-        if (readme === undefined && (body["dist-tags"]?.latest === version || state.readme === undefined)) readme = shippedReadme(admitted.artifacts.get(file));
+        if (readme === undefined && (body["dist-tags"]?.latest === version || state.readme === undefined)) readme = shippedReadme(validated.artifacts.get(file));
       }
       for (const [tag, version] of Object.entries(body["dist-tags"] ?? {})) rows.push({ e: packageEntity(name), a: DIST_TAG, v: { tag, version }, t: at });
       if (readme !== undefined && readme !== state.readme) rows.push({ e: packageEntity(name), a: README, v: readme, t: at });
@@ -512,23 +512,23 @@ export function createNpmRegistry({
   // npm's registry refuses a tag that a range could name: "1.0.0" or "^1" would shadow a version.
   const taggable = (tag) => tag !== "" && semver.validRange(tag) === null;
   async function setTag(name, tag, version) {
-    if (!taggable(tag)) return refusal(400, `${JSON.stringify(tag)} cannot be a dist-tag: a tag must not be a valid semver range`);
+    if (!taggable(tag)) return rejection(400, `${JSON.stringify(tag)} cannot be a dist-tag: a tag must not be a valid semver range`);
     if (quarantined(name, version)) return quarantine();
     return store.lock(name, async () => {
       const read = await heldFacts(name);
       const state = foldPackage(name, read?.rows ?? []);
-      if (!state.versions.has(version)) return refusal(404, `${name}@${version} is not published here`);
+      if (!state.versions.has(version)) return rejection(404, `${name}@${version} is not published here`);
       if (state.tags.get(tag) !== version) await appendFacts(name, [{ e: packageEntity(name), a: DIST_TAG, v: { tag, version }, t: now().toISOString() }]);
       return json({ ok: "dist-tag set" }, 201);
     }).catch(unreceived);
   }
 
   async function removeTag(name, tag) {
-    if (tag === "latest") return refusal(400, "the latest dist-tag is what an install without a version gets; move it to another version instead of removing it");
+    if (tag === "latest") return rejection(400, "the latest dist-tag is what an install without a version gets; move it to another version instead of removing it");
     return store.lock(name, async () => {
       const read = await heldFacts(name);
       const state = foldPackage(name, read?.rows ?? []);
-      if (!state.tags.has(tag)) return refusal(404, `${name} has no dist-tag ${tag}`);
+      if (!state.tags.has(tag)) return rejection(404, `${name} has no dist-tag ${tag}`);
       await appendFacts(name, [{ e: packageEntity(name), a: DIST_TAG, v: { tag, version: null }, t: now().toISOString() }]);
       return json({ ok: "dist-tag removed" });
     }).catch(unreceived);
@@ -542,11 +542,11 @@ export function createNpmRegistry({
   async function unpublish(name, kept) {
     return store.lock(name, async () => {
       const read = await heldFacts(name);
-      if (read === undefined) return refusal(404, `${name} is not in this registry`);
+      if (read === undefined) return rejection(404, `${name} is not in this registry`);
       const state = foldPackage(name, read.rows);
       // A client's packument leaves quarantined versions out; leaving them out of its PUT does not remove them.
       const removed = [...state.versions.keys()].filter(version => kept === undefined || (!kept.includes(version) && !quarantined(name, version)));
-      if (removed.length === 0) return refusal(400, `${name}: the packument removes no version`);
+      if (removed.length === 0) return rejection(400, `${name}: the packument removes no version`);
       for (const version of removed) await store.discard(name, version, state.versions.get(version).artifact);
       if (removed.length === state.versions.size) await store.erase(name);
       else {
@@ -577,7 +577,7 @@ export function createNpmRegistry({
     const words = terms.filter((term) => !/^[a-z]+:/u.test(term));
     const matches = [];
     for (const name of await store.names()) {
-      if (!admittedName(name) || !isPrivate(name)) continue;
+      if (!validatedName(name) || !isPrivate(name)) continue;
       if (scopes.length > 0 && !scopes.some((scope) => name.startsWith(scope))) continue;
       const view = await houseView(name);
       if (view === undefined) continue;
@@ -615,7 +615,7 @@ export function createNpmRegistry({
   // publishes wait (503) instead of growing it until the process aborts.
   let publishing = Promise.resolve();
   const serialized = (work) => { const turn = publishing.then(work, work); publishing = turn.then(() => {}, () => {}); return turn; };
-  const tooLarge = (limit) => refusal(413, `a request body is at most ${limit} bytes here`);
+  const tooLarge = (limit) => rejection(413, `a request body is at most ${limit} bytes here`);
   async function boundedBytes(request, limit) {
     const declared = Number(request.headers.get("content-length"));
     if (declared > limit) return { refusal: tooLarge(limit) };
@@ -642,8 +642,8 @@ export function createNpmRegistry({
       if (read.refusal) return read.refusal;
       let inventory;
       try { inventory = JSON.parse((request.headers.get("content-encoding") === "gzip" ? gunzipSync(read.bytes, { maxOutputLength: 64 * 1024 * 1024 }) : read.bytes).toString("utf8")); }
-      catch { return refusal(400, "a bulk advisory request is a JSON object of package names to versions"); }
-      if (!record(inventory)) return refusal(400, "a bulk advisory request is a JSON object of package names to versions");
+      catch { return rejection(400, "a bulk advisory request is a JSON object of package names to versions"); }
+      if (!record(inventory)) return rejection(400, "a bulk advisory request is a JSON object of package names to versions");
       const publicInventory = Object.fromEntries(Object.entries(inventory).filter(([name]) => !isPrivate(name)));
       if (Object.keys(publicInventory).length === 0) return json({});
       const forwarded = await fetchImpl(target, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(publicInventory) });
@@ -658,24 +658,24 @@ export function createNpmRegistry({
     const login = /^\/-\/user\/org\.couchdb\.user:([^/]+)$/u.exec(url.pathname);
     if (login) {
       let user;
-      try { user = decodeURIComponent(login[1]); } catch { return refusal(400, "invalid user path encoding"); }
+      try { user = decodeURIComponent(login[1]); } catch { return rejection(400, "invalid user path encoding"); }
       if (method === "GET" || method === "HEAD") {
-        return (await credentials.authenticated(request)) === user ? json({ _id: `org.couchdb.user:${user}`, name: user, type: "user", roles: [] }) : refusal(401, "not signed in as that user");
+        return (await credentials.authenticated(request)) === user ? json({ _id: `org.couchdb.user:${user}`, name: user, type: "user", roles: [] }) : rejection(401, "not signed in as that user");
       }
-      if (method !== "PUT") return refusal(405, "a user document is read, or PUT to sign in");
+      if (method !== "PUT") return rejection(405, "a user document is read, or PUT to sign in");
       const read = await boundedJson(request, 64 * 1024);
       if (read.refusal) return read.refusal;
-      if (!record(read.body) || read.body.name !== user || typeof read.body.password !== "string") return refusal(400, "signing in sends the user's name and password");
-      if ((await credentials.verify(user, read.body.password)) !== user) return refusal(401, "incorrect username or password (publisher accounts are made by the registry's operator, not by signing in)");
+      if (!record(read.body) || read.body.name !== user || typeof read.body.password !== "string") return rejection(400, "signing in sends the user's name and password");
+      if ((await credentials.verify(user, read.body.password)) !== user) return rejection(401, "incorrect username or password (publisher accounts are made by the registry's operator, not by signing in)");
       const token = await credentials.issue(user);
       return json({ ok: true, id: `org.couchdb.user:${user}`, rev: "1", token }, 201);
     }
     const logout = /^\/-\/user\/token\/([^/]+)$/u.exec(url.pathname);
     if (logout && method === "DELETE") {
       let token;
-      try { token = decodeURIComponent(logout[1]); } catch { return refusal(400, "invalid token path encoding"); }
+      try { token = decodeURIComponent(logout[1]); } catch { return rejection(400, "invalid token path encoding"); }
       const user = await credentials.authenticated(request);
-      if (!user || (await credentials.bearer(token)) !== user) return refusal(401, "a token is revoked by its own publisher");
+      if (!user || (await credentials.bearer(token)) !== user) return rejection(401, "a token is revoked by its own publisher");
       await credentials.revoke(token);
       return json({ ok: true });
     }
@@ -687,12 +687,12 @@ export function createNpmRegistry({
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
     if (url.pathname === "/-/ping") return json({});
-    if (url.pathname === "/-/v1/search") return method === "GET" || method === "HEAD" ? search(url) : refusal(405, "search is read");
+    if (url.pathname === "/-/v1/search") return method === "GET" || method === "HEAD" ? search(url) : rejection(405, "search is read");
     if (url.pathname === "/-/whoami") {
       const user = await credentials.authenticated(request);
-      return user ? json({ username: user }) : refusal(401, "not signed in");
+      return user ? json({ username: user }) : rejection(401, "not signed in");
     }
-    if (url.pathname.startsWith("/-/user/")) return (await account(request, url, method)) ?? refusal(404, "not found");
+    if (url.pathname.startsWith("/-/user/")) return (await account(request, url, method)) ?? rejection(404, "not found");
     if (url.pathname.startsWith("/-/npm/v1/security/")) return audit(request, url, method);
     const tag = /^\/-\/package\/(.+)\/dist-tags(?:\/([^/]+))?$/u.exec(url.pathname);
     if (tag) {
@@ -701,8 +701,8 @@ export function createNpmRegistry({
         name = decodeURIComponent(tag[1]);
         selected = tag[2] === undefined ? undefined : decodeURIComponent(tag[2]);
       }
-      catch { return refusal(400, "invalid package path encoding"); }
-      if (!admittedName(name)) return refusal(404, "not found");
+      catch { return rejection(400, "invalid package path encoding"); }
+      if (!validatedName(name)) return rejection(404, "not found");
       if (method === "GET" || method === "HEAD") {
         let tags;
         if (isPrivate(name)) {
@@ -712,45 +712,45 @@ export function createNpmRegistry({
         }
         else tags = (await publicPackument(name, { full: false }))?.["dist-tags"] ?? {};
         if (selected === undefined) return json(tags);
-        return Object.hasOwn(tags, selected) ? json(tags[selected]) : refusal(404, "dist-tag not found");
+        return Object.hasOwn(tags, selected) ? json(tags[selected]) : rejection(404, "dist-tag not found");
       }
-      if ((method !== "PUT" && method !== "DELETE") || tag[2] === undefined) return refusal(405, "dist-tags are read, set or removed");
+      if ((method !== "PUT" && method !== "DELETE") || tag[2] === undefined) return rejection(405, "dist-tags are read, set or removed");
       const user = await credentials.authenticated(request);
-      if (!user) return refusal(401, "changing a dist-tag needs a publisher's credential");
-      if (!isPrivate(name)) return refusal(403, `${name} is not a house package name`);
+      if (!user) return rejection(401, "changing a dist-tag needs a publisher's credential");
+      if (!isPrivate(name)) return rejection(403, `${name} is not a house package name`);
       if (canonicalPublication !== undefined) return elsewhere(name);
       if (method === "DELETE") return removeTag(name, selected);
       const version = await request.json().catch(() => undefined);
-      if (typeof version !== "string") return refusal(400, "a dist-tag is set to a version string");
+      if (typeof version !== "string") return rejection(400, "a dist-tag is set to a version string");
       return setTag(name, selected, version);
     }
     if (url.pathname === "/" || url.pathname === "") return json({ registry: origin, privateScopes });
     let parsed;
     try { parsed = parse(url.pathname); }
-    catch { return refusal(400, "invalid package path encoding"); }
+    catch { return rejection(400, "invalid package path encoding"); }
     const { name, rest } = parsed;
-    if (!admittedName(name)) return refusal(404, "not found");
+    if (!validatedName(name)) return rejection(404, "not found");
     // npm unpublish: DELETE <name>/-rev/<rev> removes the package; PUT <name>/-rev/<rev> with the packument less some
     // versions removes those; DELETE <name>/-/<file>/-rev/<rev> then asks for a removed version's tarball, already gone.
     // A node whose house packages are published elsewhere still removes: a removal makes no version its peers lack.
     if (rest.includes("-rev") || method === "DELETE") {
       const user = await credentials.authenticated(request);
-      if (!user) return refusal(401, "unpublishing needs a publisher's credential");
-      if (!isPrivate(name)) return refusal(403, `${name} is not a house package name`);
+      if (!user) return rejection(401, "unpublishing needs a publisher's credential");
+      if (!isPrivate(name)) return rejection(403, `${name} is not a house package name`);
       const revision = rest.indexOf("-rev");
       if (method === "DELETE" && revision === 0 && rest.length === 2) return serialized(() => unpublish(name));
       if (method === "PUT" && revision === 0 && rest.length === 2) {
         const read = await boundedJson(request, maxPublishBytes);
         if (read.refusal) return read.refusal;
-        if (!record(read.body) || read.body.name !== name || !record(read.body.versions)) return refusal(400, "an unpublish PUT is the package's packument less the versions it removes");
+        if (!record(read.body) || read.body.name !== name || !record(read.body.versions)) return rejection(400, "an unpublish PUT is the package's packument less the versions it removes");
         return serialized(() => unpublish(name, Object.keys(read.body.versions)));
       }
       if (method === "DELETE" && rest[0] === "-" && revision === 2 && rest.length === 4) {
         const view = await houseView(name);
         const advertised = view !== undefined && [...view.state.versions.values()].some(published => published.artifact?.file === rest[1]);
-        return advertised ? refusal(409, `${rest[1]} is a published version's tarball; unpublish the version`) : json({ ok: "tarball removed", success: true });
+        return advertised ? rejection(409, `${rest[1]} is a published version's tarball; unpublish the version`) : json({ ok: "tarball removed", success: true });
       }
-      return refusal(405, "a package is unpublished at <name>/-rev/<rev>");
+      return rejection(405, "a package is unpublished at <name>/-rev/<rev>");
     }
     if (rest.length === 0) {
       if (method === "GET" || method === "HEAD") {
@@ -758,19 +758,19 @@ export function createNpmRegistry({
         const type = install ? installType : "application/json";
         if (isPrivate(name)) {
           const view = await houseView(name);
-          if (view === undefined) return refusal(404, `${name} is not in this registry`);
+          if (view === undefined) return rejection(404, `${name} is not in this registry`);
           const served = rendered(name, view, install ? "abbreviated" : "full", () => install ? servedAbbreviated(view) : servedFull(view));
           // A house package changes when it is published to; a client revalidates (cheaply: 304) every time.
           return representation(request, served, { type, modified: view.state.modified, cacheControl: "no-cache", vary: "Accept" });
         }
         const packument = await publicPackument(name, { full: !install });
-        if (!packument) return refusal(404, `${name} is not in this registry`);
+        if (!packument) return rejection(404, `${name} is not in this registry`);
         return representation(request, publicRepresentation(name, packument, install), { type, modified: packument.time?.modified ?? packument.modified, cacheControl: "public, max-age=300", vary: "Accept" });
       }
       if (method === "PUT") {
         const user = await credentials.authenticated(request);
-        if (!user) return refusal(401, "publishing needs a publisher's credential");
-        if (!isPrivate(name)) return refusal(403, `${name} is not a house package name`);
+        if (!user) return rejection(401, "publishing needs a publisher's credential");
+        if (!isPrivate(name)) return rejection(403, `${name} is not a house package name`);
         if (canonicalPublication !== undefined) return elsewhere(name);
         return serialized(async () => {
           if (heapPressure()) {
@@ -781,11 +781,11 @@ export function createNpmRegistry({
           }
           const read = await boundedJson(request, maxPublishBytes);
           if (read.refusal) return read.refusal;
-          if (!record(read.body)) return refusal(400, "a publish is a JSON packument");
+          if (!record(read.body)) return rejection(400, "a publish is a JSON packument");
           return publish(name, read.body, user);
         });
       }
-      return refusal(405, "a package is read or published");
+      return rejection(405, "a package is read or published");
     }
     if (rest.length === 1 && (method === "GET" || method === "HEAD")) {
       const selector = rest[0];
@@ -794,20 +794,20 @@ export function createNpmRegistry({
         const view = await houseView(name);
         const version = view === undefined ? undefined : selectVersion(view.state, selector);
         if (quarantined(name, version)) return quarantine();
-        return version === undefined ? refusal(404, `${name}@${selector} is not in this registry`) : json(renderVersion(view.state, version, { origin }));
+        return version === undefined ? rejection(404, `${name}@${selector} is not in this registry`) : json(renderVersion(view.state, version, { origin }));
       }
       const packument = await publicPackument(name, { full: false });
       const version = Object.hasOwn(packument?.versions ?? {}, selector) ? selector
         : Object.hasOwn(packument?.["dist-tags"] ?? {}, selector) ? packument["dist-tags"][selector] : undefined;
       return version !== undefined && Object.hasOwn(packument.versions ?? {}, version)
-        ? json(presentedManifest(name, version, packument.versions[version])) : refusal(404, `${name}@${selector} is not in this registry`);
+        ? json(presentedManifest(name, version, packument.versions[version])) : rejection(404, `${name}@${selector} is not in this registry`);
     }
     if (rest[0] === "-" && rest.length === 2 && (method === "GET" || method === "HEAD")) {
       const file = rest[1];
-      if (!file.endsWith(".tgz") || file.includes("/") || file.startsWith(".")) return refusal(404, "not found");
-      return (await tarballResponse(request, name, file)) ?? refusal(404, `${file} is not in this registry`);
+      if (!file.endsWith(".tgz") || file.includes("/") || file.startsWith(".")) return rejection(404, "not found");
+      return (await tarballResponse(request, name, file)) ?? rejection(404, `${file} is not in this registry`);
     }
-    return refusal(404, "not found");
+    return rejection(404, "not found");
   }
 
   return Object.freeze({ handle, store, isPrivate, origin, unpublish });

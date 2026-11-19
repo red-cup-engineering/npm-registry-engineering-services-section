@@ -25,12 +25,12 @@ function objectDeclarations(source) {
   return declarations;
 }
 
-async function declaredOperationGraph(entry, registryRoot, receiptSha256) {
-  const receiptDeclarations = objectDeclarations(entry);
-  if (Object.keys(receiptDeclarations).length > 0) {
+async function declaredOperationGraph(entry, registryRoot, recordSha256) {
+  const recordDeclarations = objectDeclarations(entry);
+  if (Object.keys(recordDeclarations).length > 0) {
     return {
-      declarations: receiptDeclarations,
-      evidence: Object.freeze({ source: "registry-receipt", sha256: receiptSha256 }),
+      declarations: recordDeclarations,
+      evidence: Object.freeze({ source: "registry-receipt", sha256: recordSha256 }),
     };
   }
   try {
@@ -63,18 +63,18 @@ export async function obtainRegistrySnapshot(demand, { registryRoot, registryUrl
   const registry = registryOrigin(registryUrl);
   if (demand.registry !== registry) throw new Error("snapshot demand must name this exact private registry face");
   const root = resolve(registryRoot);
-  const receiptBytes = await readFile(join(root, "registry-receipt.json"));
-  const receipt = JSON.parse(receiptBytes.toString("utf8"));
-  if (receipt?.type !== "PackageRegistryReceipt" || !Array.isArray(receipt.packages) || !Array.isArray(receipt.scopes)) {
+  const recordBytes = await readFile(join(root, "registry-receipt.json"));
+  const record = JSON.parse(recordBytes.toString("utf8"));
+  if (record?.type !== "PackageRegistryReceipt" || !Array.isArray(record.packages) || !Array.isArray(record.scopes)) {
     throw new Error("registry has no recognized snapshot receipt");
   }
-  if (receipt.version !== undefined && receipt.version !== 1 && receipt.version !== 2) {
-    throw new Error(`unsupported package registry receipt version: ${receipt.version}`);
+  if (record.version !== undefined && record.version !== 1 && record.version !== 2) {
+    throw new Error(`unsupported package registry receipt version: ${record.version}`);
   }
-  const receiptSha256 = `sha256:${createHash("sha256").update(receiptBytes).digest("hex")}`;
-  const packages = await Promise.all(receipt.packages.map(async (entry) => {
+  const recordSha256 = `sha256:${createHash("sha256").update(recordBytes).digest("hex")}`;
+  const packages = await Promise.all(record.packages.map(async (entry) => {
     const { name, version, artifact, bytes, shasum, integrity } = entry;
-    const { declarations, evidence } = await declaredOperationGraph(entry, root, receiptSha256);
+    const { declarations, evidence } = await declaredOperationGraph(entry, root, recordSha256);
     return Object.freeze({
       name,
       version,
@@ -91,9 +91,9 @@ export async function obtainRegistrySnapshot(demand, { registryRoot, registryUrl
     type: "PackageRegistrySnapshot",
     requestId: demand.requestId,
     registry,
-    receiptSha256,
+    receiptSha256: recordSha256,
     packages,
-    scopes: Object.freeze([...receipt.scopes]),
-    npmrc: scopedConfig(receipt.scopes, registry),
+    scopes: Object.freeze([...record.scopes]),
+    npmrc: scopedConfig(record.scopes, registry),
   });
 }

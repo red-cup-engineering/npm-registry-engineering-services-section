@@ -55,7 +55,7 @@ export async function createGuixArchiveBucket({
     : join(allocation, "archive");
   const entry = key => join(keys, digest("sha256", key, "hex") + ".json");
 
-  async function receipt(path, key) {
+  async function record(path, key) {
     let value;
     try {
       value = JSON.parse(await readFile(path, "utf8"));
@@ -85,7 +85,7 @@ export async function createGuixArchiveBucket({
   async function readArchive(key, includeBody) {
     const path = entry(key);
     while (true) {
-      const value = await receipt(path, key);
+      const value = await record(path, key);
       if (value === null) return null;
       const registered = collectorRoot(join(allocations, value.allocation));
       let file;
@@ -103,7 +103,7 @@ export async function createGuixArchiveBucket({
         return { ...view(value), body: Readable.toWeb(file.createReadStream()) };
       } catch (error) {
         if (file) await file.close();
-        if (existsError(error, "ENOENT") && (await receipt(path, key))?.allocation !== value.allocation)
+        if (existsError(error, "ENOENT") && (await record(path, key))?.allocation !== value.allocation)
           continue;
         throw error;
       }
@@ -113,7 +113,7 @@ export async function createGuixArchiveBucket({
   async function putArchive(key, value, { onlyIf, customMetadata = {}, httpMetadata = {} } = {}) {
     if (onlyIf?.etagDoesNotMatch !== "*" || Object.keys(onlyIf).length !== 1)
       throw new TypeError("Guix archives require create-once writes");
-    if (await receipt(entry(key), key) !== null) return null;
+    if (await record(entry(key), key) !== null) return null;
     const bytes = Buffer.from(value);
     if (bytes.length === 0) throw new TypeError("empty package archive");
     const integrity = "sha512-" + digest("sha512", bytes, "base64");
@@ -158,9 +158,9 @@ export async function createGuixArchiveBucket({
   }
 
   async function deleteArchive(key) {
-    const retired = await mkdtemp(join(keys, "retired-"));
+    const removed = await mkdtemp(join(keys, "retired-"));
     try {
-      const path = join(retired, "receipt.json");
+      const path = join(removed, "receipt.json");
       try {
         await rename(entry(key), path);
       } catch (error) {
@@ -168,7 +168,7 @@ export async function createGuixArchiveBucket({
         throw error;
       }
       await syncDirectory(keys);
-      const value = await receipt(path, key);
+      const value = await record(path, key);
       const allocation = join(allocations, value.allocation);
       if (collectorDirectory) {
         await rm(collectorRoot(allocation), { force: true });
@@ -177,7 +177,7 @@ export async function createGuixArchiveBucket({
       await rm(allocation, { recursive: true, force: true });
       await syncDirectory(allocations);
     } finally {
-      await rm(retired, { recursive: true, force: true });
+      await rm(removed, { recursive: true, force: true });
     }
   }
 

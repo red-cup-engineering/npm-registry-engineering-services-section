@@ -2,7 +2,7 @@ import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import semver from "semver";
 import { canonicalJson } from "@red-cup-engineering/json-engine/canonical-json";
-import { admittedName, parsePackagePath } from "./prepared-publication.mjs";
+import { validatedName, parsePackagePath } from "./prepared-publication.mjs";
 
 const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const key = (name, version) => JSON.stringify([name, version]);
@@ -19,7 +19,7 @@ export function registryIdentityConservation(input, configuration) {
   const privateName = name => configuration.privateNames.includes(name)
     || configuration.privateScopes.some(scope => name.startsWith(scope + "/"));
   function subject(item) {
-    if (!admittedName(item?.name) || !privateName(item.name) || typeof item.version !== "string"
+    if (!validatedName(item?.name) || !privateName(item.name) || typeof item.version !== "string"
         || semver.valid(item.version) !== item.version)
       throw new TypeError("identity observation has another house package/version");
     if (!exactKeys(item.evidence, ["recordSha256", "work"]) || !/^[a-f0-9]{64}$/u.test(item.evidence.recordSha256)

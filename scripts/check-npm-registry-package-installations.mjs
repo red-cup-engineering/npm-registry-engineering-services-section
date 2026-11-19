@@ -24,7 +24,7 @@ function exactRequest(request) {
 }
 
 /** Parse receipt evidence without ever treating embedded credentials or URL parameters as authority. */
-function receiptHttpAddress(candidate) {
+function recordHttpAddress(candidate) {
   if (typeof candidate !== "string" || /[\u0000-\u0020\u007f?#]/u.test(candidate)) return null;
   try {
     const url = new URL(candidate);
@@ -33,7 +33,7 @@ function receiptHttpAddress(candidate) {
 }
 
 function registryUrl(candidate) {
-  const url = receiptHttpAddress(candidate);
+  const url = recordHttpAddress(candidate);
   if (!url) throw new TypeError("registry receipt must carry a credential-free HTTP or HTTPS registry URL without parameters");
   return url.href;
 }
@@ -42,7 +42,7 @@ function releaseHasArtifact(row) {
   const digest = row.integrity;
   if (typeof digest !== "string" || !/^sha512-[A-Za-z0-9+/]{86}==$/u.test(digest)
       || Buffer.from(digest.slice(7), "base64").toString("base64") !== digest.slice(7)) return false;
-  const tarball = receiptHttpAddress(row.tarball);
+  const tarball = recordHttpAddress(row.tarball);
   return tarball !== null && tarball.href === row.tarball;
 }
 
@@ -118,10 +118,10 @@ async function installAndInspect(row, context) {
  */
 export async function checkNpmRegistryPackageInstallations(request, capabilities = {}) {
   exactRequest(request);
-  const receipt = JSON.parse(await readFile(request.registryReceiptPath, "utf8"));
-  if (!Array.isArray(receipt.packages)) throw new TypeError("registry receipt must carry a packages array");
-  const registry = registryUrl(receipt.registry);
-  const selection = selectNpmRegistryPackages({ type: "NpmRegistryPackageSelectionRequest", version: 1, packages: receipt.packages, selections: request.selections });
+  const record = JSON.parse(await readFile(request.registryReceiptPath, "utf8"));
+  if (!Array.isArray(record.packages)) throw new TypeError("registry receipt must carry a packages array");
+  const registry = registryUrl(record.registry);
+  const selection = selectNpmRegistryPackages({ type: "NpmRegistryPackageSelectionRequest", version: 1, packages: record.packages, selections: request.selections });
   const context = { registry, npmConfigPath: request.npmConfigPath, temporaryParent: capabilities.temporaryParent ?? tmpdir(), execute: capabilities.execute ?? executeNpm, signal: capabilities.signal };
   const reads = new Array(selection.packages.length);
   let next = 0;
@@ -151,10 +151,10 @@ if (import.meta.main) {
     process.stdin.setEncoding("utf8");
     let text = "";
     for await (const chunk of process.stdin) text += chunk;
-    const receipts = [];
-    for (const request of parseLines(text)) receipts.push(await checkNpmRegistryPackageInstallations(request));
-    if (receipts.some((receipt) => !receipt.conformant)) process.exitCode = 1;
-    const output = serializeLines(receipts);
+    const records = [];
+    for (const request of parseLines(text)) records.push(await checkNpmRegistryPackageInstallations(request));
+    if (records.some((record) => !record.conformant)) process.exitCode = 1;
+    const output = serializeLines(records);
     if (!process.stdout.write(output)) await once(process.stdout, "drain");
   }
 }

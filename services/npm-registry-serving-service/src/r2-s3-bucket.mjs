@@ -44,7 +44,7 @@ export function createR2S3Bucket({ accountId, bucket, accessKeyId, secretAccessK
         arrayBuffer: async () => bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength),
         text: async () => bytes.toString("utf8"), json: async () => JSON.parse(bytes.toString("utf8")) } : {}) };
   }
-  async function refused(method, key, response) {
+  async function rejected(method, key, response) {
     const detail = method === "HEAD" ? "" : (await response.text()).slice(0, 300);
     throw Object.assign(new Error(`R2 ${method} ${key} refused (${response.status})${detail ? ": " + detail : ""}`), { r2Status: response.status });
   }
@@ -53,14 +53,14 @@ export function createR2S3Bucket({ accountId, bucket, accessKeyId, secretAccessK
     async get(key) {
       const response = await request("GET", key, { headers: { "accept-encoding": "identity" } });
       if (response.status === 404) return null;
-      if (!response.ok) await refused("GET", key, response);
+      if (!response.ok) await rejected("GET", key, response);
       return view(key, response, Buffer.from(await response.arrayBuffer()));
     },
     async head(key) {
       // Without identity encoding R2 may answer a compressible object's HEAD with no or zero content-length.
       const response = await request("HEAD", key, { headers: { "accept-encoding": "identity" } });
       if (response.status === 404) return null;
-      if (!response.ok) await refused("HEAD", key, response);
+      if (!response.ok) await rejected("HEAD", key, response);
       return view(key, response, null);
     },
     async put(key, value, { onlyIf, httpMetadata = {}, customMetadata = {} } = {}) {
@@ -76,13 +76,13 @@ export function createR2S3Bucket({ accountId, bucket, accessKeyId, secretAccessK
       for (const [name, value] of Object.entries(customMetadata)) headers["x-amz-meta-" + name.toLowerCase()] = value;
       const response = await request("PUT", key, { body: bytes, headers });
       if (response.status === 412) return null;
-      if (!response.ok) await refused("PUT", key, response);
+      if (!response.ok) await rejected("PUT", key, response);
       const etag = (response.headers.get("etag") ?? "").replace(/^"|"$/gu, "");
       return { key, size: bytes.length, etag, httpEtag: '"' + etag + '"', customMetadata: { ...customMetadata }, httpMetadata: { ...httpMetadata } };
     },
     async delete(key) {
       const response = await request("DELETE", key);
-      if (!response.ok && response.status !== 404) await refused("DELETE", key, response);
+      if (!response.ok && response.status !== 404) await rejected("DELETE", key, response);
     },
   });
 }

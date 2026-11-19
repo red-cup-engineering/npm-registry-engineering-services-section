@@ -2,7 +2,7 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, resolve } from "node:path";
-import { admittedConfiguration } from "../src/application.mjs";
+import { validatedConfiguration } from "../src/application.mjs";
 import { carryHeld } from "../src/carry-held.mjs";
 import { createPackageStore } from "../src/store.mjs";
 
@@ -17,7 +17,7 @@ if (!path || !/^https?:\/\/[^/]+$/u.test(receiver ?? "") || names.length === 0)
   throw new TypeError("usage: carry-held-to-canonical CONFIGURATION RECEIVER NAME...");
 const { NPM_REGISTRY_PUBLISHER: user, NPM_REGISTRY_PUBLISHER_PASSWORD: password } = process.env;
 if (!user || !password) throw new TypeError("NPM_REGISTRY_PUBLISHER and NPM_REGISTRY_PUBLISHER_PASSWORD name the publisher");
-const configuration = admittedConfiguration(JSON.parse(await readFile(path, "utf8")));
+const configuration = validatedConfiguration(JSON.parse(await readFile(path, "utf8")));
 const home = value => (isAbsolute(value) ? value : resolve(homedir(), value));
 const store = createPackageStore({ storage: home(configuration.storage) });
 const authorization = "Basic " + Buffer.from(user + ":" + password).toString("base64");

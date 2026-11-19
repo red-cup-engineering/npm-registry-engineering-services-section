@@ -21,7 +21,7 @@ const CONFIGURATION = new Set([
 ]);
 
 /** A registry configuration as admitted: every key known, hosts named, the origin one of them. */
-export function admittedConfiguration(configuration) {
+export function validatedConfiguration(configuration) {
   if (configuration === null || typeof configuration !== "object" || Array.isArray(configuration)) throw new TypeError("an npm registry configuration is an object");
   const unknown = Object.keys(configuration).filter((key) => !CONFIGURATION.has(key));
   if (unknown.length > 0) throw new TypeError(`an npm registry configuration does not declare ${unknown.join(", ")}`);
@@ -71,35 +71,35 @@ const registries = new Map(); // storage -> {configuration, registry, ready}
  * cleanup operation; otherwise the existing receive-store CLI owns maintenance.
  */
 export function registryFor(configuration, { storeArchive, archiveHandle, log = (line) => process.stderr.write(`${line}\n`) } = {}) {
-  const admitted = admittedConfiguration(configuration);
-  if (admitted.guixArchives !== undefined && typeof storeArchive !== "function")
+  const validated = validatedConfiguration(configuration);
+  if (validated.guixArchives !== undefined && typeof storeArchive !== "function")
     throw new TypeError("configured Guix archive custody requires its native storage port");
-  const storage = home(admitted.storage);
+  const storage = home(validated.storage);
   const held = registries.get(storage);
   if (held !== undefined) {
-    if (!isDeepStrictEqual(held.configuration, admitted) || held.storeArchive !== storeArchive)
+    if (!isDeepStrictEqual(held.configuration, validated) || held.storeArchive !== storeArchive)
       throw new TypeError(`${storage} is already served by a registry with another configuration`);
     return held;
   }
   const registry = createNpmRegistry({
-    storage, storeArchive, htpasswd: home(admitted.htpasswd), tokens: home(admitted.tokens), origin: admitted.origin,
-    privateScopes: admitted.privateScopes, privateNames: admitted.privateNames, uplink: admitted.uplink,
-    cachePublicTarballs: admitted.cachePublicTarballs, publicTarballs: admitted.publicTarballs, uplinkMaxAgeMs: admitted.uplinkMaxAgeMs,
-    peers: (admitted.peers ?? []).map(specification => peerFromSpecification(specification)), peerRefreshMs: admitted.peerRefreshMs, cachePeerTarballs: admitted.cachePeerTarballs,
-    canonicalPublication: admitted.canonicalPublication, houseScopes: admitted.houseScopes, publishGate: admitted.publishGate,
-    identityConservation: identityConservationOf(admitted), releasesOnly: admitted.releasesOnly === true,
-    maxPublishBytes: admitted.maxPublishBytes, maxUplinkTarballBytes: admitted.maxUplinkTarballBytes,
+    storage, storeArchive, htpasswd: home(validated.htpasswd), tokens: home(validated.tokens), origin: validated.origin,
+    privateScopes: validated.privateScopes, privateNames: validated.privateNames, uplink: validated.uplink,
+    cachePublicTarballs: validated.cachePublicTarballs, publicTarballs: validated.publicTarballs, uplinkMaxAgeMs: validated.uplinkMaxAgeMs,
+    peers: (validated.peers ?? []).map(specification => peerFromSpecification(specification)), peerRefreshMs: validated.peerRefreshMs, cachePeerTarballs: validated.cachePeerTarballs,
+    canonicalPublication: validated.canonicalPublication, houseScopes: validated.houseScopes, publishGate: validated.publishGate,
+    identityConservation: identityConservationOf(validated), releasesOnly: validated.releasesOnly === true,
+    maxPublishBytes: validated.maxPublishBytes, maxUplinkTarballBytes: validated.maxUplinkTarballBytes,
   });
   const ready = (async () => {
     // Serving reads only the requested package. Store-wide reconciliation is
     // the existing explicit receive-registry-store operation, not boot work.
-    if (admitted.receiveAtStart !== true) return;
-    try { log(JSON.stringify(await removePublicLeftovers({ configuration: admitted, storage }))); }
+    if (validated.receiveAtStart !== true) return;
+    try { log(JSON.stringify(await removePublicLeftovers({ configuration: validated, storage }))); }
     catch (error) { log(`public leftovers not removed: ${error.message}`); }
     try { log(JSON.stringify(await receiveStore(registry.store, { origin: registry.origin, admits: registry.isPrivate }))); }
     catch (error) { log(`registry store not received: ${error.message}`); }
   })();
-  const entry = Object.freeze({ configuration: admitted, registry, ready, storeArchive, ...(archiveHandle === undefined ? {} : {archiveHandle}) });
+  const entry = Object.freeze({ configuration: validated, registry, ready, storeArchive, ...(archiveHandle === undefined ? {} : {archiveHandle}) });
   registries.set(storage, entry);
   return entry;
 }
@@ -117,8 +117,8 @@ const answered = (registry, request) => registry.handle(request).catch((error) =
  * registry's, its body streamed rather than read.
  */
 export function npmRegistryApplication({ configuration = {}, storeArchive } = {}) {
-  const { configuration: admitted, registry } = registryFor(configuration, { storeArchive });
-  const hosts = new Set(admitted.hosts);
+  const { configuration: validated, registry } = registryFor(configuration, { storeArchive });
+  const hosts = new Set(validated.hosts);
   const hostOf = (context) => {
     const headers = context.request?.headers;
     const forwarded = headers ? headers.get("x-forwarded-host") ?? headers.get("host") : headerOf(context.req?.headers?.["x-forwarded-host"]) ?? context.req?.headers?.host;
@@ -148,7 +148,7 @@ export function npmRegistryApplication({ configuration = {}, storeArchive } = {}
  *     "configuration": { "hosts": ["registry.561.group"], "origin": "https://registry.561.group", … } }
  */
 export function npmRegistryHostedApplication({ configuration, services } = {}) {
-  const declared = admittedConfiguration(configuration);
+  const declared = validatedConfiguration(configuration);
   if (!declared.hosts.includes(new URL(declared.origin).hostname)) throw new TypeError("a hosted npm registry's origin is one of the hosts it answers");
   let archiveHandle, storeArchive;
   if (declared.guixArchives !== undefined) {
@@ -167,9 +167,9 @@ export function npmRegistryHostedApplication({ configuration, services } = {}) {
       return running.storeArchive(bytes);
     };
   }
-  const { configuration: admitted, registry } = registryFor(declared, {storeArchive, archiveHandle});
+  const { configuration: validated, registry } = registryFor(declared, {storeArchive, archiveHandle});
   return Object.freeze({
-    hosts: Object.freeze([...admitted.hosts]),
+    hosts: Object.freeze([...validated.hosts]),
     authentication: Object.freeze({ scheme: "npm-registry", accepts: Object.freeze(["Basic", "Bearer"]) }),
     fetch: (request) => answered(registry, request),
   });

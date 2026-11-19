@@ -72,16 +72,16 @@ async function loadPublicationCapabilities() {
     projectCarrier: carrier.projectNpmCarrier,
     pack: ({ carrierDirectory, destinationDirectory }) => packing.packNpmPackage({ type: "NpmPackagePackingRequest", version: 1, carrierDirectory, destinationDirectory }),
     async assemble({ releases, ...options }) {
-      const admitted = [];
+      const validated = [];
       for (const release of releases) {
         if (Object.hasOwn(release, "integrity")) {
-          admitted.push(release);
+          validated.push(release);
           continue;
         }
         const { integrity } = await measureArtifactFile(release.artifactPath);
-        admitted.push({ ...release, integrity });
+        validated.push({ ...release, integrity });
       }
-      return assembly.assemblePackageRegistrySnapshot({ ...options, releases: admitted });
+      return assembly.assemblePackageRegistrySnapshot({ ...options, releases: validated });
     },
     verify: verification.verifyPackageRegistrySnapshot,
     activate: activation.activateVerifiedPackageRegistrySnapshot,

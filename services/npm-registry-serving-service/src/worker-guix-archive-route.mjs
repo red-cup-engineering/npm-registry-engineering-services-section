@@ -1,9 +1,9 @@
-import { admittedName, parsePackagePath } from "./prepared-publication.mjs";
+import { validatedName, parsePackagePath } from "./prepared-publication.mjs";
 
 export const GUIX_ARCHIVE_AUTHORITY_HEADER = "X-Lagoon-Registry-Archive-Authority";
 
 function housePackage(name, { privateScopes, privateNames }) {
-  return admittedName(name) &&
+  return validatedName(name) &&
     (privateNames.includes(name) || privateScopes.some(scope => name.startsWith(scope + "/")));
 }
 

@@ -149,7 +149,7 @@ export async function projectVerdaccioStorageReleases({ storageRoot, ownedScopes
   try { db = JSON.parse(await readFile(join(root, ".verdaccio-db.json"), "utf8")); } catch (error) { hardRefuse("registry index", error?.code === "ENOENT" ? "index is absent" : "index is not JSON"); }
   if (!Array.isArray(db.list)) hardRefuse("registry index", "index list is absent or malformed");
 
-  const admitted = [], exclusions = [];
+  const validated = [], exclusions = [];
   for (const name of [...new Set(db.list)].sort((a, b) => String(a).localeCompare(String(b)))) {
     if (typeof name !== "string") hardRefuse("registry index", "index contains a non-string package name");
     let packument;
@@ -180,20 +180,20 @@ export async function projectVerdaccioStorageReleases({ storageRoot, ownedScopes
       if (local !== null) { exclusions.push(excluded({ ...evidence, reason: EXCLUSION_REASONS.LOCAL_DEPENDENCY_PROTOCOL, detail: local })); continue; }
       matchRuntimeDependencies(manifest, artifact, releaseIdentity);
       if (selectedDevelopment.has(releaseIdentity)) receivedDevelopment.add(releaseIdentity);
-      admitted.push(Object.freeze({ manifest: Object.freeze({ ...manifest }), artifactPath: join(packageDirectory(root, name), filename), integrity: measurement.integrity, measurement }));
+      validated.push(Object.freeze({ manifest: Object.freeze({ ...manifest }), artifactPath: join(packageDirectory(root, name), filename), integrity: measurement.integrity, measurement }));
     }
   }
   for (const selector of selectedDevelopment)
     if (!receivedDevelopment.has(selector)) hardRefuse(selector, "selected development release not admitted");
-  admitted.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name) || a.manifest.version.localeCompare(b.manifest.version, undefined, { numeric: true }));
+  validated.sort((a, b) => a.manifest.name.localeCompare(b.manifest.name) || a.manifest.version.localeCompare(b.manifest.version, undefined, { numeric: true }));
   exclusions.sort((a, b) => a.name.localeCompare(b.name) || String(a.version).localeCompare(String(b.version)) || a.reason.localeCompare(b.reason));
   const excludedByReason = Object.fromEntries(Object.values(EXCLUSION_REASONS).map((reason) => [reason, exclusions.filter((item) => item.reason === reason).length]));
   return Object.freeze({
     type: "VerdaccioStorageReleaseProjection",
     version: 1,
     storageRoot: root,
-    admitted: Object.freeze(admitted),
+    admitted: Object.freeze(validated),
     excluded: Object.freeze(exclusions),
-    counts: Object.freeze({ indexedPackages: new Set(db.list).size, admitted: admitted.length, excluded: exclusions.length, excludedByReason: Object.freeze(excludedByReason) }),
+    counts: Object.freeze({ indexedPackages: new Set(db.list).size, admitted: validated.length, excluded: exclusions.length, excludedByReason: Object.freeze(excludedByReason) }),
   });
 }

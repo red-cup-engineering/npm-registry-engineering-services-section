@@ -4,7 +4,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import bcrypt from "bcryptjs";
-import { admittedConfiguration } from "../src/application.mjs";
+import { validatedConfiguration } from "../src/application.mjs";
 import { TOKEN_PREFIX } from "../src/credentials.mjs";
 
 // admit-publisher CONFIGURATION USER [--origin URL] [--password-environment NAME] [--token-from-npmrc PATH REGISTRY-HOST]
@@ -35,7 +35,7 @@ if (Array.isArray(document.applications)) {
   if (registries.length !== 1) throw new TypeError("the selected instance must identify one native npm registry application");
   selected = registries[0].configuration;
 }
-const configuration = admittedConfiguration(selected);
+const configuration = validatedConfiguration(selected);
 if (origin !== undefined && configuration.origin !== origin) throw new TypeError("the registry configuration differs from the selected publisher origin");
 const home = value => (isAbsolute(value) ? value : resolve(homedir(), value));
 const htpasswd = home(configuration.htpasswd), tokens = configuration.tokens ? home(configuration.tokens) : join(dirname(htpasswd), "tokens.jsonl");

@@ -11,7 +11,7 @@ function requiredString(value, label) {
   return value;
 }
 
-function receiptEntry(entry, index) {
+function recordEntry(entry, index) {
   if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
     throw new TypeError(`registry receipt package ${index} must be an object`);
   }
@@ -37,7 +37,7 @@ function receiptEntry(entry, index) {
   return { ...entry, name, version, artifact, bytes: entry.bytes, shasum, integrity };
 }
 
-function receiptScopes(scopes) {
+function recordScopes(scopes) {
   if (!Array.isArray(scopes) || scopes.some((scope) => typeof scope !== "string" || scope.trim() === "")) {
     throw new TypeError("registry receipt scopes must be non-empty strings");
   }
@@ -66,12 +66,12 @@ function objectDeclarations(source) {
   return declarations;
 }
 
-async function declaredOperationGraph(entry, registryRoot, receiptSha256) {
-  const receiptDeclarations = objectDeclarations(entry);
-  if (Object.keys(receiptDeclarations).length > 0) {
+async function declaredOperationGraph(entry, registryRoot, recordSha256) {
+  const recordDeclarations = objectDeclarations(entry);
+  if (Object.keys(recordDeclarations).length > 0) {
     return {
-      declarations: receiptDeclarations,
-      evidence: Object.freeze({ source: "registry-receipt", sha256: receiptSha256 }),
+      declarations: recordDeclarations,
+      evidence: Object.freeze({ source: "registry-receipt", sha256: recordSha256 }),
     };
   }
   try {
@@ -105,22 +105,22 @@ export async function obtainRegistrySnapshot(demand, { registryRoot, registryUrl
   const registry = registryOrigin(registryUrl);
   if (demand.registry !== registry) throw new Error("snapshot demand must name this exact private registry face");
   const root = resolve(registryRoot);
-  const receiptBytes = await readFile(join(root, "registry-receipt.json"));
-  const receipt = JSON.parse(receiptBytes.toString("utf8"));
-  if (receipt?.type !== "SemioticVoxelPackageRegistryReceipt" || !Array.isArray(receipt.packages) || !Array.isArray(receipt.scopes)) {
+  const recordBytes = await readFile(join(root, "registry-receipt.json"));
+  const record = JSON.parse(recordBytes.toString("utf8"));
+  if (record?.type !== "SemioticVoxelPackageRegistryReceipt" || !Array.isArray(record.packages) || !Array.isArray(record.scopes)) {
     throw new Error("registry has no recognized snapshot receipt");
   }
-  if (receipt.version !== 2) {
-    throw new Error(`unsupported package registry receipt version: ${receipt.version}`);
+  if (record.version !== 2) {
+    throw new Error(`unsupported package registry receipt version: ${record.version}`);
   }
-  const scopes = receiptScopes(receipt.scopes);
-  const entries = receipt.packages.map(receiptEntry);
+  const scopes = recordScopes(record.scopes);
+  const entries = record.packages.map(recordEntry);
   const names = entries.map((entry) => `${entry.name}@${entry.version}`);
   if (new Set(names).size !== names.length) throw new TypeError("registry receipt packages must not repeat name and version");
-  const receiptSha256 = sha256Digest(receiptBytes);
+  const recordSha256 = sha256Digest(recordBytes);
   const packages = await Promise.all(entries.map(async (entry) => {
     const { name, version, artifact, bytes, shasum, integrity } = entry;
-    const { declarations, evidence } = await declaredOperationGraph(entry, root, receiptSha256);
+    const { declarations, evidence } = await declaredOperationGraph(entry, root, recordSha256);
     return Object.freeze({
       name,
       version,
@@ -137,7 +137,7 @@ export async function obtainRegistrySnapshot(demand, { registryRoot, registryUrl
     type: "PackageRegistrySnapshot",
     requestId: demand.requestId,
     registry,
-    receiptSha256,
+    receiptSha256: recordSha256,
     packages,
     scopes,
     npmrc: scopedConfig(scopes, registry),

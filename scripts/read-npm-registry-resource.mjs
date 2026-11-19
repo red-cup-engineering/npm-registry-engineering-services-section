@@ -82,7 +82,7 @@ export function parseNpmRegistryObject(bytes, description) {
   }
 }
 
-export async function readNpmRegistryReceipt(registry) {
+export async function readNpmRegistryRecord(registry) {
   const bytes = await registry.receiptBytes();
   return bytes === null ? null : Object.freeze({ bytes, value: parseNpmRegistryObject(bytes, "registry receipt") });
 }
