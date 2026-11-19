@@ -1,0 +1,104 @@
+{
+  "kind": "specification-native-generation-observation",
+  "version": 1,
+  "sourceRequirement": {
+    "repository": "red-cup-engineering/npm-registry-serving-service",
+    "commit": "9fdfb5b8defa0ff32c751a47c00b52b4c0c057ee",
+    "path": "data/records/requirement-records/retire-unselected-house-package-versions.json"
+  },
+  "generator": {
+    "repository": "red-cup-engineering/specification-engineering-services-section",
+    "commit": "db52af5115ce9cc12e027d3ec23c42fe5a2a1aa2",
+    "path": "src/specification.mjs",
+    "exportName": "deriveSpecificationFromRequirementReview"
+  },
+  "reviewInput": {
+    "identity": {
+      "id": "retire-unselected-house-package-versions",
+      "title": "Retire unselected house package versions at the canonical registry",
+      "seat": "red-cup-engineering/npm-registry-serving-service",
+      "carrier": "data/records/specification-records/retire-unselected-house-package-versions.json",
+      "authors": [
+        "Hai Zhou, Chief Engineering Officer, Codex /root"
+      ]
+    },
+    "interpretations": [
+      {
+        "cell": "retire-unselected-house-package-versions:accurate-inventory",
+        "clauseId": "rvp-1",
+        "keyword": "MUST",
+        "actor": "The canonical registry owner"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:declared-editions",
+        "clauseId": "rvp-2",
+        "keyword": "MUST",
+        "actor": "The original source publisher"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:protected-closure",
+        "clauseId": "rvp-3",
+        "keyword": "MUST",
+        "actor": "The canonical registry owner"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:retirement-selection",
+        "clauseId": "rvp-4",
+        "keyword": "MUST",
+        "actor": "The canonical registry owner"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:immutable-retired-identities",
+        "clauseId": "rvp-5",
+        "keyword": "MUST",
+        "actor": "The canonical registry owner"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:atomic-owner-operation",
+        "clauseId": "rvp-6",
+        "keyword": "MUST",
+        "actor": "The canonical registry owner"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:bounded-terminal-custody",
+        "clauseId": "rvp-7",
+        "keyword": "MUST",
+        "actor": "The canonical registry owner"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:complete-consumer-cutover",
+        "clauseId": "rvp-8",
+        "keyword": "MUST",
+        "actor": "The canonical registry owner"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:receive-real-cleanup",
+        "clauseId": "rvp-9",
+        "keyword": "MUST",
+        "actor": "The independent registry receiver"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:original-work-lineage",
+        "clauseId": "rvp-10",
+        "keyword": "MUST",
+        "actor": "The canonical registry owner"
+      },
+      {
+        "cell": "retire-unselected-house-package-versions:generated-source",
+        "clauseId": "rvp-11",
+        "keyword": "MUST",
+        "actor": "The original Engineering generation chain"
+      }
+    ],
+    "at": "2026-10-28T22:48:00.000Z",
+    "reviewedBy": "Codex /root/pnpm_delivery, independent source review"
+  },
+  "observation": {
+    "host": "bare-cedar-fog",
+    "exitCode": 0,
+    "nativeSchemaValidation": "passed inside original generator",
+    "clauseCount": 11,
+    "independentReviewSession": "/root/pnpm_delivery"
+  },
+  "status": "generated-candidate-not-institutional-admission-or-implementation"
+}

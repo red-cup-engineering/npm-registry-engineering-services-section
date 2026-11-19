@@ -1,0 +1,47 @@
+{
+  "name": "@red-cup-engineering/npm-registry-snapshot-publication-service",
+  "version": "0.0.4-dev.0",
+  "description": "Builds an immutable npm registry snapshot and atomically activates it through snapshot pointers.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "exports": "./src/publish-npm-registry-snapshot.mjs",
+  "files": [
+    "src",
+    "scripts",
+    "package.json",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "bin": {
+    "publish-npm-registry-snapshot": "./scripts/publish-npm-registry-snapshot.mjs"
+  },
+  "scripts": {
+    "pack:dry-run": "npm pack --dry-run --ignore-scripts",
+    "check": "check-package-syntax"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@red-cup-engineering/npm-package-engineering-services-section": "^0.2.1",
+    "@red-cup-engineering/npm-registry-engineering-services-section": "^0.1.7",
+    "@red-cup-engineering/npm-registry-snapshot-engineering-services-section": "^0.1.2",
+    "@red-cup-engineering/semiotic-npm-registry-engineering-services-section": "^0.1.2",
+    "@red-cup-engineering/javascript-file-engineering-services-section": "^0.1.3"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-engineering-services-section": "^0.6.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/npm-registry-engineering-services-section.git",
+    "directory": "services/npm-registry-snapshot-publication-service"
+  },
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/561-group/.github/blob/main/TIPS.md"
+  }
+}

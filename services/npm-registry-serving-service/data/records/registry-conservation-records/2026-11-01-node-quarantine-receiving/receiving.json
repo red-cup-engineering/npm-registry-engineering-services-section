@@ -1,0 +1,27 @@
+{
+  "kind": "registry-node-quarantine-receiving",
+  "work": "https://github.com/red-cup-engineering/npm-registry-serving-service/issues/17",
+  "pull": "https://github.com/red-cup-engineering/npm-registry-serving-service/pull/38",
+  "merge": "8418e04edd7818852ef587c0f05379efe829e7cd",
+  "received-on": "2026-11-01",
+  "deployment": {
+    "unit": "house-npm-registry.service (user)",
+    "checkout": "data/state/machine-deployment-service-state/checkouts/npm-registry-serving-service",
+    "before": "byte-identical to e179c80 (0.2.5-dev.72); the 13 files changed between e179c80 and 8418e04 were written in (deploy-files.txt, tree-e179.txt)",
+    "before-backup": {
+      "file": "npm-registry-serving-service-before-8418e04.tar",
+      "sha256": "68855095b70c3d099f6d85a14972d087f36c2117f2240b942d926dec2d908181",
+      "kept": "no: its content is commit e179c80 of this repository, from which it is reproduced"
+    }
+  },
+  "receiving": {
+    "through": "https://registry.561.group (Caddy to 127.0.0.1:18821)",
+    "conflicting-versions": {
+      "npm-registry-serving-service@0.2.5-dev.0": 409,
+      "computer-language-systems-engineering-services-section@0.1.4-dev.1": 409
+    },
+    "packuments": "node-*.json and worker-*.json: the conflicting version absent and the conflict list (native, canonical-r2) equal on node and Worker; no shared version differs in integrity (22 and 13 shared)",
+    "operating-configuration": "normal-operating-configuration.json, the carrier the Worker's REGISTRY_IDENTITY_CONFLICTS binding was compared against"
+  },
+  "moved-from": "/tmp scratch of the 2026-11-01 Claude Code session, under the Leader's direction: \"NOTHING UNDER /tmp\""
+}
