@@ -49,7 +49,7 @@ export function versionOf(name, entity) {
 const record = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
 
 /** A row as the journal holds it, or a TypeError naming what is wrong with it. */
-export function validatedRow(row) {
+export function admittedRow(row) {
   if (!record(row) || Object.keys(row).length !== 4 || typeof row.e !== "string" || typeof row.a !== "string"
     || !Object.hasOwn(row, "v") || !(row.t === null || (typeof row.t === "string" && !Number.isNaN(Date.parse(row.t))))) {
     throw new TypeError("a registry fact is exactly {e, a, v, t}: entity and attribute strings, a value, and an ISO time or null");

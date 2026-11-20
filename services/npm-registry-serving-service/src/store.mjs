@@ -4,7 +4,7 @@ import { link, mkdir, open, readdir, readFile, rename, rm, rmdir, stat, symlink,
 import { dirname, join } from "node:path";
 import { niPathSegments } from "@red-cup-engineering/computer-content-address-engineering-services-section/ni-path";
 import { isNiUri, makeNiUri } from "@red-cup-engineering/uri-engineering-services-section/ni-uri";
-import { validatedRow, legacyRows } from "./facts.mjs";
+import { admittedRow, legacyRows } from "./facts.mjs";
 
 /**
  * The registry's package store on disk, under one `storage` directory:
@@ -30,7 +30,7 @@ const NEWLINE = 0x0a;
 export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000, lockStaleMs = 120_000 }) {
   if (typeof storage !== "string" || storage === "") throw new TypeError("the package store needs its storage directory");
   const directoryOf = (name) => join(storage, name);
-  const logPath = (name) => join(storage, name, "facts.jsonl");
+  const journalPath = (name) => join(storage, name, "facts.jsonl");
   const layoutPath = (name) => join(storage, name, "package.json");
   const leafPath = (name, file) => join(storage, name, file);
   const blobPath = (ni) => join(storage, "-", "blobs", ...niPathSegments(ni), ni.slice(NI_PREFIX.length));
@@ -46,8 +46,8 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
   /** What a package's documents are projected from now: its journal, else its earlier packument; with a key that
    *  changes whenever that file does. Undefined when the store holds neither. */
   async function sourceOf(name) {
-    const log = await statOf(logPath(name));
-    if (log?.isFile()) return { kind: "journal", path: logPath(name), key: `j:${log.ino}:${log.size}:${log.mtimeMs}` };
+    const journal = await statOf(journalPath(name));
+    if (journal?.isFile()) return { kind: "journal", path: journalPath(name), key: `j:${journal.ino}:${journal.size}:${journal.mtimeMs}` };
     const layout = await statOf(layoutPath(name));
     if (layout?.isFile()) return { kind: "layout", path: layoutPath(name), key: `l:${layout.ino}:${layout.size}:${layout.mtimeMs}` };
     return undefined;
@@ -67,8 +67,8 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
     }
     const complete = bytes.subarray(0, bytes.lastIndexOf(NEWLINE) + 1);
     const rows = complete.toString("utf8").split("\n").filter((line) => line !== "").map((line, index) => {
-      try { return validatedRow(JSON.parse(line)); }
-      catch (error) { throw new TypeError(`${logPath(name)}:${index + 1} is not a registry fact (${error.message})`); }
+      try { return admittedRow(JSON.parse(line)); }
+      catch (error) { throw new TypeError(`${journalPath(name)}:${index + 1} is not a registry fact (${error.message})`); }
     });
     return { kind: "journal", key: source.key, rows, digest: digest(complete) };
   }
@@ -77,15 +77,15 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
    *  append cut short is cut back to its last complete line first. */
   async function append(name, rows) {
     if (rows.length === 0) return;
-    for (const row of rows) validatedRow(row);
+    for (const row of rows) admittedRow(row);
     await mkdir(directoryOf(name), { recursive: true });
-    const handle = await open(logPath(name), "a+");
+    const handle = await open(journalPath(name), "a+");
     try {
       const { size } = await handle.stat();
       if (size > 0) {
         const last = Buffer.alloc(1);
         await handle.read(last, 0, 1, size - 1);
-        if (last[0] !== NEWLINE) await handle.truncate((await readFile(logPath(name))).lastIndexOf(NEWLINE) + 1);
+        if (last[0] !== NEWLINE) await handle.truncate((await readFile(journalPath(name))).lastIndexOf(NEWLINE) + 1);
       }
       await handle.write(Buffer.from(`${rows.map((row) => JSON.stringify(row)).join("\n")}\n`, "utf8"));
       await handle.sync();
@@ -94,8 +94,8 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
 
   /** Replace the package's journal with `rows`: how a removal takes versions out. The caller holds the package's lock. */
   async function replace(name, rows) {
-    for (const row of rows) validatedRow(row);
-    await writeAtomic(logPath(name), rows.length === 0 ? "" : `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
+    for (const row of rows) admittedRow(row);
+    await writeAtomic(journalPath(name), rows.length === 0 ? "" : `${rows.map((row) => JSON.stringify(row)).join("\n")}\n`);
   }
 
   /** Remove a removed version's tarball: its leaf, npm's scoped attachment and its blob. A tarball's bytes name its

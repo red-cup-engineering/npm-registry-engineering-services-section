@@ -2,7 +2,7 @@
 import {readFile} from 'node:fs/promises';
 import {homedir} from 'node:os';
 import {isAbsolute, resolve} from 'node:path';
-import {validatedConfiguration} from '../src/application.mjs';
+import {admittedConfiguration} from '../src/application.mjs';
 import {receiveStore} from '../src/reception.mjs';
 import {createNpmRegistry} from '../src/registry.mjs';
 import {removePublicLeftovers} from '../src/leftovers.mjs';
@@ -15,7 +15,7 @@ import {removePublicLeftovers} from '../src/leftovers.mjs';
 const [path,...flags]=process.argv.slice(2);
 if(!path||flags.some(flag=>!['--dry-run','--remove-public-leftovers'].includes(flag)))throw new TypeError('usage: receive-registry-store CONFIGURATION [--dry-run] [--remove-public-leftovers]');
 if(flags.includes('--dry-run')&&flags.includes('--remove-public-leftovers'))throw new TypeError('public leftover removal is an explicit write, separate from dry-run receiving');
-const configuration=validatedConfiguration(JSON.parse(await readFile(path,'utf8')));
+const configuration=admittedConfiguration(JSON.parse(await readFile(path,'utf8')));
 const home=value=>value===undefined||isAbsolute(value)?value:resolve(homedir(),value);
 if(flags.includes('--remove-public-leftovers'))
   process.stdout.write(JSON.stringify(await removePublicLeftovers({configuration,storage:home(configuration.storage)}))+'\n');

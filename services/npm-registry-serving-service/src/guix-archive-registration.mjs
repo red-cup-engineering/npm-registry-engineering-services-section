@@ -54,8 +54,8 @@ export function createGuixArchiveRegistrar({guix = "/usr/local/bin/guix"} = {}) 
         const answer = JSON.parse(line);
         const waiter = pending.get(answer.id);
         const success = typeof answer.archive === "string" && storeArchive.test(answer.archive);
-        const rejection = typeof answer.error === "string" && answer.error.length > 0;
-        if (!waiter || success === rejection) throw new Error("invalid Guix archive response");
+        const refusal = typeof answer.error === "string" && answer.error.length > 0;
+        if (!waiter || success === refusal) throw new Error("invalid Guix archive response");
         pending.delete(answer.id);
         if (success) waiter.resolve(answer.archive);
         else waiter.reject(new Error(answer.error));

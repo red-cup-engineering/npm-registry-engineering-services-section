@@ -44,7 +44,7 @@ async function main(argv) {
     return;
   }
 
-  const record = await publishNpmRegistrySnapshot({
+  const receipt = await publishNpmRegistrySnapshot({
     packages: values.package,
     hostDirectory: values.host,
     snapshotName: values.snapshot,
@@ -52,7 +52,7 @@ async function main(argv) {
     baseSnapshot: values["base-snapshot"],
     concurrency: values.concurrency === undefined ? undefined : Number(values.concurrency),
   });
-  process.stdout.write(`${JSON.stringify({ type: record.type, registry: record.registry, packageCount: record.packageCount, activation: record.activation }, null, 2)}\n`);
+  process.stdout.write(`${JSON.stringify({ type: receipt.type, registry: receipt.registry, packageCount: receipt.packageCount, activation: receipt.activation }, null, 2)}\n`);
 }
 
 runMain(({ argv }) => main(argv), {

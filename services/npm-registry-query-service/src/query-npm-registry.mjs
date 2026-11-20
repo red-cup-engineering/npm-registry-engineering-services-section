@@ -1,14 +1,14 @@
 import {
   openNpmRegistry,
   readNpmPackument,
-  readNpmRegistryRecord,
+  readNpmRegistryReceipt,
   readNpmRegistryRelease,
 } from "@red-cup-engineering/npm-registry-engineering-services-section/read-npm-registry-resource";
 import { readPackageInterfaces } from "./package-interfaces.mjs";
 
 export { packageBinaries, readPackageInterfaces } from "./package-interfaces.mjs";
 
-const RECORD_TYPE = "SemioticVoxelPackageRegistryReceipt";
+const RECEIPT_TYPE = "SemioticVoxelPackageRegistryReceipt";
 
 /**
  * Open the byte-preserving npm-registry read face used by query and graph
@@ -20,7 +20,7 @@ export function openNpmRegistryQuerySource({ registryRoot, registryUrl, fetchImp
   const registry = openNpmRegistry({ registryRoot, registryUrl, fetchImplementation });
   return Object.freeze({
     registry: registry.registry,
-    receipt: () => readNpmRegistryRecord(registry),
+    receipt: () => readNpmRegistryReceipt(registry),
     packument: (name) => readNpmPackument(registry, name),
     release: (name, version) => readNpmRegistryRelease(registry, { name, version }),
   });
@@ -45,9 +45,9 @@ export async function searchPackages(options) {
   const { pattern } = options;
   if (typeof pattern !== "string" && !(pattern instanceof RegExp)) throw new TypeError("pattern must be a string or RegExp");
   const face = openNpmRegistryQuerySource(options);
-  const record = await face.receipt();
-  if (record?.value?.type !== RECORD_TYPE || !Array.isArray(record.value.packages)) throw new Error("registry has no recognized build receipt");
-  const names = [...new Set(record.value.packages.map((entry) => entry.name))].sort();
+  const receipt = await face.receipt();
+  if (receipt?.value?.type !== RECEIPT_TYPE || !Array.isArray(receipt.value.packages)) throw new Error("registry has no recognized build receipt");
+  const names = [...new Set(receipt.value.packages.map((entry) => entry.name))].sort();
   const matcher = pattern instanceof RegExp ? pattern : new RegExp(pattern.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"), "iu");
   const matches = names.filter((name) => {
     matcher.lastIndex = 0;
@@ -116,11 +116,11 @@ export async function dependentsOf(options) {
   const { name } = options;
   if (typeof name !== "string" || name.length === 0) throw new TypeError("name is required");
   const face = openNpmRegistryQuerySource(options);
-  const record = await face.receipt();
-  if (record?.value?.type !== RECORD_TYPE || !Array.isArray(record.value.packages)) throw new Error("registry has no recognized build receipt; dependents can only be found within a registry this house built");
+  const receipt = await face.receipt();
+  if (receipt?.value?.type !== RECEIPT_TYPE || !Array.isArray(receipt.value.packages)) throw new Error("registry has no recognized build receipt; dependents can only be found within a registry this house built");
   const dependents = [];
   const seen = new Set();
-  for (const entry of record.value.packages) {
+  for (const entry of receipt.value.packages) {
     const identity = `${entry.name}@${entry.version}`;
     if (seen.has(identity)) continue;
     seen.add(identity);

@@ -2,13 +2,13 @@ import { Buffer } from "node:buffer";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import semver from "semver";
-import { validatedName, validatedPublication, parsePackagePath } from "./prepared-publication.mjs";
+import { admittedName, admittedPublication, parsePackagePath } from "./prepared-publication.mjs";
 import { checkPublication, DEFAULT_HOUSE_SCOPES } from "./publish-gate.mjs";
 import { registryIdentityConservation } from "./registry-identity-conservation.mjs";
 import { forwardGuixArchiveRequest, guixArchiveRequest, withoutGuixArchiveAuthority } from "./worker-guix-archive-route.mjs";
 
 
-const STORAGE = "-/publication-inputs/";
+const CUSTODY = "-/publication-inputs/";
 const POLICY = "native-authenticated-house-publishers-v1";
 const DEFAULT_UPLINK = "https://registry.npmjs.org";
 const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
@@ -18,7 +18,7 @@ const integrityOf = bytes => "sha512-" + digest("sha512", bytes, "base64");
 const uplinkPath = segments => "/" + segments.flatMap(part => part.split("/")).map(part => encodeURIComponent(part).replace(/^%40/u, "@")).join("/");
 const json = (value, status = 200, headers = {}) => Response.json(value, { status, headers });
 
-class Rejection extends Error {
+class Refusal extends Error {
   constructor(status, message, fields = {}, headers = {}) {
     super(message); this.status = status; this.fields = fields; this.headers = headers;
   }
@@ -30,7 +30,7 @@ function configurationOf(input) {
       || !Array.isArray(input.privateNames) || input.nativePublisherPolicy !== POLICY)
     throw new TypeError("R2 registry needs its source-qualified origin, house names and native publishing policy");
   if (input.privateScopes.some(scope => typeof scope !== "string" || !/^@[a-z0-9._-]+$/u.test(scope))
-      || input.privateNames.some(name => !validatedName(name)))
+      || input.privateNames.some(name => !admittedName(name)))
     throw new TypeError("R2 house names do not match the admitted native namespace");
   const hold = input.publicationHold;
   if (hold !== undefined && (!record(hold) || Object.keys(hold).length !== 3
@@ -56,7 +56,7 @@ function configurationOf(input) {
 
 async function boundedBytes(stream, limit, declared) {
   if (declared !== null && declared !== undefined && (!/^\d+$/u.test(String(declared)) || Number(declared) > limit))
-    throw new Rejection(413, "request body exceeds its admitted byte bound");
+    throw new Refusal(413, "request body exceeds its admitted byte bound");
   if (!stream) return Buffer.alloc(0);
   const reader = stream.getReader(), chunks = []; let size = 0, ended = false;
   try {
@@ -64,7 +64,7 @@ async function boundedBytes(stream, limit, declared) {
       const part = await reader.read();
       if (part.done) { ended = true; break; }
       size += part.value.byteLength;
-      if (size > limit) throw new Rejection(413, "request body exceeds its admitted byte bound");
+      if (size > limit) throw new Refusal(413, "request body exceeds its admitted byte bound");
       chunks.push(Buffer.from(part.value));
     }
   } finally { if (!ended) await reader.cancel().catch(() => {}); reader.releaseLock(); }
@@ -73,7 +73,7 @@ async function boundedBytes(stream, limit, declared) {
 
 function readJson(bytes, label) {
   try { return JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(bytes)); }
-  catch { throw new Rejection(400, label + " is not UTF-8 JSON"); }
+  catch { throw new Refusal(400, label + " is not UTF-8 JSON"); }
 }
 
 function unchanged(request, etag) {
@@ -129,21 +129,21 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
 
   function refuseConflict(name, version) {
     const held = conservation.conflict(name, version);
-    if (held) throw new Rejection(409, "package version is quarantined for conflicting immutable identities", { conflict: held });
+    if (held) throw new Refusal(409, "package version is quarantined for conflicting immutable identities", { conflict: held });
   }
 
   async function metadata(name, served = true) {
     const object = await bucket.get(metadataKey(name));
     if (object === null) return null;
     if (!Number.isSafeInteger(object.size) || object.size > config.maxMetadataBytes)
-      throw new Rejection(502, "stored metadata exceeds its qualified receiving bound");
+      throw new Refusal(502, "stored metadata exceeds its qualified receiving bound");
     const bytes = await boundedBytes(object.body, config.maxMetadataBytes, object.size);
     let document;
     try { document = readJson(bytes, "stored metadata"); }
-    catch { throw new Rejection(502, "stored package metadata is unreadable"); }
+    catch { throw new Refusal(502, "stored package metadata is unreadable"); }
     if (!record(document) || document.name !== name || !record(document.versions)
         || (document["dist-tags"] !== undefined && !record(document["dist-tags"])))
-      throw new Rejection(502, "stored package metadata has another identity or shape");
+      throw new Refusal(502, "stored package metadata has another identity or shape");
     const rawDocument = document, rawBytes = bytes;
     const projected = served ? conservation.project(name, document) : document;
     const changed = projected !== document;
@@ -154,7 +154,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
   }
 
   async function native(request, { bodyLimit = config.maxPublishBytes, stripAuthorization = false } = {}) {
-    if (new URL(request.url).origin !== config.origin) throw new Rejection(400, "request has another registry origin");
+    if (new URL(request.url).origin !== config.origin) throw new Refusal(400, "request has another registry origin");
     const headers = new Headers(request.headers);
     if (stripAuthorization) { headers.delete("authorization"); headers.delete("cookie"); }
     let body;
@@ -166,7 +166,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     }));
     if (!stripAuthorization && reply.status >= 300 && reply.status < 400) {
       await reply.body?.cancel();
-      throw new Rejection(503, "native authentication redirect was refused");
+      throw new Refusal(503, "native authentication redirect was refused");
     }
     return reply;
   }
@@ -191,7 +191,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         method, headers, redirect: "manual", signal: AbortSignal.timeout(config.uplinkTimeoutMs),
         cf: { cacheEverything: true, cacheTtlByStatus: { "200-299": ttl, "300-599": 0 } },
       }));
-    } catch { throw new Rejection(504, "the public npm registry did not answer in time", {}, { "retry-after": "5" }); }
+    } catch { throw new Refusal(504, "the public npm registry did not answer in time", {}, { "retry-after": "5" }); }
     const out = new Headers();
     for (const field of ["content-type", "etag", "last-modified", "cache-control", "location", "retry-after"]) {
       const value = reply.headers.get(field); if (value !== null) out.set(field, value);
@@ -212,7 +212,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     if (sameSecret(authorization, publishToken)) publisher = "existing-r2-publisher";
     else {
       if (!/^(?:Basic|Bearer)\s+\S+$/iu.test(authorization))
-        throw new Rejection(401, "publishing needs an existing publisher credential");
+        throw new Refusal(401, "publishing needs an existing publisher credential");
       const target = new URL("/-/whoami", config.origin);
       let reply;
       try {
@@ -220,19 +220,19 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
           headers: { authorization, accept: "application/json" }, redirect: "manual",
           signal: AbortSignal.timeout(config.authenticationTimeoutMs),
         }));
-      } catch { throw new Rejection(503, "native publisher authentication is unavailable", {}, { "retry-after": "30" }); }
-      if (reply.status === 401 || reply.status === 403) throw new Rejection(401, "native publisher credential was refused");
-      if (reply.status !== 200) throw new Rejection(503, "native publisher authentication is unread", {}, { "retry-after": "30" });
+      } catch { throw new Refusal(503, "native publisher authentication is unavailable", {}, { "retry-after": "30" }); }
+      if (reply.status === 401 || reply.status === 403) throw new Refusal(401, "native publisher credential was refused");
+      if (reply.status !== 200) throw new Refusal(503, "native publisher authentication is unread", {}, { "retry-after": "30" });
       const bytes = await boundedBytes(reply.body, 4096, reply.headers.get("content-length"));
       const identity = readJson(bytes, "native publisher identity");
       if (typeof identity?.username !== "string" || identity.username.length === 0 || identity.username.length > 128
           || /[\u0000-\u001f\u007f]/u.test(identity.username))
-        throw new Rejection(503, "native publisher identity is not qualified");
+        throw new Refusal(503, "native publisher identity is not qualified");
       publisher = identity.username;
     }
     // The qualified native policy grants authenticated publishers only house names.
     // The identity response by itself never bypasses this source-owned rule.
-    if (!isPrivate(name)) throw new Rejection(403, name + " is not an admitted house package name");
+    if (!isPrivate(name)) throw new Refusal(403, name + " is not an admitted house package name");
     return publisher;
   }
 
@@ -240,114 +240,114 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     const object = await bucket.get(archiveKey(name, file));
     if (object === null) return null;
     if (!Number.isSafeInteger(object.size) || object.size > config.maxPublishBytes)
-      throw new Rejection(409, "existing immutable artifact exceeds this prepared profile");
+      throw new Refusal(409, "existing immutable artifact exceeds this prepared profile");
     const bytes = await boundedBytes(object.body, config.maxPublishBytes, object.size);
-    if (integrityOf(bytes) !== expected) throw new Rejection(409, "immutable artifact already has different bytes");
+    if (integrityOf(bytes) !== expected) throw new Refusal(409, "immutable artifact already has different bytes");
     return object;
   }
 
-  async function removeInput(key, inputSha256, publisher) {
-    const storage = { state: "retained", key, inputSha256 };
+  async function retireInput(key, inputSha256, publisher) {
+    const custody = { state: "retained", key, inputSha256 };
     try {
       const object = await bucket.get(key);
-      if (object === null) return { ...storage, state: "retired" };
+      if (object === null) return { ...custody, state: "retired" };
       const original = await boundedBytes(object.body, config.maxPublishBytes, object.size);
       const observedInputSha256 = digest("sha256", original);
       if (observedInputSha256 !== inputSha256 || object.customMetadata?.publisher !== publisher)
         return { state: "not-owned", key, requestedInputSha256: inputSha256, observedInputSha256 };
       await bucket.delete(key);
-      if (await bucket.head(key) === null) return { ...storage, state: "retired" };
-      return { ...storage, retirement: "not-received" };
-    } catch { return { ...storage, retirement: "unreceived" }; }
+      if (await bucket.head(key) === null) return { ...custody, state: "retired" };
+      return { ...custody, retirement: "not-received" };
+    } catch { return { ...custody, retirement: "unreceived" }; }
   }
 
   async function publish(request, name, resume) {
-    let storage = null, storageAttempted = false;
+    let custody = null, custodyAttempted = false;
     try {
       const publisher = await authorize(request, name);
       const type = request.headers.get("content-type") ?? "";
-      if (!/^application\/json(?:\s*;|$)/iu.test(type)) throw new Rejection(415, "npm prepared publication is application/json");
+      if (!/^application\/json(?:\s*;|$)/iu.test(type)) throw new Refusal(415, "npm prepared publication is application/json");
       const encoded = await boundedBytes(request.body, config.maxPublishBytes, request.headers.get("content-length"));
       const body = readJson(encoded, "prepared publication");
       if (record(body?.versions) && body._attachments === undefined)
-        throw new Rejection(405, "house deprecation or metadata changes require the canonical R2 CAS operation; no native shelf was changed");
+        throw new Refusal(405, "house deprecation or metadata changes require the canonical R2 CAS operation; no native shelf was changed");
       if (!record(body?.versions) || Object.keys(body.versions).length !== 1)
-        throw new Rejection(400, "this npm prepared publication profile receives exactly one version");
-      if (body._id !== undefined && body._id !== name) throw new Rejection(400, "publication id differs from its package");
+        throw new Refusal(400, "this npm prepared publication profile receives exactly one version");
+      if (body._id !== undefined && body._id !== name) throw new Refusal(400, "publication id differs from its package");
       const [submittedVersion] = Object.keys(body.versions);
       if (resume && (resume.version !== submittedVersion || !/^[a-f0-9]{64}$/u.test(resume.inputSha256 ?? "")
           || digest("sha256", encoded) !== resume.inputSha256))
-        throw new Rejection(400, "resume must select the exact original package/version/input bytes");
+        throw new Refusal(400, "resume must select the exact original package/version/input bytes");
       if (config.publicationHold)
-        throw new Rejection(423, "publication is held for immutable identity conservation", {
+        throw new Refusal(423, "publication is held for immutable identity conservation", {
           publicationHold: config.publicationHold, effectsUnknown: false, custody: { state: "not-allocated" },
         });
       refuseConflict(name, submittedVersion);
       if (Object.hasOwn(body, "x-561-registry-conflicts"))
-        throw new Rejection(400, "conflict evidence is an operator-derived view, not publication metadata");
+        throw new Refusal(400, "conflict evidence is an operator-derived view, not publication metadata");
       const reservation = conservation.reservation(name, submittedVersion);
       if (reservation && !conservation.matches(body.versions[submittedVersion], reservation.identity))
-        throw new Rejection(409, "native version is reserved for its exact observed immutable product", { reservation });
+        throw new Refusal(409, "native version is reserved for its exact observed immutable product", { reservation });
       if (record(body["dist-tags"]))
         for (const selected of Object.values(body["dist-tags"])) refuseConflict(name, selected);
       // Conditional publication must preserve raw quarantined originals, never a served projection.
       const before = await metadata(name, false);
-      let validated;
-      try { validated = validatedPublication(name, body, { versions: new Map(Object.entries(before?.document.versions ?? {})) }); }
-      catch (error) { throw new Rejection(400, error.message); }
-      const [version, manifest] = validated.manifests.entries().next().value;
+      let admitted;
+      try { admitted = admittedPublication(name, body, { versions: new Map(Object.entries(before?.document.versions ?? {})) }); }
+      catch (error) { throw new Refusal(400, error.message); }
+      const [version, manifest] = admitted.manifests.entries().next().value;
       const file = name.split("/").pop() + "-" + version + ".tgz";
-      const bytes = validated.artifacts.get(file);
+      const bytes = admitted.artifacts.get(file);
       // A reservation binds the complete historical manifest. Ordinary publication records
       // the authenticated publisher, as the native receiver does, never caller-supplied attribution.
       const published = { ...manifest, ...(reservation ? {} : { _npmUser: { name: publisher } }),
         dist: { ...manifest.dist, tarball: config.origin + "/" + archiveKey(name, file) } };
       if (reservation && !conservation.matches(published, reservation.identity))
-        throw new Rejection(409, "native reservation cannot be transformed into another manifest", { reservation });
+        throw new Refusal(409, "native reservation cannot be transformed into another manifest", { reservation });
       const tags = body["dist-tags"] ?? {};
       const inputSha256 = digest("sha256", encoded);
-      const inputKey = STORAGE + name + "/" + version + ".json";
+      const inputKey = CUSTODY + name + "/" + version + ".json";
       if (resume) {
         const original = await bucket.get(inputKey);
         if (original !== null) {
           const actual = digest("sha256", await boundedBytes(original.body, config.maxPublishBytes, original.size));
           if (actual !== inputSha256 || original.customMetadata?.publisher !== publisher
               || original.customMetadata?.inputSha256 !== inputSha256)
-            throw new Rejection(409, "continuation does not own the retained original publication input", {
+            throw new Refusal(409, "continuation does not own the retained original publication input", {
               custody: { state: "not-owned", key: inputKey, requestedInputSha256: inputSha256, observedInputSha256: actual },
             });
           // Keep known original server custody visible even if a new gate
           // policy refuses continuation before another publication effect.
-          storage = { state: "retained", key: inputKey, inputSha256 };
-          storageAttempted = true;
+          custody = { state: "retained", key: inputKey, inputSha256 };
+          custodyAttempted = true;
         }
       }
       const existing = before?.document.versions[version];
       if (existing !== undefined) {
-        if (!isDeepStrictEqual(existing, published)) throw new Rejection(409, "published version already has another immutable manifest");
+        if (!isDeepStrictEqual(existing, published)) throw new Refusal(409, "published version already has another immutable manifest");
         if (!Object.entries(tags).every(([tag, selected]) => before.document["dist-tags"]?.[tag] === selected))
-          throw new Rejection(409, "published version is received but requested tags differ; no tag rollback was made");
-        if (!await storedArchive(name, file, published.dist.integrity)) throw new Rejection(409, "published artifact is absent");
+          throw new Refusal(409, "published version is received but requested tags differ; no tag rollback was made");
+        if (!await storedArchive(name, file, published.dist.integrity)) throw new Refusal(409, "published artifact is absent");
         // Reconcile only a positively owned original input after complete
         // readback. No source, publication, claim allocation or tag replay.
         const pending = await bucket.head(inputKey);
-        const receivedStorage = pending === null && !resume ? { state: "not-allocated" }
-          : await removeInput(inputKey, inputSha256, publisher);
-        return json({ ok: true, id: name, version, alreadyReceived: true, custody: receivedStorage });
+        const receivedCustody = pending === null && !resume ? { state: "not-allocated" }
+          : await retireInput(inputKey, inputSha256, publisher);
+        return json({ ok: true, id: name, version, alreadyReceived: true, custody: receivedCustody });
       }
       const violations = await checkPublication({
         name, version, bytes,
         houseScopes: [...new Set([...DEFAULT_HOUSE_SCOPES, ...config.privateScopes])],
         // A same-zone fetch would read the old native shelf. Read canonical R2.
-        publishedPackument: async provider => (await metadata(provider))?.document ?? null,
-        publishedManifest: async (provider, selected) => {
-          if (conservation.conflict(provider, selected)) return null;
-          return (await metadata(provider, false))?.document.versions[selected] ?? null;
+        publishedPackument: async supplier => (await metadata(supplier))?.document ?? null,
+        publishedManifest: async (supplier, selected) => {
+          if (conservation.conflict(supplier, selected)) return null;
+          return (await metadata(supplier, false))?.document.versions[selected] ?? null;
         },
         maxUnpackedBytes: config.maxUnpackedBytes,
       });
-      if (violations.length) throw new Rejection(400, "the existing publication gate refused the prepared archive", { violations });
-      if (body.time !== undefined && !record(body.time)) throw new Rejection(400, "publication time is a metadata object");
+      if (violations.length) throw new Refusal(400, "the existing publication gate refused the prepared archive", { violations });
+      if (body.time !== undefined && !record(body.time)) throw new Refusal(400, "publication time is a metadata object");
       const now = new Date().toISOString();
       const { _attachments, versions, "dist-tags": _tags, _rev, time, ...fields } = body;
       const document = {
@@ -360,8 +360,8 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       const { _rev: previousRevision, ...revisionContent } = document;
       document._rev = "r2-" + digest("sha256", JSON.stringify(revisionContent));
       const metadataBytes = Buffer.from(JSON.stringify(document));
-      if (metadataBytes.length > config.maxMetadataBytes) throw new Rejection(413, "merged metadata exceeds its qualified receiving bound");
-      storage = { state: "claim-unreceived", key: inputKey, requestedInputSha256: inputSha256 };
+      if (metadataBytes.length > config.maxMetadataBytes) throw new Refusal(413, "merged metadata exceeds its qualified receiving bound");
+      custody = { state: "claim-unreceived", key: inputKey, requestedInputSha256: inputSha256 };
       const occupied = resume ? await bucket.get(inputKey) : await bucket.head(inputKey);
       if (occupied !== null) {
         // Only the authenticated original publisher may continue these exact
@@ -369,22 +369,22 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         if (!resume || occupied.customMetadata?.publisher !== publisher
             || occupied.customMetadata?.inputSha256 !== inputSha256
             || digest("sha256", await boundedBytes(occupied.body, config.maxPublishBytes, occupied.size)) !== inputSha256)
-          throw new Rejection(409, "this package/version has another unresolved original publication input", {
+          throw new Refusal(409, "this package/version has another unresolved original publication input", {
             custody: { state: "not-owned", key: inputKey, requestedInputSha256: inputSha256,
               observedInputSha256: occupied.customMetadata?.inputSha256 ?? null },
           });
-        storageAttempted = true;
+        custodyAttempted = true;
       } else {
         // Absence is not a claim of no in-flight effects. The original atomic
         // create-once claim arbitrates this continuation against every writer.
-        storageAttempted = true;
+        custodyAttempted = true;
         const claimed = await bucket.put(inputKey, encoded, {
           onlyIf: { etagDoesNotMatch: "*" }, httpMetadata: { contentType: "application/json" },
           customMetadata: { name, version, publisher, inputSha256, receivedAt: now },
         });
         if (claimed === null) {
-          storageAttempted = false;
-          throw new Rejection(409, "another original input already owns this package/version", {
+          custodyAttempted = false;
+          throw new Refusal(409, "another original input already owns this package/version", {
             custody: { state: "not-owned", key: inputKey, requestedInputSha256: inputSha256 },
           });
         }
@@ -392,35 +392,35 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       const receivedInput = await bucket.get(inputKey);
       if (receivedInput === null || digest("sha256", await boundedBytes(receivedInput.body, config.maxPublishBytes, receivedInput.size)) !== inputSha256
           || receivedInput.customMetadata?.publisher !== publisher)
-        throw new Rejection(502, "original publication input did not receive exact durable custody", { effectsUnknown: true });
-      storage = { state: "retained", key: inputKey, inputSha256 };
+        throw new Refusal(502, "original publication input did not receive exact durable custody", { effectsUnknown: true });
+      custody = { state: "retained", key: inputKey, inputSha256 };
       const heldArchive = await storedArchive(name, file, published.dist.integrity);
       if (heldArchive === null) {
         const placed = await bucket.put(archiveKey(name, file), bytes, {
           onlyIf: { etagDoesNotMatch: "*" }, httpMetadata: { contentType: "application/octet-stream" },
           customMetadata: { integrity: published.dist.integrity },
         });
-        if (placed === null) throw new Rejection(409, "immutable artifact creation raced another writer");
+        if (placed === null) throw new Refusal(409, "immutable artifact creation raced another writer");
       }
       const written = await bucket.put(metadataKey(name), metadataBytes, {
         onlyIf: before ? { etagMatches: before.object.etag } : { etagDoesNotMatch: "*" },
         httpMetadata: { contentType: "application/json", cacheControl: "no-cache" },
       });
-      if (written === null) throw new Rejection(409, "metadata changed; original input and unadvertised artifact remain held");
+      if (written === null) throw new Refusal(409, "metadata changed; original input and unadvertised artifact remain held");
       const received = await metadata(name);
       if (!received || !isDeepStrictEqual(received.document.versions[version], published)
           || !Object.entries(tags).every(([tag, selected]) => received.document["dist-tags"]?.[tag] === selected)
           || !await storedArchive(name, file, published.dist.integrity))
-        throw new Rejection(502, "publication effects did not receive complete metadata and archive readback", { effectsUnknown: true });
+        throw new Refusal(502, "publication effects did not receive complete metadata and archive readback", { effectsUnknown: true });
       // This version is now immutable. Every later request for it exits above
       // without allocating/reusing this key, even while cleanup is delayed.
-      storage = await removeInput(inputKey, inputSha256, publisher);
-      return json({ ok: true, id: name, version, custody: storage, effectsUnknown: false }, 201);
+      custody = await retireInput(inputKey, inputSha256, publisher);
+      return json({ ok: true, id: name, version, custody, effectsUnknown: false }, 201);
     } catch (error) {
-      const fields = { ...(storageAttempted ? { custody: storage } : {}), ...(error.fields ?? {}) };
-      if (!(error instanceof Rejection)) fields.effectsUnknown = storageAttempted;
-      return json({ error: error instanceof Rejection ? error.message : "the registry operation did not produce a qualified result", ...fields },
-        error instanceof Rejection ? error.status : 502, error.headers ?? {});
+      const fields = { ...(custodyAttempted ? { custody } : {}), ...(error.fields ?? {}) };
+      if (!(error instanceof Refusal)) fields.effectsUnknown = custodyAttempted;
+      return json({ error: error instanceof Refusal ? error.message : "the registry operation did not produce a qualified result", ...fields },
+        error instanceof Refusal ? error.status : 502, error.headers ?? {});
     }
   }
 
@@ -434,19 +434,19 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
   async function setTag(request, name, tag) {
     await authorize(request, name);
     if (config.publicationHold)
-      throw new Rejection(423, "publication is held for immutable identity conservation");
+      throw new Refusal(423, "publication is held for immutable identity conservation");
     if (!/^[A-Za-z0-9][A-Za-z0-9._-]*$/u.test(tag) || semver.validRange(tag) !== null)
-      throw new Rejection(400, "a dist-tag must be a name, not a version or range");
+      throw new Refusal(400, "a dist-tag must be a name, not a version or range");
     const version = readJson(await boundedBytes(request.body, 4096, request.headers.get("content-length")), "dist-tag version");
-    if (typeof version !== "string") throw new Rejection(400, "a dist-tag is set to a version string");
+    if (typeof version !== "string") throw new Refusal(400, "a dist-tag is set to a version string");
     refuseConflict(name, version);
     const held = await metadata(name, false);
     if (!held || !Object.hasOwn(held.document.versions, version))
-      throw new Rejection(404, "the dist-tag target is not a published version");
+      throw new Refusal(404, "the dist-tag target is not a published version");
     const manifest = held.document.versions[version];
     const archive = await bucket.head(archiveKey(name, archiveFile(name, version, manifest)));
     if (!archive || (archive.customMetadata?.integrity !== undefined && archive.customMetadata.integrity !== manifest.dist?.integrity))
-      throw new Rejection(409, "the dist-tag target has no matching immutable archive");
+      throw new Refusal(409, "the dist-tag target has no matching immutable archive");
     if (held.document["dist-tags"]?.[tag] === version) return json({ ok: true, id: name, tag, version });
     const { _rev: previousRevision, ...document } = {
       ...held.document,
@@ -456,15 +456,15 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     document._rev = "r2-" + digest("sha256", JSON.stringify(document));
     const bytes = Buffer.from(JSON.stringify(document));
     if (bytes.length > config.maxMetadataBytes)
-      throw new Rejection(413, "updated metadata exceeds its qualified receiving bound");
+      throw new Refusal(413, "updated metadata exceeds its qualified receiving bound");
     const written = await bucket.put(metadataKey(name), bytes, {
       onlyIf: { etagMatches: held.object.etag },
       httpMetadata: { contentType: "application/json", cacheControl: "no-cache" },
     });
-    if (written === null) throw new Rejection(409, "metadata changed while setting the dist-tag");
+    if (written === null) throw new Refusal(409, "metadata changed while setting the dist-tag");
     const received = await metadata(name, false);
     if (!received || !isDeepStrictEqual(received.document, document))
-      throw new Rejection(502, "the dist-tag update did not receive exact metadata readback");
+      throw new Refusal(502, "the dist-tag update did not receive exact metadata readback");
     return json({ ok: true, id: name, tag, version });
   }
 
@@ -478,12 +478,12 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     try {
       await authorize(request, name);
       const before = await metadata(name, false);
-      if (!before) throw new Rejection(404, "package is not in this registry");
+      if (!before) throw new Refusal(404, "package is not in this registry");
       const versions = Object.keys(before.document.versions);
       // A client's packument leaves quarantined versions out; leaving them out of its PUT does not remove them.
       const removed = versions.filter(version => offered === undefined
         || (!Object.hasOwn(offered.versions, version) && !conservation.conflict(name, version)));
-      if (removed.length === 0) throw new Rejection(400, "the packument removes no version");
+      if (removed.length === 0) throw new Refusal(400, "the packument removes no version");
       if (removed.length === versions.length) await bucket.delete(metadataKey(name));
       else {
         const left = versions.filter(version => !removed.includes(version));
@@ -499,11 +499,11 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
           onlyIf: { etagMatches: before.object.etag },
           httpMetadata: { contentType: "application/json", cacheControl: "no-cache" },
         });
-        if (written === null) throw new Rejection(409, "metadata changed while unpublishing; nothing was removed");
+        if (written === null) throw new Refusal(409, "metadata changed while unpublishing; nothing was removed");
       }
       for (const version of removed) {
         await bucket.delete(archiveKey(name, archiveFile(name, version, before.document.versions[version])));
-        await bucket.delete(STORAGE + name + "/" + version + ".json");
+        await bucket.delete(CUSTODY + name + "/" + version + ".json");
       }
       const lingering = [];
       for (const version of removed) {
@@ -511,25 +511,25 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         if (await bucket.head(key) !== null) lingering.push(key);
       }
       if (removed.length === versions.length && await bucket.head(metadataKey(name)) !== null) lingering.push(metadataKey(name));
-      if (lingering.length) throw new Rejection(502, "unpublished objects are still held", { lingering });
+      if (lingering.length) throw new Refusal(502, "unpublished objects are still held", { lingering });
       return json({ ok: true, id: name, removed });
     } catch (error) {
-      return json({ error: error instanceof Rejection ? error.message : "the registry operation did not produce a qualified result", ...(error.fields ?? {}) },
-        error instanceof Rejection ? error.status : 502, error.headers ?? {});
+      return json({ error: error instanceof Refusal ? error.message : "the registry operation did not produce a qualified result", ...(error.fields ?? {}) },
+        error instanceof Refusal ? error.status : 502, error.headers ?? {});
     }
   }
 
   async function fetchRequest(request) {
     try {
-      if (new URL(request.url).origin !== config.origin) throw new Rejection(400, "request has another registry origin");
+      if (new URL(request.url).origin !== config.origin) throw new Refusal(400, "request has another registry origin");
       const url = new URL(request.url), method = request.method.toUpperCase();
       let path;
       try { path = decodeURIComponent(url.pathname).replace(/^\/+/u, ""); }
-      catch { throw new Rejection(400, "invalid package path encoding"); }
-      if (path === STORAGE.slice(0, -1) || path.startsWith(STORAGE)) {
+      catch { throw new Refusal(400, "invalid package path encoding"); }
+      if (path === CUSTODY.slice(0, -1) || path.startsWith(CUSTODY)) {
         const selected = /^-\/publication-inputs\/((?:@[^/]+\/)?[^/]+)\/([^/]+)\/resume$/u.exec(path);
-        if (!selected || !validatedName(selected[1])) throw new Rejection(404, "not found");
-        if (method !== "POST") throw new Rejection(405, "original publication continuation uses POST");
+        if (!selected || !admittedName(selected[1])) throw new Refusal(404, "not found");
+        if (method !== "POST") throw new Refusal(405, "original publication continuation uses POST");
         return publish(request, selected[1], { version: selected[2], inputSha256: request.headers.get("x-561-input-sha256") });
       }
       if (path === "-/ping") return json({});
@@ -541,27 +541,27 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       }
       if (path.startsWith("-/npm/v1/security/")) return native(request, { stripAuthorization: true });
       if (path === "-/v1/search")
-        throw new Rejection(503, "canonical R2 house catalogue search is held; the native shelf is not a fresh R2 catalogue");
+        throw new Refusal(503, "canonical R2 house catalogue search is held; the native shelf is not a fresh R2 catalogue");
       const tag = /^-\/package\/(.+)\/dist-tags(?:\/([^/]+))?$/u.exec(path);
       if (tag) {
         const name = tag[1], selected = tag[2];
-        if (!validatedName(name)) throw new Rejection(404, "not found");
+        if (!admittedName(name)) throw new Refusal(404, "not found");
         if (!isPrivate(name)) {
-          if (method !== "GET" && method !== "HEAD") throw new Rejection(403, name + " is not an admitted house package name");
+          if (method !== "GET" && method !== "HEAD") throw new Refusal(403, name + " is not an admitted house package name");
           return await uplinkRead(request, uplinkPath(["-", "package", name, "dist-tags", ...(selected === undefined ? [] : [selected])]));
         }
         if (method === "PUT" && selected !== undefined) return await setTag(request, name, selected);
-        if (method !== "GET" && method !== "HEAD") throw new Rejection(405, "the canonical registry reads and sets individual dist-tags");
+        if (method !== "GET" && method !== "HEAD") throw new Refusal(405, "the canonical registry reads and sets individual dist-tags");
         const held = await metadata(name);
-        if (!held) throw new Rejection(404, "package is not in this registry");
+        if (!held) throw new Refusal(404, "package is not in this registry");
         const tags = held.document["dist-tags"] ?? {};
         if (selected !== undefined) refuseConflict(name, held.rawDocument["dist-tags"]?.[selected]);
-        if (selected !== undefined && !Object.hasOwn(tags, selected)) throw new Rejection(404, "tag is not in this registry");
+        if (selected !== undefined && !Object.hasOwn(tags, selected)) throw new Refusal(404, "tag is not in this registry");
         return new Response(method === "HEAD" ? null : JSON.stringify(selected === undefined ? tags : tags[selected]),
           { headers: { "content-type": "application/json", "cache-control": "no-cache" } });
       }
       const parsed = parsePackagePath(url.pathname), name = parsed.name, rest = parsed.rest;
-      if (!validatedName(name)) throw new Rejection(404, "not found");
+      if (!admittedName(name)) throw new Refusal(404, "not found");
       // npm unpublish: DELETE <name>/-rev/<rev> removes the package; PUT <name>/-rev/<rev> with the packument less some
       // versions removes those; DELETE <name>/-/<file>/-rev/<rev> then asks for a removed version's archive, already gone.
       if (method === "DELETE" || rest.includes("-rev")) {
@@ -570,39 +570,39 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         if (method === "PUT" && revision === 0 && rest.length === 2) {
           const body = readJson(await boundedBytes(request.body, config.maxMetadataBytes, request.headers.get("content-length")), "unpublish packument");
           if (!record(body) || body.name !== name || !record(body.versions))
-            throw new Rejection(400, "an unpublish PUT is the package's packument less the versions it removes");
+            throw new Refusal(400, "an unpublish PUT is the package's packument less the versions it removes");
           return unpublish(request, name, body);
         }
         if (method === "DELETE" && rest[0] === "-" && revision === 2 && rest.length === 4) {
-          if (!rest[1].endsWith(".tgz") || rest[1].startsWith(".") || rest[1].includes("\\")) throw new Rejection(404, "not found");
+          if (!rest[1].endsWith(".tgz") || rest[1].startsWith(".") || rest[1].includes("\\")) throw new Refusal(404, "not found");
           await authorize(request, name);
           const held = await metadata(name, false);
           if (held && Object.entries(held.document.versions).some(([version, manifest]) => archiveFile(name, version, manifest) === rest[1]))
-            throw new Rejection(409, rest[1] + " is a published version's archive; unpublish the version");
+            throw new Refusal(409, rest[1] + " is a published version's archive; unpublish the version");
           await bucket.delete(archiveKey(name, rest[1]));
           return json({ ok: true, id: name });
         }
-        throw new Rejection(405, "a package is unpublished at <name>/-rev/<rev>");
+        throw new Refusal(405, "a package is unpublished at <name>/-rev/<rev>");
       }
       if (method === "PUT" && rest.length === 0) return publish(request, name);
-      if (method !== "GET" && method !== "HEAD") throw new Rejection(405, "only standard npm prepared publication may write this registry");
+      if (method !== "GET" && method !== "HEAD") throw new Refusal(405, "only standard npm prepared publication may write this registry");
       if (!isPrivate(name)) {
         const archive = rest.length === 2 && rest[0] === "-";
         if (rest.length > 2 || (rest.length === 2 && !archive)
             || (archive && (!rest[1].endsWith(".tgz") || rest[1].startsWith(".") || rest[1].includes("/") || rest[1].includes("\\"))))
-          throw new Rejection(404, "not found");
+          throw new Refusal(404, "not found");
         return await uplinkRead(request, uplinkPath([name, ...rest]), archive);
       }
       if (rest.length === 1) refuseConflict(name, rest[0]);
       if (rest[0] === "-" && rest.length === 2) {
         const file = rest[1];
         if (!file.endsWith(".tgz") || file.startsWith(".") || file.includes("/") || file.includes("\\"))
-          throw new Rejection(404, "not found");
+          throw new Refusal(404, "not found");
         const conflict = conservation.artifactConflict(name, file);
         if (conflict) refuseConflict(name, conflict.version);
         const key = archiveKey(name, file);
         const object = await (method === "HEAD" ? bucket.head(key) : bucket.get(key));
-        if (object === null) throw new Rejection(404, "artifact is not in this registry");
+        if (object === null) throw new Refusal(404, "artifact is not in this registry");
         const etag = object.httpEtag ?? '"' + object.etag + '"';
         if (unchanged(request, etag)) {
           await object.body?.cancel?.();
@@ -613,14 +613,14 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
             "cache-control": "public, max-age=31536000, immutable" },
         });
       }
-      if (rest.length > 1) throw new Rejection(404, "not found");
+      if (rest.length > 1) throw new Refusal(404, "not found");
       // A packument nothing projects is served as the bytes this registry's own publication wrote and checked,
       // without parsing it: house packuments reach 1 to 2 MB, and parsing one costs the Worker's whole CPU bound.
       if (rest.length === 0 && !conservation.projects(name)) {
         const object = await bucket.get(metadataKey(name));
-        if (object === null) throw new Rejection(404, "package is not in this registry");
+        if (object === null) throw new Refusal(404, "package is not in this registry");
         if (!Number.isSafeInteger(object.size) || object.size > config.maxMetadataBytes)
-          throw new Rejection(502, "stored metadata exceeds its qualified receiving bound");
+          throw new Refusal(502, "stored metadata exceeds its qualified receiving bound");
         const etag = object.httpEtag ?? '"' + object.etag + '"';
         if (unchanged(request, etag)) { await object.body?.cancel?.(); return new Response(null, { status: 304, headers: { etag, "cache-control": "no-cache" } }); }
         if (method === "HEAD") await object.body?.cancel?.();
@@ -629,7 +629,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         });
       }
       const held = await metadata(name);
-      if (held === null) throw new Rejection(404, "package is not in this registry");
+      if (held === null) throw new Refusal(404, "package is not in this registry");
       let bytes = held.bytes, etag = held.etag;
       if (rest.length === 1) {
         const selector = rest[0];
@@ -637,7 +637,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
           ? selector : held.rawDocument["dist-tags"]?.[selector];
         refuseConflict(name, originalVersion);
         const version = Object.hasOwn(held.document.versions, selector) ? selector : held.document["dist-tags"]?.[selector];
-        if (typeof version !== "string" || !Object.hasOwn(held.document.versions, version)) throw new Rejection(404, "version is not in this registry");
+        if (typeof version !== "string" || !Object.hasOwn(held.document.versions, version)) throw new Refusal(404, "version is not in this registry");
         bytes = Buffer.from(JSON.stringify(held.document.versions[version]));
         etag = '"' + digest("sha256", bytes) + '"';
       }
@@ -646,8 +646,8 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         headers: { etag, "content-type": "application/json", "content-length": String(bytes.length), "cache-control": "no-cache" },
       });
     } catch (error) {
-      return json({ error: error instanceof Rejection ? error.message : "registry receiving is unavailable" },
-        error instanceof Rejection ? error.status : 502, error.headers ?? {});
+      return json({ error: error instanceof Refusal ? error.message : "registry receiving is unavailable" },
+        error instanceof Refusal ? error.status : 502, error.headers ?? {});
     }
   }
   return Object.freeze({ fetch: fetchRequest });

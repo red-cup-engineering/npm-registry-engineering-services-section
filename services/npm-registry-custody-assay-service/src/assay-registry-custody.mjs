@@ -67,7 +67,7 @@ function tarballFilename(tarballUrl) {
 // legitimately hold partial history — only the tarballs a client actually
 // requested get cached locally — so absence there is normal, not a defect.
 // Only scopes this registry is the origin for owe a complete custody chain.
-export async function checkRegistryStorage({ storageRoot, ownedScopes }) {
+export async function assayRegistryCustody({ storageRoot, ownedScopes }) {
   if (typeof storageRoot !== "string" || storageRoot === "") throw new TypeError("`storageRoot` must be a non-empty string");
   const scopes = new Set(ownedScopes ?? []);
   if (scopes.size === 0) throw new TypeError("`ownedScopes` must name at least one owned scope");

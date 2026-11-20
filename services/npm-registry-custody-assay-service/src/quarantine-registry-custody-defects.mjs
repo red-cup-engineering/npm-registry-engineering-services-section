@@ -20,7 +20,7 @@ export async function readQuarantineLedger(ledgerPath) {
     .map((line) => JSON.parse(line));
 }
 
-export async function quarantineRegistryStorageDefects({ defects, ledgerPath, quarantinedAt }) {
+export async function quarantineRegistryCustodyDefects({ defects, ledgerPath, quarantinedAt }) {
   if (!Array.isArray(defects)) throw new TypeError("`defects` must be an array");
   if (typeof ledgerPath !== "string" || ledgerPath === "") throw new TypeError("`ledgerPath` must be a non-empty string");
   const stamp = quarantinedAt ?? new Date().toISOString();

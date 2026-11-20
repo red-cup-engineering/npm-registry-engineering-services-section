@@ -58,7 +58,7 @@ function optionalPeerNames(manifest) {
  * effects. Literal engine requirements and normalised platform selectors
  * must agree; this does not evaluate platform eligibility or source ownership.
  */
-export function validateNpmPackageArchive(bytes, { manifest, integrity } = {}) {
+export function admitNpmPackageArchive(bytes, { manifest, integrity } = {}) {
   if (!(bytes instanceof Uint8Array) || bytes.byteLength > COMPRESSED_LIMIT)
     refuse("NPM_ARCHIVE_BOUNDS", "npm archive bytes must be a Uint8Array within the compressed size limit");
   if (!manifest || typeof manifest.name !== "string" || !manifest.name ||

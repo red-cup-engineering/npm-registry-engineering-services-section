@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { checkRegistryStorage, quarantineRegistryStorageDefects } from "../src/index.mjs";
+import { assayRegistryCustody, quarantineRegistryCustodyDefects } from "../src/index.mjs";
 import { argument, repeatedArgument, requiredArgument } from "@red-cup-engineering/parse-javascript-argv-service";
 
 const storageRoot = requiredArgument("--storage-root");
@@ -7,11 +7,11 @@ const ownedScopes = repeatedArgument("--owned-scope");
 const ledgerPath = argument("--ledger");
 const dryRun = process.argv.includes("--dry-run");
 
-const graph = await checkRegistryStorage({ storageRoot, ownedScopes });
+const graph = await assayRegistryCustody({ storageRoot, ownedScopes });
 
 let quarantine = null;
 if (ledgerPath !== undefined && !dryRun) {
-  quarantine = await quarantineRegistryStorageDefects({ defects: graph.defects, ledgerPath });
+  quarantine = await quarantineRegistryCustodyDefects({ defects: graph.defects, ledgerPath });
 }
 
 process.stdout.write(`${JSON.stringify({

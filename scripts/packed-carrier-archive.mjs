@@ -127,14 +127,14 @@ function paxRecords(payload, offset, legacy = false) {
   }
   return result;
 }
-const keptProjections = new WeakMap();
+const retainedProjections = new WeakMap();
 /** Reads original held-byte scanner evidence; cannot register or authenticate external facts. */
-export function readKeptRegistryProjection(sourceArchive, projection) {
-  const kept = projection && keptProjections.get(projection);
-  if (!kept || !sourceArchive || typeof sourceArchive !== 'object' || Array.isArray(sourceArchive)) throw refuse('projection', undefined, 'original retained projection required');
+export function readRetainedRegistryProjection(sourceArchive, projection) {
+  const retained = projection && retainedProjections.get(projection);
+  if (!retained || !sourceArchive || typeof sourceArchive !== 'object' || Array.isArray(sourceArchive)) throw refuse('projection', undefined, 'original retained projection required');
   const {integrity, ...source} = sourceArchive;
-  if (JSON.stringify(source) !== kept.source || JSON.stringify(projection) !== kept.projection) throw refuse('projection', undefined, 'retained projection evidence mutated');
-  return {sourceArchive:JSON.parse(kept.source), projection:JSON.parse(kept.projection)};
+  if (JSON.stringify(source) !== retained.source || JSON.stringify(projection) !== retained.projection) throw refuse('projection', undefined, 'retained projection evidence mutated');
+  return {sourceArchive:JSON.parse(retained.source), projection:JSON.parse(retained.projection)};
 }
 const profiles = ['npm-gzip-tar-v1', 'npm-registry-legacy-v1', 'npm-registry-legacy-idempotent-files-v1'];
 const unsigned = /^(0|[1-9][0-9]*)$/u;
@@ -246,8 +246,8 @@ export function inspectPackedCarrierArchive(tar, limits, options = {}) {
   if (!profiles.includes(profile)) throw refuse('wire-profile', undefined, 'unknown archive profile');
   const legacy = profile !== profiles[0], aliases = profile === profiles[2];
   const occurrences = [], extensions = [], groups = new Map(), pathState = {};
-  let keptBytes = 0, metadataPayloadBytes = 0, pendingExtension = null, headerCount = 0;
-  const retain = value => { keptBytes += Buffer.byteLength(JSON.stringify(value)); if (keptBytes > 16 * 1024 * 1024) throw refuse('limit', undefined, 'retained archive evidence bound exceeded'); };
+  let retainedBytes = 0, metadataPayloadBytes = 0, pendingExtension = null, headerCount = 0;
+  const retain = value => { retainedBytes += Buffer.byteLength(JSON.stringify(value)); if (retainedBytes > 16 * 1024 * 1024) throw refuse('limit', undefined, 'retained archive evidence bound exceeded'); };
   if (!Buffer.isBuffer(tar)) throw refuse('wire-profile', undefined, 'held TAR bytes required');
   for (const name of ['members', 'bytes', 'tarBytes', 'metadataBytes'])
     if (!Number.isSafeInteger(limits?.[name]) || limits[name] < 1) throw refuse('limit', undefined, 'finite scanner bound required');
@@ -342,7 +342,7 @@ export function inspectPackedCarrierArchive(tar, limits, options = {}) {
     if (Buffer.byteLength(JSON.stringify(result)) > 16 * 1024 * 1024) throw refuse('limit', endOffset, 'complete retained archive result bound exceeded');
     const source = JSON.stringify(result.sourceArchive), projection = JSON.stringify(result.projection);
     if (Buffer.byteLength(source) + Buffer.byteLength(projection) > 16 * 1024 * 1024) throw refuse('limit', endOffset, 'retained private proof bound exceeded');
-    keptProjections.set(result.projection, {source, projection});
+    retainedProjections.set(result.projection, {source, projection});
   }
   return result;
 }

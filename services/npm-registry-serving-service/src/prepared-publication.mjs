@@ -5,7 +5,7 @@ import { Buffer } from "node:buffer";
 const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
 export const tarballName = (url) => decodeURIComponent(new URL(url).pathname.split("/").pop());
 
-export const validatedName = (name) => typeof name === "string" && name !== "" && !name.startsWith("-")
+export const admittedName = (name) => typeof name === "string" && name !== "" && !name.startsWith("-")
   && !name.includes("..") && !/[\\\u0000-\u001f\u007f]/u.test(name)
   && (name.startsWith("@") ? /^@[^/]+\/[^/]+$/u.test(name) : !name.includes("/"));
 
@@ -31,7 +31,7 @@ export function repositoryOf(reference) {
 // npm's publish wire format names scoped attachments with the full package
 // name; the store's leaf uses a filename. Normalize that representation once
 // here, before any write, and bind every manifest to it.
-export function validatedPublication(name, body, state) {
+export function admittedPublication(name, body, state) {
   if (body?.name !== name || !record(body.versions) || Object.keys(body.versions).length === 0 || !record(body._attachments)) throw new TypeError("a publish names its package, versions, and attached artifacts");
   if (body["dist-tags"] !== undefined && !record(body["dist-tags"])) throw new TypeError("dist-tags must map tags to published versions");
   const artifacts = new Map(), manifests = new Map(), used = new Set();

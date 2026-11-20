@@ -122,10 +122,10 @@ export const receivePackage = (store, name, options) => store.lock(name, () => r
 
 /** Receive every package the store holds that `admits` (a name predicate): a summary, and every package that was not
  *  simply unchanged. One package at a time, each under its own lock, so a serving registry keeps answering. */
-export async function receiveStore(store, { admits: validates = () => true, ...options }) {
+export async function receiveStore(store, { admits = () => true, ...options }) {
   const summary = { kind: "registry-reception.v1", storage: store.storage, packages: 0, received: 0, materialized: 0, unchanged: 0, refused: [], incomplete: [], recovered: [] };
   for (const name of await store.names()) {
-    if (!validates(name)) continue;
+    if (!admits(name)) continue;
     summary.packages += 1;
     let outcome;
     // A dry run writes nothing, not even a lock file; what it reads may be a write behind, which only a real run settles.

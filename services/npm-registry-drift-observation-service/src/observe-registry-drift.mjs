@@ -5,13 +5,13 @@ import { observeDiskPackages } from "@red-cup-engineering/disk-package-observati
 import {
   openNpmRegistry,
   readNpmPackument,
-  readNpmRegistryRecord,
+  readNpmRegistryReceipt,
 } from "@red-cup-engineering/npm-registry-engineering-services-section/read-npm-registry-resource";
 
 const OBSERVATION_TYPE = "RegistryDriftObservation";
-const RECORD_TYPE = "SemioticVoxelPackageRegistryReceipt";
+const RECEIPT_TYPE = "SemioticVoxelPackageRegistryReceipt";
 const DEPENDENCY_FIELDS = ["dependencies", "devDependencies", "peerDependencies", "optionalDependencies"];
-const RESULTS = ["current", "stale-manifest", "unpublished", "source-missing"];
+const VERDICTS = ["current", "stale-manifest", "unpublished", "source-missing"];
 
 function isWorkspaceProtocol(constraint) {
   return typeof constraint === "string" && constraint.startsWith("workspace:");
@@ -99,10 +99,10 @@ export async function observeRegistryDrift({ root, excludes = [], registryUrl, f
   // The registry's own receipt is the only listing of every name it has ever
   // published; a name that appears there but never turned up on the disk
   // walk is a package the source tree no longer carries at all.
-  const record = (await readNpmRegistryRecord(registry))?.value ?? null;
-  const recordScopeNote = record !== null && record.type !== RECORD_TYPE ? "registry-receipt.json did not carry the expected receipt type" : null;
-  const registryNames = record !== null && Array.isArray(record.packages)
-    ? [...new Set(record.packages.map((entry) => entry.name))].sort()
+  const receipt = (await readNpmRegistryReceipt(registry))?.value ?? null;
+  const receiptScopeNote = receipt !== null && receipt.type !== RECEIPT_TYPE ? "registry-receipt.json did not carry the expected receipt type" : null;
+  const registryNames = receipt !== null && Array.isArray(receipt.packages)
+    ? [...new Set(receipt.packages.map((entry) => entry.name))].sort()
     : [];
   for (const name of registryNames) {
     if (sourceNames.has(name)) continue;
@@ -113,9 +113,9 @@ export async function observeRegistryDrift({ root, excludes = [], registryUrl, f
     }));
   }
 
-  findings.sort((a, b) => a.name.localeCompare(b.name) || RESULTS.indexOf(a.verdict) - RESULTS.indexOf(b.verdict));
+  findings.sort((a, b) => a.name.localeCompare(b.name) || VERDICTS.indexOf(a.verdict) - VERDICTS.indexOf(b.verdict));
 
-  const counts = Object.fromEntries(RESULTS.map((result) => [result, findings.filter((f) => f.verdict === result).length]));
+  const counts = Object.fromEntries(VERDICTS.map((verdict) => [verdict, findings.filter((f) => f.verdict === verdict).length]));
 
   return Object.freeze({
     type: OBSERVATION_TYPE,
@@ -123,8 +123,8 @@ export async function observeRegistryDrift({ root, excludes = [], registryUrl, f
     registry: registry.registry,
     findings: Object.freeze(findings),
     diskDefects: disk.defects,
-    receiptFound: record !== null,
-    receiptScopeNote: recordScopeNote,
+    receiptFound: receipt !== null,
+    receiptScopeNote,
     counts: Object.freeze(counts),
   });
 }

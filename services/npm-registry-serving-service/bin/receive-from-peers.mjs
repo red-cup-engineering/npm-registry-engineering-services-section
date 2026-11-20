@@ -2,7 +2,7 @@
 import { readFile } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, resolve } from "node:path";
-import { validatedConfiguration, identityConservationOf } from "../src/application.mjs";
+import { admittedConfiguration, identityConservationOf } from "../src/application.mjs";
 import { peerFromSpecification, receivePeers } from "../src/peers.mjs";
 import { registryIdentityConservation } from "../src/registry-identity-conservation.mjs";
 import { createPackageStore } from "../src/store.mjs";
@@ -13,7 +13,7 @@ import { createPackageStore } from "../src/store.mjs";
 // advertised. Prints one JSON line per package and a summary; exits 1 when any version was missing, mismatched or diverged.
 const [path, ...rest] = process.argv.slice(2);
 if (!path) throw new TypeError("usage: receive-from-peers CONFIGURATION [--all-bytes] [--lockfile pnpm-lock.yaml]... [NAME]...");
-const configuration = validatedConfiguration(JSON.parse(await readFile(path, "utf8")));
+const configuration = admittedConfiguration(JSON.parse(await readFile(path, "utf8")));
 const home = value => (isAbsolute(value) ? value : resolve(homedir(), value));
 const peers = (configuration.peers ?? []).map(specification => peerFromSpecification(specification));
 if (peers.length === 0) throw new TypeError("the configuration declares no peers");
