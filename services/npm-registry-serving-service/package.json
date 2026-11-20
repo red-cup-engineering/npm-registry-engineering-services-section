@@ -33,7 +33,8 @@
     "test/guix-archive-bucket.test.mjs",
     "test/peer-tarball-cache.test.mjs",
     "test/publisher-admission-instance.test.mjs",
-    "test/store-lock.test.mjs"
+    "test/store-lock.test.mjs",
+    "test/publish-gate-dependency-range.test.mjs"
   ],
   "softwareKind": "service",
   "bin": {
@@ -52,7 +53,13 @@
     "scripts",
     "deployment",
     "README.md",
-    "deployment/r2-worker-build.json"
+    "deployment/r2-worker-build.json",
+    "test/hosted-guix-archives.test.mjs",
+    "test/guix-archive-bucket.test.mjs",
+    "test/peer-tarball-cache.test.mjs",
+    "test/publisher-admission-instance.test.mjs",
+    "test/store-lock.test.mjs",
+    "test/publish-gate-dependency-range.test.mjs"
   ],
   "repository": {
     "type": "git",

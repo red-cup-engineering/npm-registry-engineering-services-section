@@ -269,32 +269,24 @@ unchanged.
 
 ## Receiving
 
-`npm test` runs every test; `receivingTests` ships the enrolled set with the
-package. They cover:
+`npm test` runs the checked-in Node.js suites. The explicit
+`receivingTests` paths are also shipped in the npm tarball. In an extracted
+archive with its released dependencies installed, `npm test` runs that enrolled
+subset. Fixtures use disposable local files and in-memory protocol requests;
+the dependency range suite uses offline npm packing.
 
-- **Transactions**: complete-transaction refusal, occupied-byte and version
-  immutability, concurrent publications, and failed-write preservation.
-- **Facts**: the facts and blobs a publication writes, the projections served
-  from them, and reception of the earlier layout (including a refused packument
-  and a version an earlier release published after a rollback).
-- **Store integrity**: cut-short appends, contradictions, two registries
-  sharing a store, and a stale lock.
-- **Protocol**: revalidation and cache headers, the full document's
-  npm-derived fields, sign-in tokens and htpasswd reload, audit filtering, and
-  the hosted-application contract.
-- **Real clients**: the installed npm client publishes, installs, deprecates,
-  tags, unpublishes a version and then the package, signs in at a terminal,
-  logs out, and is refused republication. The installed pnpm client publishes and installs, and its
-  cached metadata is revalidated with a 304.
+The current suites check native and hosted archive custody, verified peer
+archive reads, publisher identity selection, store-lock recovery, routing of
+archive requests, and consistent dependency exports across npm ranges. The
+Guix registrar and worker-routing source suites are not part of the archive.
 
-The publish-gate tests cover each violation kind against real tarballs built
-in the tests, and (outside the enrolled set, because they carry fixtures) the
-real published tarballs of semiotic-eavt-services-section 0.1.4 and 0.1.5 and
-kalshi-services-section 0.1.31. The packed-package regression installs the
-actual package tarball, with its installed dependency closure, into an empty
-offline consumer, and checks the shipped receiving tests and the
-`registry-uplink-prune` script. Fixtures, credentials, and consumers are
-disposable local data; no test publishes to an external registry.
+Tests that touch a real Guix store are skipped unless
+`NPM_REGISTRY_TEST_NATIVE_GUIX=1` explicitly selects that profile. Use only an
+authorized isolated test host and its test Guix binary
+(`NPM_REGISTRY_TEST_GUIX`). The hosted test also needs the test supervisor
+module (`NPM_REGISTRY_TEST_APPLICATION_SERVICES`) and a dedicated fixture
+collector parent (`NPM_REGISTRY_TEST_COLLECTOR_PARENT`). Do not supply these
+bindings in ordinary source or packed-package tests.
 
 A source test pass is not live receiving. The installed service must separately
 demonstrate the same protocol and artifact/consumer conditions through the
@@ -565,32 +557,24 @@ least-recently-used budget (`publicMetadataBytes`, `houseMetadataBytes`).
 
 ## Receiving
 
-`npm test` runs every test; `receivingTests` ships the enrolled set with the
-package. They cover:
+`npm test` runs the checked-in Node.js suites. The explicit
+`receivingTests` paths are also shipped in the npm tarball. In an extracted
+archive with its released dependencies installed, `npm test` runs that enrolled
+subset. Fixtures use disposable local files and in-memory protocol requests;
+the dependency range suite uses offline npm packing.
 
-- **Transactions**: complete-transaction refusal, occupied-byte and version
-  immutability, concurrent publications, and failed-write preservation.
-- **Facts**: the facts and blobs a publication writes, the projections served
-  from them, and reception of the earlier layout (including a refused packument
-  and a version an earlier release published after a rollback).
-- **Store integrity**: cut-short appends, contradictions, two registries
-  sharing a store, and a stale lock.
-- **Protocol**: revalidation and cache headers, the full document's
-  npm-derived fields, sign-in tokens and htpasswd reload, audit filtering, and
-  the hosted-application contract.
-- **Real clients**: the installed npm client publishes, installs, deprecates,
-  tags, unpublishes a version and then the package, signs in at a terminal,
-  logs out, and is refused republication. The installed pnpm client publishes and installs, and its
-  cached metadata is revalidated with a 304.
+The current suites check native and hosted archive custody, verified peer
+archive reads, publisher identity selection, store-lock recovery, routing of
+archive requests, and consistent dependency exports across npm ranges. The
+Guix registrar and worker-routing source suites are not part of the archive.
 
-The publish-gate tests cover each violation kind against real tarballs built
-in the tests, and (outside the enrolled set, because they carry fixtures) the
-real published tarballs of semiotic-eavt-services-section 0.1.4 and 0.1.5 and
-kalshi-services-section 0.1.31. The packed-package regression installs the
-actual package tarball, with its installed dependency closure, into an empty
-offline consumer, and checks the shipped receiving tests and the
-`registry-uplink-prune` script. Fixtures, credentials, and consumers are
-disposable local data; no test publishes to an external registry.
+Tests that touch a real Guix store are skipped unless
+`NPM_REGISTRY_TEST_NATIVE_GUIX=1` explicitly selects that profile. Use only an
+authorized isolated test host and its test Guix binary
+(`NPM_REGISTRY_TEST_GUIX`). The hosted test also needs the test supervisor
+module (`NPM_REGISTRY_TEST_APPLICATION_SERVICES`) and a dedicated fixture
+collector parent (`NPM_REGISTRY_TEST_COLLECTOR_PARENT`). Do not supply these
+bindings in ordinary source or packed-package tests.
 
 A source test pass is not live receiving. The installed service must separately
 demonstrate the same protocol and artifact/consumer conditions through the
