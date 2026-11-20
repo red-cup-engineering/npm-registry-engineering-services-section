@@ -1,3 +1,4 @@
+import { sleep } from "@red-cup-engineering/parse-javascript-argv-service";
 import { createHash, randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { link, mkdir, open, readdir, readFile, rename, rm, rmdir, stat, symlink, writeFile } from "node:fs/promises";
@@ -219,7 +220,7 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
   const alive = (pid) => {
     try { process.kill(pid, 0); return true; } catch (error) { return error.code === "EPERM"; }
   };
-  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  
 
   async function staleLock(path) {
     const info = await statOf(path);

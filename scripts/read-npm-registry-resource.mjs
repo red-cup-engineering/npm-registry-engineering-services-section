@@ -1,3 +1,4 @@
+import { sleep } from "@red-cup-engineering/parse-javascript-argv-service";
 import { join, resolve } from "node:path";
 
 import { readFileBytes } from "@red-cup-engineering/computer-file-engineering-services-section/read-file";
@@ -22,9 +23,7 @@ async function responseBytes(response, description) {
 const RETRY_ATTEMPTS = 3;
 const RETRY_DELAY_MS = 100;
 
-function sleep(ms) {
-  return new Promise((resolvePromise) => setTimeout(resolvePromise, ms));
-}
+
 
 // Long sequential audit runs against local Verdaccio occasionally see a bare
 // connection reset (ECONNRESET) rather than an HTTP response. Retry a small,
