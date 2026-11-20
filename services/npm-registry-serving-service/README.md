@@ -205,8 +205,8 @@ kind each violation reports:
 - `dependency`: a declared house dependency with no published version satisfying
   its range (npm semver; a dist-tag also resolves), or a specifier a registry
   cannot resolve (`workspace:`, `file:`, …).
-- `dependency-subpath`: an import whose subpath the highest published version
-  satisfying the range does not export, `*` patterns and `./package.json` included.
+- `dependency-subpath`: an import whose subpath a published version
+  selected by the declared range or tag does not export, `*` patterns and `./package.json` included.
   The message lists the subpaths it does export and any versions that export the
   one imported. A dependency with no `exports` exposes all its files and is not judged.
 - `tarball`: bytes that are not an npm tarball, no readable package.json, or a
@@ -514,8 +514,8 @@ kind each violation reports:
 - `dependency`: a declared Group dependency with no published version satisfying
   its range (npm semver; a dist-tag also resolves), or a specifier a registry
   cannot resolve (`workspace:`, `file:`, …).
-- `dependency-subpath`: an import whose subpath the highest published version
-  satisfying the range does not export, `*` patterns and `./package.json` included.
+- `dependency-subpath`: an import whose subpath a published version
+  selected by the declared range or tag does not export, `*` patterns and `./package.json` included.
   The message lists the subpaths it does export and any versions that export the
   one imported. A dependency with no `exports` exposes all its files and is not judged.
 - `tarball`: bytes that are not an npm tarball, no readable package.json, or a

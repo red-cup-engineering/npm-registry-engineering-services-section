@@ -20,7 +20,7 @@ import { readTarball, TarballError } from "./tarball-reader.mjs";
  *   - `self-import`     a JS module imports this package by name through an `exports` entry that does not exist
  *   - `dependency`      a declared house dependency whose version or range no published version satisfies;
  *                       an explicitly optional peer may have no matching version for its semver range
- *   - `dependency-subpath`  an import of `<house package>/<subpath>` that the highest published version satisfying
+ *   - `dependency-subpath`  an import of `<house package>/<subpath>` that a published version satisfying
  *                       the declared range does not export (exports patterns and "./package.json" included)
  *   - `source`          a house-scoped module that the house parser cannot read
  *   - `tarball`         the tarball or its package.json cannot be read, or names another package or version
@@ -153,21 +153,26 @@ function receivingOnlyModules(manifest, files, modules, refuse) {
   return new Set([...closure(roots)].filter(path => !runtime.has(path)));
 }
 
-/** The manifest of the highest published version of `entry.packument` satisfying `range`, or a reason there is none. */
+/** Select exact versions and tags once; ranges admit every matching published version. */
 const exactVersion = range => typeof range === "string" && semver.valid(range) === range;
 function resolveVersion(packument, range) {
-  if (exactVersion(range) && Object.hasOwn(packument.versions ?? {}, range))
-    return { version: range, manifest: packument.versions[range] };
-  const versions = Object.keys(packument.versions ?? {});
-  let version;
-  if (semver.validRange(range) !== null) version = semver.maxSatisfying(versions, range);
-  else if (Object.hasOwn(packument["dist-tags"] ?? {}, range)) version = packument["dist-tags"][range];
-  else return { reason: `${JSON.stringify(range)} is neither a semver range nor a dist-tag it publishes` };
-  if (version === null || version === undefined || !Object.hasOwn(packument.versions ?? {}, version)) {
+  const manifests = packument.versions ?? {};
+  if (exactVersion(range) && Object.hasOwn(manifests, range)) return { versions: [range] };
+  const versions = Object.keys(manifests);
+  const validRange = semver.validRange(range);
+  let matches;
+  if (validRange !== null) {
+    const selector = new semver.Range(validRange);
+    matches = versions.filter(version => selector.test(version)).sort(semver.compare);
+  } else if (Object.hasOwn(packument["dist-tags"] ?? {}, range)) {
+    const version = packument["dist-tags"][range];
+    matches = Object.hasOwn(manifests, version) ? [version] : [];
+  } else return { reason: `${JSON.stringify(range)} is neither a semver range nor a dist-tag it publishes` };
+  if (matches.length === 0) {
     const newest = versions.filter((v) => semver.valid(v)).sort(semver.rcompare).slice(0, 5);
     return { reason: `no published version satisfies ${JSON.stringify(range)} (newest published: ${newest.join(", ") || "none"})` };
   }
-  return { version, manifest: packument.versions[version] };
+  return { versions: matches };
 }
 
 const exportedKeys = (exports) => {
@@ -179,7 +184,7 @@ const exportedKeys = (exports) => {
 /**
  * Check one version's tarball. `publishedPackument(name)` answers a package's full packument as this registry
  * would serve it (or null if it has none). Optional `publishedManifest(name, version)` reads one exact admitted
- * supplier; a missing exact read retains ordinary range/tag resolution. Histories are read only for fallback
+ * supplier; a missing exact read retains ordinary range/tag resolution. Histories are read for non-exact selectors, exact-read fallback,
  * or missing-export diagnostics. Returns violations: [{ kind, message }], empty when the version holds together.
  */
 export async function checkPublication({ name, version, bytes, houseScopes = DEFAULT_HOUSE_SCOPES, publishedPackument, publishedManifest, maxUnpackedBytes }) {
@@ -252,7 +257,7 @@ export async function checkPublication({ name, version, bytes, houseScopes = DEF
     }));
     return packuments.get(dependency);
   };
-  const resolved = new Map(); // declared key -> { version, manifest } | { reason } | null (not house)
+  const resolved = new Map(); // declared key -> { versions, manifest? or packument } | { reason } | null (not house)
   const resolveDeclared = async (key, selection = declared) => {
     if (resolved.has(key)) return resolved.get(key);
     const entry = selection.get(key);
@@ -260,7 +265,7 @@ export async function checkPublication({ name, version, bytes, houseScopes = DEF
     if (entry && houseSpecifier(`${entry.name}/x`, houseScopes)) {
       if (typeof publishedManifest === "function" && exactVersion(entry.range)) {
         const manifest = await manifestOf(entry.name, entry.range);
-        if (manifest !== null) outcome = { version: entry.range, manifest };
+        if (manifest !== null) outcome = { versions: [entry.range], manifest };
       }
       if (outcome === null) {
         const packument = await packumentOf(entry.name);
@@ -297,6 +302,7 @@ export async function checkPublication({ name, version, bytes, houseScopes = DEF
   }
   const receivingOnly = receivingOnlyModules(manifest, files, modules, refuse);
   const reported = new Set();
+  const supplierRefusals = new Map(); // one export check per selected dependency and subpath
   for (const [path, imports] of modules) {
     for (const { specifier, at, commonJs } of imports) {
       if (commonJs) continue; // Preserve the gate's existing house-import syntax contract.
@@ -319,15 +325,31 @@ export async function checkPublication({ name, version, bytes, houseScopes = DEF
         continue;
       }
       const dependency = await resolveDeclared(target.name, selection);
-      if (!dependency?.manifest) continue;
-      const exported = resolveExport(dependency.manifest.exports, target.subpath);
-      if (exported.legacy || exported.target !== null) continue;
-      const entry = selection.get(target.name);
-      const packument = dependency.packument ?? await packumentOf(entry.name);
-      const others = Object.entries(packument?.versions ?? {})
-        .filter(([, other]) => resolveExport(other.exports, target.subpath).target)
-        .map(([other]) => other).filter((other) => semver.valid(other)).sort(semver.rcompare).slice(0, 3);
-      refuse("dependency-subpath", `${here}, but ${entry.name}@${dependency.version} (the highest published version satisfying ${JSON.stringify(entry.range)}) does not export ${JSON.stringify(target.subpath)}; it exports ${exportedKeys(dependency.manifest.exports).slice(0, 12).join(", ") || "nothing"}${exportedKeys(dependency.manifest.exports).length > 12 ? ", ..." : ""}${others.length > 0 ? `. Published versions that do export it: ${others.join(", ")}` : ""}`);
+      if (!dependency?.versions) continue;
+      const key = `${target.name}\0${target.subpath}`;
+      if (!supplierRefusals.has(key)) {
+        let incompatible;
+        for (const version of dependency.versions) {
+          const exports = (dependency.manifest ?? dependency.packument.versions[version])?.exports;
+          const exported = resolveExport(exports, target.subpath);
+          if (exported.legacy || exported.target !== null) continue;
+          incompatible = { version, exports };
+          break;
+        }
+        let reason = null;
+        if (incompatible) {
+          const entry = selection.get(target.name);
+          const packument = dependency.packument ?? await packumentOf(entry.name);
+          const others = Object.entries(packument?.versions ?? {})
+            .filter(([, other]) => resolveExport(other?.exports, target.subpath).target)
+            .map(([other]) => other).filter((other) => semver.valid(other)).sort(semver.rcompare).slice(0, 3);
+          const keys = exportedKeys(incompatible.exports);
+          reason = `${entry.name}@${incompatible.version}, selectable by ${JSON.stringify(entry.range)}, does not export ${JSON.stringify(target.subpath)}; it exports ${keys.slice(0, 12).join(", ") || "nothing"}${keys.length > 12 ? ", ..." : ""}${others.length > 0 ? `. Published versions that do export it: ${others.join(", ")}` : ""}`;
+        }
+        supplierRefusals.set(key, reason);
+      }
+      const reason = supplierRefusals.get(key);
+      if (reason !== null) refuse("dependency-subpath", `${here}, but ${reason}`);
     }
   }
   return violations;

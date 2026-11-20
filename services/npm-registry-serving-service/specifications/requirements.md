@@ -9,6 +9,16 @@ The registry retains durable package facts and artifacts separately from rebuild
 
 Receiving observes cache eviction, uncached oversized responses, preservation of source metadata and successful ordinary retry after pressure clears. It does not claim that a process restart caused an earlier publication to succeed.
 
+## Dependency export admission
+
+A literal import of a scoped supplier's subpath must be compatible with every
+version currently selectable from the admitted shelf by the declared npm range.
+A tag or exact version selects one supplier. A newly published compatible version
+must not mask an incompatible floor or gap. Preserve the missing-optional-peer
+rule and the treatment of packages without explicit export maps. Report an actual
+incompatible version; do not infer behavior of future versions or execute code
+from the uploaded package.
+
 ## Canonical R2 prepared-publication profile (P0 BCF#588, registry work#599)
 
 The profile consumes the existing standard npm prepared publication; source fabrication, packing and release-version selection remain with their original Code/GitHub suppliers. R2 remains the canonical house serving store. The original native profile and its typed behavior remain available for its existing consumers.
