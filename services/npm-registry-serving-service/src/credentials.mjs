@@ -1,4 +1,6 @@
-import { createHash, randomBytes } from "node:crypto";
+import { sha256 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
+import { randomBase64Url } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
+
 import { appendFile, readFile, stat } from "node:fs/promises";
 import bcrypt from "bcryptjs";
 
@@ -16,7 +18,7 @@ const TOKEN_ATTRIBUTE = "npm.token";
 export const TOKEN_PREFIX = "hnr_";
 
 export function createCredentials({ htpasswd, tokens, now = () => new Date() }) {
-  const digest = (token) => createHash("sha256").update(token, "utf8").digest("base64url");
+  const digest = (token) => sha256(token).toString("base64url");
   const keyOf = async (path) => {
     try { const info = await stat(path); return `${info.ino}:${info.size}:${info.mtimeMs}`; }
     catch (error) { if (error.code === "ENOENT") return "absent"; throw error; }
@@ -64,7 +66,7 @@ export function createCredentials({ htpasswd, tokens, now = () => new Date() }) 
   const entity = (token) => `npm-token:${digest(token)}`;
   /** A new token for a publisher. Only its digest is kept. */
   async function issue(user) {
-    const token = `${TOKEN_PREFIX}${randomBytes(32).toString("base64url")}`;
+    const token = `${TOKEN_PREFIX}${randomBase64Url(32)}`;
     const at = now().toISOString();
     await appendFile(tokens, `${JSON.stringify({ e: entity(token), a: TOKEN_ATTRIBUTE, v: { user, created: at }, t: at })}\n`, { mode: 0o600 });
     return token;

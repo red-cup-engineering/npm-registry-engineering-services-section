@@ -5,7 +5,7 @@ import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system"
  * for the current strict receiving specification. No filesystem, decompression,
  * extraction or installation effects: the original receiver owns custody.
  */
-import { createHash } from 'node:crypto';
+
 const BLOCK = 512;
 const utf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 const isZero = block => block.every(byte => byte === 0);

@@ -1,6 +1,7 @@
 #!/usr/bin/env node
+import { sha256 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { appendFile, mkdir, readFile, rename, writeFile } from "node:fs/promises";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
 import { dirname, isAbsolute, join, resolve } from "node:path";
 import bcrypt from "bcryptjs";
@@ -62,6 +63,6 @@ await writeFile(partial, [...lines, `${user}:${hash}`].join("\n") + "\n", { mode
 await rename(partial, htpasswd);
 if (token) {
   const at = new Date().toISOString();
-  await appendFile(tokens, JSON.stringify({ e: `npm-token:${createHash("sha256").update(token, "utf8").digest("base64url")}`, a: "npm.token", v: { user, created: at }, t: at }) + "\n", { mode: 0o600 });
+  await appendFile(tokens, JSON.stringify({ e: `npm-token:${sha256(token).toString("base64url")}`, a: "npm.token", v: { user, created: at }, t: at }) + "\n", { mode: 0o600 });
 }
 process.stdout.write(JSON.stringify({ admitted: user, password: passwordFrom ?? "none", tokenRegistered: Boolean(token), htpasswd, tokens }) + "\n");

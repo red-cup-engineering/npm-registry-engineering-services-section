@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
+
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 
@@ -47,7 +48,7 @@ async function declaredOperationGraph(entry, registryRoot, receiptSha256) {
       declarations: objectDeclarations(version),
       evidence: Object.freeze({
         source: "npm-version-metadata",
-        sha256: `sha256:${createHash("sha256").update(metadataBytes).digest("hex")}`,
+        sha256: `sha256:${sha256Hex(metadataBytes)}`,
         artifactIntegrity: entry.integrity,
       }),
     };
@@ -71,7 +72,7 @@ export async function obtainRegistrySnapshot(demand, { registryRoot, registryUrl
   if (receipt.version !== undefined && receipt.version !== 1 && receipt.version !== 2) {
     throw new Error(`unsupported package registry receipt version: ${receipt.version}`);
   }
-  const receiptSha256 = `sha256:${createHash("sha256").update(receiptBytes).digest("hex")}`;
+  const receiptSha256 = `sha256:${sha256Hex(receiptBytes)}`;
   const packages = await Promise.all(receipt.packages.map(async (entry) => {
     const { name, version, artifact, bytes, shasum, integrity } = entry;
     const { declarations, evidence } = await declaredOperationGraph(entry, root, receiptSha256);

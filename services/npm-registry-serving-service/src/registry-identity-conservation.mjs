@@ -1,13 +1,14 @@
+import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
 import { isRecord } from "@red-cup-engineering/signcell/values";
 import { Buffer } from "node:buffer";
-import { createHash } from "node:crypto";
+
 import semver from "semver";
 import { canonicalJson } from "@red-cup-engineering/json-engine/canonical-json";
 import { admittedName, parsePackagePath } from "./prepared-publication.mjs";
 
 
 const key = (name, version) => JSON.stringify([name, version]);
-const manifestDigest = value => createHash("sha256").update(canonicalJson(value)).digest("hex");
+const manifestDigest = value => sha256Hex(canonicalJson(value));
 const exactKeys = (value, keys) => isRecord(value) && Object.keys(value).length === keys.length && keys.every(k => Object.hasOwn(value, k));
 
 /** Restrictive observations; none of these records grants publisher authority. */

@@ -1,5 +1,6 @@
+import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
 import assert from "node:assert/strict";
-import {createHash} from "node:crypto";
+
 import {chmod, mkdtemp, readFile, readdir, readlink, rm} from "node:fs/promises";
 import {tmpdir} from "node:os";
 import {join} from "node:path";
@@ -72,7 +73,7 @@ test("hosted archive custody uses the native supervisor and exact original Guix 
   const handle = services.ensure(name);
   assert.equal(handle.state(), "running");
   const bytes = Buffer.from("native registry archive custody fixture\n");
-  const digest = createHash("sha256").update(bytes).digest("hex");
+  const digest = sha256Hex(bytes);
   const stored = await handle.value().storeArchive(bytes);
   assert.deepEqual(await readFile(stored), bytes);
   assert.equal(await readlink(join(collector, digest + ".tgz")), stored);

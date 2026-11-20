@@ -1,5 +1,6 @@
+import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
 import { readFileSync } from "node:fs";
-import { createHash } from "node:crypto";
+
 import { homedir } from "node:os";
 import { isAbsolute, resolve } from "node:path";
 import { Readable } from "node:stream";
@@ -154,7 +155,7 @@ export function npmRegistryHostedApplication({ configuration, services } = {}) {
   if (declared.guixArchives !== undefined) {
     if (typeof services?.ensure !== "function") throw new TypeError("Guix archive custody requires the native application supervisor");
     const storage = home(declared.storage);
-    archiveHandle = services.ensure("npm-registry-archives:" + createHash("sha256").update(storage).digest("hex").slice(0, 32), {
+    archiveHandle = services.ensure("npm-registry-archives:" + sha256Hex(storage).slice(0, 32), {
       start: async ({signal}) => {
         signal.throwIfAborted();
         return createGuixArchiveStorage({storage, roots: declared.guixArchives.roots, guix: declared.guixArchives.program});

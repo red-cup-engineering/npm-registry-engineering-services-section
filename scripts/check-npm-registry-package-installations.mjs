@@ -1,6 +1,7 @@
 #!/usr/bin/env node
+import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
 import { execFile } from "node:child_process";
-import { createHash } from "node:crypto";
+
 import { once } from "node:events";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
@@ -66,7 +67,7 @@ async function inspectInstallLock(projectRoot, row) {
   if (item.resolved !== row.tarball) defects.push(defect("resolved"));
   return { binding: defects.length ? null : {
     lockfileVersion: lock.lockfileVersion,
-    lockfileSha256: createHash("sha256").update(bytes).digest("hex"),
+    lockfileSha256: sha256Hex(bytes),
     integrity: row.integrity,
     tarball: row.tarball,
   }, defects };

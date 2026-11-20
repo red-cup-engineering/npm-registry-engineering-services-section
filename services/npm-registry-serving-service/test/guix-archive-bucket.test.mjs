@@ -1,3 +1,4 @@
+import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { mkdir, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
@@ -22,7 +23,7 @@ async function fixture(t, { rewrite = value => value, externalRoots = false } = 
   ]));
   const register = async (source, gcRoot) => {
     const value = rewrite(await readFile(source));
-    const name = createHash("sha256").update(value).digest("hex") + "-npm.tgz";
+    const name = sha256Hex(value) + "-npm.tgz";
     const storePath = join(storeDirectory, name);
     try {
       await writeFile(storePath, value, { flag: "wx" });

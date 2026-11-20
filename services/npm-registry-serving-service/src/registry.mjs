@@ -1,3 +1,4 @@
+import { sha256 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { isRecord } from "@red-cup-engineering/signcell/values";
 import { admittedName, admittedPublication, parsePackagePath as parse, repositoryOf, tarballName } from "./prepared-publication.mjs";
 import { createHash } from "node:crypto";
@@ -105,7 +106,7 @@ export function createNpmRegistry({
   const refusal = (status, error) => json({ error }, status);
   // The Worker's refusal of a quarantined version, its tag and its archive (r2-registry.mjs refuseConflict).
   const quarantine = () => refusal(409, releasesOnly ? "package version is withheld: this registry holds releases only (no prerelease versions), and quarantines conflicting immutable identities" : "package version is quarantined for conflicting immutable identities");
-  const etagOf = (body) => `"${createHash("sha256").update(body).digest("base64url").slice(0, 32)}"`;
+  const etagOf = (body) => `"${sha256(body).toString("base64url").slice(0, 32)}"`;
   const revisionOf = (read) => `${read.rows.length}-${read.digest.slice(0, 32)}`;
 
   // House packages: their facts folded once per journal state, and each representation rendered once from that.

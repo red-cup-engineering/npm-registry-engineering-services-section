@@ -1,5 +1,6 @@
+import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
 import {spawn} from "node:child_process";
-import {createHash} from "node:crypto";
+
 import {mkdir, mkdtemp, readFile, rm, writeFile} from "node:fs/promises";
 import {isAbsolute, join, resolve} from "node:path";
 import {createInterface} from "node:readline";
@@ -102,7 +103,7 @@ export function createGuixArchiveStorage({storage, roots, guix} = {}) {
       await mkdir(storage, {recursive: true});
       await mkdir(roots, {recursive: true, mode: 0o755});
       const work = await mkdtemp(join(storage, ".archive-"));
-      const digest = createHash("sha256").update(bytes).digest("hex");
+      const digest = sha256Hex(bytes);
       try {
         const file = join(work, "archive.tgz");
         await writeFile(file, bytes, {flag: "wx", mode: 0o600});

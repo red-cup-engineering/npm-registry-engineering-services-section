@@ -1,3 +1,4 @@
+import { sha256 as cryptographicSha256 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { sleep } from "@red-cup-engineering/parse-javascript-argv-service";
 import { createHash, randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
@@ -42,7 +43,7 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
   const readBytes = async (path) => {
     try { return await readFile(path); } catch (error) { if (error.code === "ENOENT") return undefined; throw error; }
   };
-  const digest = (bytes) => createHash("sha256").update(bytes).digest("base64url");
+  const digest = (bytes) => cryptographicSha256(bytes).toString("base64url");
 
   /** What a package's documents are projected from now: its journal, else its earlier packument; with a key that
    *  changes whenever that file does. Undefined when the store holds neither. */
