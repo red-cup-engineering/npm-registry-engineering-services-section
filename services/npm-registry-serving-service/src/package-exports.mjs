@@ -1,3 +1,4 @@
+import { isRecord } from "@red-cup-engineering/signcell/values";
 /**
  * A package manifest's `exports`, read the way Node reads it, over data alone. Nothing here touches a file
  * system: callers say which files exist.
@@ -8,12 +9,12 @@ export const IMPORT_CONDITIONS = Object.freeze(["node", "import", "module-sync",
 /** The conditions a published target can be reached by from Node: ESM, CommonJS and the shared fallback. */
 const REACHABLE_CONDITIONS = new Set(["import", "require", "node", "module-sync", "default"]);
 
-const record = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+
 
 /** `exports` as a map from subpath ("." or "./x") to target, or null when it is malformed (mixed keys). */
 function subpathMap(exports) {
   if (exports === undefined) return undefined;
-  if (!record(exports)) return { ".": exports };
+  if (!isRecord(exports)) return { ".": exports };
   const keys = Object.keys(exports);
   const dotted = keys.filter((key) => key.startsWith("."));
   if (dotted.length === 0) return { ".": exports };
@@ -31,7 +32,7 @@ function resolveTarget(target, conditions, substitution) {
     }
     return undefined;
   }
-  if (record(target)) {
+  if (isRecord(target)) {
     for (const [condition, value] of Object.entries(target)) {
       if (condition !== "default" && !conditions.includes(condition)) continue;
       const resolved = resolveTarget(value, conditions, substitution);
@@ -80,7 +81,7 @@ export function exportTargets(exports) {
       const alternatives = target.filter((item) => typeof item === "string");
       if (alternatives.length === target.length && alternatives.length > 0) found.push({ where, alternatives });
       else target.forEach((item, index) => visit(item, `${where}[${index}]`));
-    } else if (record(target)) {
+    } else if (isRecord(target)) {
       for (const [condition, value] of Object.entries(target)) if (REACHABLE_CONDITIONS.has(condition)) visit(value, `${where}.${condition}`);
     }
   };
@@ -93,6 +94,6 @@ export function exportTargets(exports) {
 /** The `bin` targets of a manifest as { where, target }. */
 export function binTargets(manifest) {
   if (typeof manifest.bin === "string") return [{ where: "bin", target: manifest.bin }];
-  if (!record(manifest.bin)) return [];
+  if (!isRecord(manifest.bin)) return [];
   return Object.entries(manifest.bin).map(([command, target]) => ({ where: `bin[${JSON.stringify(command)}]`, target }));
 }

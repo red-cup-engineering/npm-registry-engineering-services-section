@@ -1,3 +1,4 @@
+import { isRecord } from "@red-cup-engineering/signcell/values";
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import { DEPRECATION, DIST_TAG, PUBLICATION, artifactFile, legacyRows } from "./facts.mjs";
@@ -19,7 +20,7 @@ import { createR2S3Bucket } from "./r2-s3-bucket.mjs";
  * journal's own rule keeps a second publication of a version out of every document.
  */
 
-const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
+
 const measured = bytes => ({ integrity: "sha512-" + createHash("sha512").update(bytes).digest("base64"), shasum: createHash("sha1").update(bytes).digest("hex") });
 
 /** A peer that is an object bucket laid out as the registry's R2 profile lays it: `<name>/index.json` and `<name>/-/<file>`. */
@@ -59,7 +60,7 @@ export function registryPeer({ name, url, fetchImpl = fetch, timeoutMs = 30_000 
 
 /** A peer from its declared specification and the process environment (credentials are named, never held, in a declaration). */
 export function peerFromSpecification(specification, environment = process.env) {
-  if (!record(specification) || typeof specification.name !== "string") throw new TypeError("a peer declares its name");
+  if (!isRecord(specification) || typeof specification.name !== "string") throw new TypeError("a peer declares its name");
   if (specification.kind === "registry") return registryPeer({ name: specification.name, url: specification.url });
   if (specification.kind === "bucket") {
     const need = key => {
@@ -91,11 +92,11 @@ export async function receivePeersHeld(store, name, peers, { origin, eager = () 
   for (const peer of peers) {
     let packument;
     try { packument = await peer.packument(name); } catch (error) { report.error = `${peer.name}: ${error.message}`; continue; }
-    if (!record(packument) || (packument.name !== undefined && packument.name !== name) || !record(packument.versions)) continue;
+    if (!isRecord(packument) || (packument.name !== undefined && packument.name !== name) || !isRecord(packument.versions)) continue;
     const current = await store.read(name);
     const state = current === undefined ? undefined : foldPackage(name, current.rows);
     const offered = Object.entries(packument.versions).filter(([version, manifest]) => {
-      if (!record(manifest)) return false;
+      if (!isRecord(manifest)) return false;
       if (!quarantined(version)) return true;
       if (!report.quarantined.includes(version)) report.quarantined.push(version);
       return false;
@@ -124,9 +125,9 @@ export async function receivePeersHeld(store, name, peers, { origin, eager = () 
     }
     const versions = Object.keys(accepted);
     if (versions.length === 0) continue;
-    const time = record(packument.time) ? Object.fromEntries(Object.entries(packument.time).filter(([key]) => key === "modified" || key === "created" || versions.includes(key))) : undefined;
+    const time = isRecord(packument.time) ? Object.fromEntries(Object.entries(packument.time).filter(([key]) => key === "modified" || key === "created" || versions.includes(key))) : undefined;
     const { "x-561-registry-conflicts": _derivedView, ...offeredPackument } = packument;
-    const tags = record(packument["dist-tags"]) ? Object.fromEntries(Object.entries(packument["dist-tags"]).filter(([, version]) => !quarantined(version))) : packument["dist-tags"];
+    const tags = isRecord(packument["dist-tags"]) ? Object.fromEntries(Object.entries(packument["dist-tags"]).filter(([, version]) => !quarantined(version))) : packument["dist-tags"];
     const rows = legacyRows(name, { ...offeredPackument, "dist-tags": tags, versions: accepted, ...(time ? { time } : {}) }, { artifactOf: file => artifacts.get(file) });
     // A name this store already holds keeps its own tags, readme and fields; what a peer adds is versions and their deprecations.
     const added = state === undefined ? rows : rows.filter(row => row.a === PUBLICATION || row.a === DEPRECATION

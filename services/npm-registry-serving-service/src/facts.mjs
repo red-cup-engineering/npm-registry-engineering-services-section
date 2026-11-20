@@ -1,3 +1,4 @@
+import { isRecord } from "@red-cup-engineering/signcell/values";
 /**
  * The registry's underlying data: what has happened to each package, as EAVT witnesses `{e, a, v, t}` (the house
  * EAVT row shape; eavt-services-section reads these lines as they are). Everything the npm protocol answers is a
@@ -46,11 +47,11 @@ export function versionOf(name, entity) {
   return typeof entity === "string" && entity.startsWith(prefix) ? decodeURIComponent(entity.slice(prefix.length)) : undefined;
 }
 
-const record = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+
 
 /** A row as the journal holds it, or a TypeError naming what is wrong with it. */
 export function admittedRow(row) {
-  if (!record(row) || Object.keys(row).length !== 4 || typeof row.e !== "string" || typeof row.a !== "string"
+  if (!isRecord(row) || Object.keys(row).length !== 4 || typeof row.e !== "string" || typeof row.a !== "string"
     || !Object.hasOwn(row, "v") || !(row.t === null || (typeof row.t === "string" && !Number.isNaN(Date.parse(row.t))))) {
     throw new TypeError("a registry fact is exactly {e, a, v, t}: entity and attribute strings, a value, and an ISO time or null");
   }
@@ -76,23 +77,23 @@ const MODELED = new Set(["name", "versions", "time", "dist-tags", "readme"]);
  * version's bytes; without it a publication names only its file.
  */
 export function legacyRows(name, packument, { artifactOf = () => undefined } = {}) {
-  const time = record(packument.time) ? packument.time : {};
+  const time = isRecord(packument.time) ? packument.time : {};
   const asOf = typeof time.modified === "string" ? time.modified : null;
   const pkg = packageEntity(name);
   const rows = [];
   const deprecations = [];
-  for (const [version, stored] of Object.entries(record(packument.versions) ? packument.versions : {})) {
-    if (!record(stored)) continue;
+  for (const [version, stored] of Object.entries(isRecord(packument.versions) ? packument.versions : {})) {
+    if (!isRecord(stored)) continue;
     const { deprecated, ...manifest } = stored;
     const file = artifactFile(name, version, stored.dist);
-    if (record(stored.dist)) {
+    if (isRecord(stored.dist)) {
       const { tarball, ...dist } = stored.dist;
       manifest.dist = dist;
     }
     rows.push({ e: versionEntity(name, version), a: PUBLICATION, v: { manifest, artifact: { file, ...artifactOf(file) } }, t: typeof time[version] === "string" ? time[version] : null });
     if (typeof deprecated === "string" && deprecated !== "") deprecations.push({ e: versionEntity(name, version), a: DEPRECATION, v: deprecated, t: asOf });
   }
-  for (const [tag, version] of Object.entries(record(packument["dist-tags"]) ? packument["dist-tags"] : {})) {
+  for (const [tag, version] of Object.entries(isRecord(packument["dist-tags"]) ? packument["dist-tags"] : {})) {
     if (typeof version === "string") rows.push({ e: pkg, a: DIST_TAG, v: { tag, version }, t: asOf });
   }
   rows.push(...deprecations);

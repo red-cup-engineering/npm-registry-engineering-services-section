@@ -1,8 +1,9 @@
+import { isRecord } from "@red-cup-engineering/signcell/values";
 import { createHash } from "node:crypto";
 import { Buffer } from "node:buffer";
 
 // Original native npm wire admission, shared by filesystem and R2 receiving.
-const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
+
 export const tarballName = (url) => decodeURIComponent(new URL(url).pathname.split("/").pop());
 
 export const admittedName = (name) => typeof name === "string" && name !== "" && !name.startsWith("-")
@@ -32,11 +33,11 @@ export function repositoryOf(reference) {
 // name; the store's leaf uses a filename. Normalize that representation once
 // here, before any write, and bind every manifest to it.
 export function admittedPublication(name, body, state) {
-  if (body?.name !== name || !record(body.versions) || Object.keys(body.versions).length === 0 || !record(body._attachments)) throw new TypeError("a publish names its package, versions, and attached artifacts");
-  if (body["dist-tags"] !== undefined && !record(body["dist-tags"])) throw new TypeError("dist-tags must map tags to published versions");
+  if (body?.name !== name || !isRecord(body.versions) || Object.keys(body.versions).length === 0 || !isRecord(body._attachments)) throw new TypeError("a publish names its package, versions, and attached artifacts");
+  if (body["dist-tags"] !== undefined && !isRecord(body["dist-tags"])) throw new TypeError("dist-tags must map tags to published versions");
   const artifacts = new Map(), manifests = new Map(), used = new Set();
   for (const [version, manifest] of Object.entries(body.versions)) {
-    if (!versionIdentity.test(version) || !record(manifest) || manifest.name !== name || manifest.version !== version || !record(manifest.dist)) throw new TypeError("each version manifest must carry its exact package and version identity");
+    if (!versionIdentity.test(version) || !isRecord(manifest) || manifest.name !== name || manifest.version !== version || !isRecord(manifest.dist)) throw new TypeError("each version manifest must carry its exact package and version identity");
     // Repository provenance is retained verbatim. Source-publication policy is
     // enforced by the originating producer, not by the npm wire codec.
     const file = `${name.split("/").pop()}-${version}.tgz`;
@@ -47,7 +48,7 @@ export function admittedPublication(name, body, state) {
     const keys = [...new Set([file, `${name}-${version}.tgz`])].filter(key => Object.hasOwn(body._attachments, key));
     if (keys.length !== 1) throw new TypeError("each version must identify exactly one attached artifact");
     const key = keys[0], attachment = body._attachments[key];
-    if (!record(attachment) || typeof attachment.data !== "string" || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(attachment.data)) throw new TypeError("artifact data must be canonical base64");
+    if (!isRecord(attachment) || typeof attachment.data !== "string" || !/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/u.test(attachment.data)) throw new TypeError("artifact data must be canonical base64");
     const bytes = Buffer.from(attachment.data, "base64");
     if (bytes.toString("base64") !== attachment.data) throw new TypeError("artifact data must be canonical base64");
     if (!Number.isSafeInteger(attachment.length) || attachment.length !== bytes.length) throw new TypeError("artifact length does not match its bytes");

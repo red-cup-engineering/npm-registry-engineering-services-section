@@ -1,3 +1,4 @@
+import { isRecord } from "@red-cup-engineering/signcell/values";
 import { setImmediate } from "node:timers";
 import { posix } from "node:path";
 import { lineColumnOf, parseJavaScript, walkJavaScript } from "@red-cup-engineering/javascript-parser-service";
@@ -30,7 +31,7 @@ import { readTarball, TarballError } from "./tarball-reader.mjs";
 
 export const DEFAULT_HOUSE_SCOPES = Object.freeze(["@red-cup-engineering", "@lenticule-science", "@561-group", "@coesite-operations", "@causeway-services", "@emsenn"]);
 
-const record = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+
 const SCRIPT_EXTENSIONS = /\.(?:mjs|cjs|js)$/u;
 const escapesAt = /\\(?:u0040|u\{0*40\}|x40)/iu;
 
@@ -107,7 +108,7 @@ function receivingOnlyModules(manifest, files, modules, refuse) {
   // it. Until their command graph is explicit, retain the ordinary runtime rule.
   if (["preinstall", "install", "postinstall", "start"].some(name => typeof manifest.scripts?.[name] === "string" && manifest.scripts[name].trim())) return new Set();
   const conditions = [["node", "import", "module-sync", "default"], ["node", "require", "module-sync", "default"]];
-  const mappings = record(manifest.imports) ? Object.fromEntries(Object.entries(manifest.imports).map(([key, value]) => [`./${key.slice(1)}`, value])) : {};
+  const mappings = isRecord(manifest.imports) ? Object.fromEntries(Object.entries(manifest.imports).map(([key, value]) => [`./${key.slice(1)}`, value])) : {};
   const targetsOf = (exports, subpath) => [...new Set(conditions.map(conditions => resolveExport(exports, subpath, conditions).target).filter(target => typeof target === "string"))];
   const local = (from, request) => {
     const { specifier, commonJs } = request;
@@ -170,7 +171,7 @@ function resolveVersion(packument, range) {
 }
 
 const exportedKeys = (exports) => {
-  if (!record(exports)) return exports === undefined ? [] : ["."];
+  if (!isRecord(exports)) return exports === undefined ? [] : ["."];
   const keys = Object.keys(exports).filter((key) => key.startsWith("."));
   return keys.length > 0 ? keys : ["."];
 };
@@ -190,7 +191,7 @@ export async function checkPublication({ name, version, bytes, houseScopes = DEF
   let manifest;
   try { manifest = JSON.parse(files.get("package.json")?.toString("utf8")); }
   catch { return [{ kind: "tarball", message: "the tarball has no readable package.json" }]; }
-  if (!record(manifest)) return [{ kind: "tarball", message: "the tarball's package.json is not an object" }];
+  if (!isRecord(manifest)) return [{ kind: "tarball", message: "the tarball's package.json is not an object" }];
   if (manifest.name !== name || manifest.version !== version) {
     return [{ kind: "tarball", message: `the tarball's package.json is ${manifest.name}@${manifest.version}, not the ${name}@${version} being published` }];
   }
@@ -216,7 +217,7 @@ export async function checkPublication({ name, version, bytes, houseScopes = DEF
   // declared house dependencies, keyed by the name a module imports them by
   const declared = new Map(), development = new Map();
   for (const field of ["dependencies", "peerDependencies", "optionalDependencies", "devDependencies"]) {
-    if (!record(manifest[field])) continue;
+    if (!isRecord(manifest[field])) continue;
     const selection = field === "devDependencies" ? development : declared;
     for (const [key, spec] of Object.entries(manifest[field])) {
       if (typeof spec !== "string" || declared.has(key)) continue;
@@ -231,7 +232,7 @@ export async function checkPublication({ name, version, bytes, houseScopes = DEF
     const key = `${name}@${version}`;
     if (!manifests.has(key)) manifests.set(key, Promise.resolve(publishedManifest(name, version)).then(manifest => {
       if (manifest === null || manifest === undefined) return null;
-      if (!record(manifest) || manifest.name !== name || manifest.version !== version)
+      if (!isRecord(manifest) || manifest.name !== name || manifest.version !== version)
         throw new TypeError("selected supplier manifest differs from its exact requested identity");
       // Release unrelated selected-manifest content just as the history path does.
       return { exports: manifest.exports };
@@ -246,7 +247,7 @@ export async function checkPublication({ name, version, bytes, houseScopes = DEF
       // publication finishes defeats the serving cache's retention budget.
       return { "dist-tags": packument["dist-tags"], versions: Object.fromEntries(
         Object.entries(packument.versions ?? {}).map(([version, manifest]) =>
-          [version, record(manifest) ? { exports: manifest.exports } : manifest]),
+          [version, isRecord(manifest) ? { exports: manifest.exports } : manifest]),
       ) };
     }));
     return packuments.get(dependency);

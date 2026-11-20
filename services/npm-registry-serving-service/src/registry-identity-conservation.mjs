@@ -1,13 +1,14 @@
+import { isRecord } from "@red-cup-engineering/signcell/values";
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import semver from "semver";
 import { canonicalJson } from "@red-cup-engineering/json-engine/canonical-json";
 import { admittedName, parsePackagePath } from "./prepared-publication.mjs";
 
-const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
+
 const key = (name, version) => JSON.stringify([name, version]);
 const manifestDigest = value => createHash("sha256").update(canonicalJson(value)).digest("hex");
-const exactKeys = (value, keys) => record(value) && Object.keys(value).length === keys.length && keys.every(k => Object.hasOwn(value, k));
+const exactKeys = (value, keys) => isRecord(value) && Object.keys(value).length === keys.length && keys.every(k => Object.hasOwn(value, k));
 
 /** Restrictive observations; none of these records grants publisher authority. */
 export function registryIdentityConservation(input, configuration) {
@@ -64,7 +65,7 @@ export function registryIdentityConservation(input, configuration) {
     if (observed.authority !== "native" || observed.gitHead === null || reservations.has(k) || conflicts.has(k)) throw new TypeError("native reservation overlaps or lacks its original source/authority");
     reservations.set(k, structuredClone({ ...item, identity: observed }));
   }
-  const matches = (manifest, observed) => record(manifest) && (manifest.gitHead ?? null) === observed.gitHead
+  const matches = (manifest, observed) => isRecord(manifest) && (manifest.gitHead ?? null) === observed.gitHead
     && manifest.dist?.integrity === observed.integrity && manifest.dist?.tarball === observed.tarball
     && manifestDigest(manifest) === observed.manifestSha256;
   return Object.freeze({
@@ -78,13 +79,13 @@ export function registryIdentityConservation(input, configuration) {
       const held = [...conflicts.values()].filter(item => item.name === name);
       if (!held.length) return document;
       const versions = { ...document.versions }, tags = { ...(document["dist-tags"] ?? {}) };
-      const time = record(document.time) ? { ...document.time } : document.time;
+      const time = isRecord(document.time) ? { ...document.time } : document.time;
       for (const item of held) {
         const observed = item.identities.find(value => value.authority === "canonical-r2");
         if (Object.hasOwn(versions, item.version) && !matches(versions[item.version], observed))
           throw new Error("stored conflicting identity drifted from its received observation");
         delete versions[item.version];
-        if (record(time)) delete time[item.version];
+        if (isRecord(time)) delete time[item.version];
         for (const [tag, version] of Object.entries(tags)) if (version === item.version) delete tags[tag];
       }
       return { ...document, versions, "dist-tags": tags, ...(time === undefined ? {} : { time }),

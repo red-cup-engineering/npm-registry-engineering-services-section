@@ -22,7 +22,8 @@
     "bcryptjs": "2.4.3",
     "semver": "7.7.2",
     "@red-cup-engineering/json-engine": "^0.5.0",
-    "@red-cup-engineering/cloudflare-r2-engineering-services-section": "^0.7.2"
+    "@red-cup-engineering/cloudflare-r2-engineering-services-section": "^0.7.2",
+    "@red-cup-engineering/signcell": "^0.18.0 || 0.18.1-dev.0"
   },
   "receivingTests": [
     "test/hosted-guix-archives.test.mjs",

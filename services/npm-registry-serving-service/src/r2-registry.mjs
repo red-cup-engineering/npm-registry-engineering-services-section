@@ -1,3 +1,4 @@
+import { isRecord } from "@red-cup-engineering/signcell/values";
 import { Buffer } from "node:buffer";
 import { createHash, timingSafeEqual } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
@@ -11,7 +12,7 @@ import { forwardGuixArchiveRequest, guixArchiveRequest, withoutGuixArchiveAuthor
 const CUSTODY = "-/publication-inputs/";
 const POLICY = "native-authenticated-house-publishers-v1";
 const DEFAULT_UPLINK = "https://registry.npmjs.org";
-const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
+
 const digest = (algorithm, bytes, encoding = "hex") => createHash(algorithm).update(bytes).digest(encoding);
 const integrityOf = bytes => "sha512-" + digest("sha512", bytes, "base64");
 /** A package path as the public registry spells it: each segment encoded, a scope's @ kept. */
@@ -25,7 +26,7 @@ class Refusal extends Error {
 }
 
 function configurationOf(input) {
-  if (!record(input) || typeof input.origin !== "string" || new URL(input.origin).origin !== input.origin
+  if (!isRecord(input) || typeof input.origin !== "string" || new URL(input.origin).origin !== input.origin
       || !input.origin.startsWith("https://") || !Array.isArray(input.privateScopes)
       || !Array.isArray(input.privateNames) || input.nativePublisherPolicy !== POLICY)
     throw new TypeError("R2 registry needs its source-qualified origin, house names and native publishing policy");
@@ -33,7 +34,7 @@ function configurationOf(input) {
       || input.privateNames.some(name => !admittedName(name)))
     throw new TypeError("R2 house names do not match the admitted native namespace");
   const hold = input.publicationHold;
-  if (hold !== undefined && (!record(hold) || Object.keys(hold).length !== 3
+  if (hold !== undefined && (!isRecord(hold) || Object.keys(hold).length !== 3
       || hold.type !== "RegistryIdentityConservationHold" || !/^[a-f0-9]{64}$/u.test(hold.recordSha256)
       || typeof hold.work !== "string" || !hold.work.startsWith("https://github.com/")))
     throw new TypeError("publication hold needs its typed original conservation record");
@@ -141,8 +142,8 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     let document;
     try { document = readJson(bytes, "stored metadata"); }
     catch { throw new Refusal(502, "stored package metadata is unreadable"); }
-    if (!record(document) || document.name !== name || !record(document.versions)
-        || (document["dist-tags"] !== undefined && !record(document["dist-tags"])))
+    if (!isRecord(document) || document.name !== name || !isRecord(document.versions)
+        || (document["dist-tags"] !== undefined && !isRecord(document["dist-tags"])))
       throw new Refusal(502, "stored package metadata has another identity or shape");
     const rawDocument = document, rawBytes = bytes;
     const projected = served ? conservation.project(name, document) : document;
@@ -269,9 +270,9 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       if (!/^application\/json(?:\s*;|$)/iu.test(type)) throw new Refusal(415, "npm prepared publication is application/json");
       const encoded = await boundedBytes(request.body, config.maxPublishBytes, request.headers.get("content-length"));
       const body = readJson(encoded, "prepared publication");
-      if (record(body?.versions) && body._attachments === undefined)
+      if (isRecord(body?.versions) && body._attachments === undefined)
         throw new Refusal(405, "house deprecation or metadata changes require the canonical R2 CAS operation; no native shelf was changed");
-      if (!record(body?.versions) || Object.keys(body.versions).length !== 1)
+      if (!isRecord(body?.versions) || Object.keys(body.versions).length !== 1)
         throw new Refusal(400, "this npm prepared publication profile receives exactly one version");
       if (body._id !== undefined && body._id !== name) throw new Refusal(400, "publication id differs from its package");
       const [submittedVersion] = Object.keys(body.versions);
@@ -288,7 +289,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       const reservation = conservation.reservation(name, submittedVersion);
       if (reservation && !conservation.matches(body.versions[submittedVersion], reservation.identity))
         throw new Refusal(409, "native version is reserved for its exact observed immutable product", { reservation });
-      if (record(body["dist-tags"]))
+      if (isRecord(body["dist-tags"]))
         for (const selected of Object.values(body["dist-tags"])) refuseConflict(name, selected);
       // Conditional publication must preserve raw quarantined originals, never a served projection.
       const before = await metadata(name, false);
@@ -347,7 +348,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         maxUnpackedBytes: config.maxUnpackedBytes,
       });
       if (violations.length) throw new Refusal(400, "the existing publication gate refused the prepared archive", { violations });
-      if (body.time !== undefined && !record(body.time)) throw new Refusal(400, "publication time is a metadata object");
+      if (body.time !== undefined && !isRecord(body.time)) throw new Refusal(400, "publication time is a metadata object");
       const now = new Date().toISOString();
       const { _attachments, versions, "dist-tags": _tags, _rev, time, ...fields } = body;
       const document = {
@@ -487,7 +488,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       if (removed.length === versions.length) await bucket.delete(metadataKey(name));
       else {
         const left = versions.filter(version => !removed.includes(version));
-        const tags = Object.fromEntries(Object.entries({ ...before.document["dist-tags"], ...(record(offered["dist-tags"]) ? offered["dist-tags"] : {}) })
+        const tags = Object.fromEntries(Object.entries({ ...before.document["dist-tags"], ...(isRecord(offered["dist-tags"]) ? offered["dist-tags"] : {}) })
           .filter(([, version]) => left.includes(version)));
         const time = Object.fromEntries(Object.entries(before.document.time ?? {}).filter(([key]) => !removed.includes(key)));
         tags.latest ??= [...left].sort((a, b) => String(time[a] ?? "").localeCompare(String(time[b] ?? ""))).pop();
@@ -569,7 +570,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         if (method === "DELETE" && revision === 0 && rest.length === 2) return unpublish(request, name);
         if (method === "PUT" && revision === 0 && rest.length === 2) {
           const body = readJson(await boundedBytes(request.body, config.maxMetadataBytes, request.headers.get("content-length")), "unpublish packument");
-          if (!record(body) || body.name !== name || !record(body.versions))
+          if (!isRecord(body) || body.name !== name || !isRecord(body.versions))
             throw new Refusal(400, "an unpublish PUT is the package's packument less the versions it removes");
           return unpublish(request, name, body);
         }

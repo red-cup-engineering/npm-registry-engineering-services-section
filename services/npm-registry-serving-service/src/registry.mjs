@@ -1,3 +1,4 @@
+import { isRecord } from "@red-cup-engineering/signcell/values";
 import { admittedName, admittedPublication, parsePackagePath as parse, repositoryOf, tarballName } from "./prepared-publication.mjs";
 import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
@@ -99,7 +100,7 @@ export function createNpmRegistry({
     return name;
   };
 
-  const record = (value) => value !== null && typeof value === "object" && !Array.isArray(value);
+  
   const json = (value, status = 200, headers = {}) => Response.json(value, { status, headers });
   const refusal = (status, error) => json({ error }, status);
   // The Worker's refusal of a quarantined version, its tag and its archive (r2-registry.mjs refuseConflict).
@@ -447,7 +448,7 @@ export function createNpmRegistry({
       }
       const rows = [], at = now().toISOString();
       for (const version of published) {
-        if (!record(body.versions[version])) return refusal(400, `${name}@${version} must be a manifest`);
+        if (!isRecord(body.versions[version])) return refusal(400, `${name}@${version} must be a manifest`);
         const { deprecated: was, ...fixed } = renderVersion(state, version, { origin });
         const { deprecated: offeredMessage, ...offeredManifest } = body.versions[version];
         if (offeredMessage !== undefined && typeof offeredMessage !== "string") return refusal(400, `${name}@${version}: deprecated is a message`);
@@ -461,17 +462,17 @@ export function createNpmRegistry({
   }
 
   async function publish(name, body, user) {
-    if (record(body) && body.name === name && record(body.versions) && (body._attachments === undefined || (record(body._attachments) && Object.keys(body._attachments).length === 0))) {
+    if (isRecord(body) && body.name === name && isRecord(body.versions) && (body._attachments === undefined || (isRecord(body._attachments) && Object.keys(body._attachments).length === 0))) {
       return updateMetadata(name, body);
     }
     // As the Worker: a quarantined version, or a tag naming one, is refused before anything is read or written.
-    if (record(body?.versions) && Object.keys(body.versions).some(version => quarantined(name, version))) return quarantine();
-    if (record(body?.["dist-tags"]) && Object.values(body["dist-tags"]).some(version => quarantined(name, version))) return quarantine();
-    if (record(body) && Object.hasOwn(body, "x-561-registry-conflicts")) return refusal(400, "conflict evidence is an operator-derived view, not publication metadata");
+    if (isRecord(body?.versions) && Object.keys(body.versions).some(version => quarantined(name, version))) return quarantine();
+    if (isRecord(body?.["dist-tags"]) && Object.values(body["dist-tags"]).some(version => quarantined(name, version))) return quarantine();
+    if (isRecord(body) && Object.hasOwn(body, "x-561-registry-conflicts")) return refusal(400, "conflict evidence is an operator-derived view, not publication metadata");
     return store.lock(name, async () => {
       const read = await heldFacts(name);
       const state = read === undefined ? foldPackage(name, []) : foldPackage(name, read.rows);
-      if (record(body?.versions)) for (const version of Object.keys(body.versions)) {
+      if (isRecord(body?.versions)) for (const version of Object.keys(body.versions)) {
         if (state.versions.has(version)) return refusal(409, `${name}@${version} is already published; a version is never replaced`);
       }
       let admitted;
@@ -643,7 +644,7 @@ export function createNpmRegistry({
       let inventory;
       try { inventory = JSON.parse((request.headers.get("content-encoding") === "gzip" ? gunzipSync(read.bytes, { maxOutputLength: 64 * 1024 * 1024 }) : read.bytes).toString("utf8")); }
       catch { return refusal(400, "a bulk advisory request is a JSON object of package names to versions"); }
-      if (!record(inventory)) return refusal(400, "a bulk advisory request is a JSON object of package names to versions");
+      if (!isRecord(inventory)) return refusal(400, "a bulk advisory request is a JSON object of package names to versions");
       const publicInventory = Object.fromEntries(Object.entries(inventory).filter(([name]) => !isPrivate(name)));
       if (Object.keys(publicInventory).length === 0) return json({});
       const forwarded = await fetchImpl(target, { method, headers: { "content-type": "application/json" }, body: JSON.stringify(publicInventory) });
@@ -665,7 +666,7 @@ export function createNpmRegistry({
       if (method !== "PUT") return refusal(405, "a user document is read, or PUT to sign in");
       const read = await boundedJson(request, 64 * 1024);
       if (read.refusal) return read.refusal;
-      if (!record(read.body) || read.body.name !== user || typeof read.body.password !== "string") return refusal(400, "signing in sends the user's name and password");
+      if (!isRecord(read.body) || read.body.name !== user || typeof read.body.password !== "string") return refusal(400, "signing in sends the user's name and password");
       if ((await credentials.verify(user, read.body.password)) !== user) return refusal(401, "incorrect username or password (publisher accounts are made by the registry's operator, not by signing in)");
       const token = await credentials.issue(user);
       return json({ ok: true, id: `org.couchdb.user:${user}`, rev: "1", token }, 201);
@@ -742,7 +743,7 @@ export function createNpmRegistry({
       if (method === "PUT" && revision === 0 && rest.length === 2) {
         const read = await boundedJson(request, maxPublishBytes);
         if (read.refusal) return read.refusal;
-        if (!record(read.body) || read.body.name !== name || !record(read.body.versions)) return refusal(400, "an unpublish PUT is the package's packument less the versions it removes");
+        if (!isRecord(read.body) || read.body.name !== name || !isRecord(read.body.versions)) return refusal(400, "an unpublish PUT is the package's packument less the versions it removes");
         return serialized(() => unpublish(name, Object.keys(read.body.versions)));
       }
       if (method === "DELETE" && rest[0] === "-" && revision === 2 && rest.length === 4) {
@@ -781,7 +782,7 @@ export function createNpmRegistry({
           }
           const read = await boundedJson(request, maxPublishBytes);
           if (read.refusal) return read.refusal;
-          if (!record(read.body)) return refusal(400, "a publish is a JSON packument");
+          if (!isRecord(read.body)) return refusal(400, "a publish is a JSON packument");
           return publish(name, read.body, user);
         });
       }
