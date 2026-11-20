@@ -11,7 +11,8 @@
     "@red-cup-engineering/json-engine": "^0.5.0",
     "@red-cup-engineering/jsonl-engineering-services-section": "^0.1.4",
     "@red-cup-engineering/inspect-installed-npm-package-service": "^0.3.3",
-    "@red-cup-engineering/jsdoc-engine": "^0.1.0"
+    "@red-cup-engineering/jsdoc-engine": "^0.1.0",
+    "@red-cup-engineering/semiotic-content-address-system": "^0.1.7 || 0.1.8-dev.0"
   },
   "exports": {
     "./check-npm-registry-package-installations": "./scripts/check-npm-registry-package-installations.mjs",

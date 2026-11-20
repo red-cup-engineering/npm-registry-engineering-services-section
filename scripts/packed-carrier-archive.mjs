@@ -1,3 +1,4 @@
+import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
 /** First-party framing recovered from PR24 a40a8655d656c2ffa8d75d90bdf99f700e1a90c3,
  * src/packed-carrier-archive.mjs blob c044915f3d0431ff9dd16c5239a507c3bccad1b1.
  * Retains its header/PAX/path and sorted-prefix conflict algorithms, evolved
@@ -8,7 +9,7 @@ import { createHash } from 'node:crypto';
 const BLOCK = 512;
 const utf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true });
 const isZero = block => block.every(byte => byte === 0);
-const sha256 = bytes => createHash('sha256').update(bytes).digest('hex');
+
 const codes = { extension: 'unread-archive-extension', encoding: 'unread-archive-name-encoding', accounting: 'unread-archive-header-accounting' };
 function refuse(reason, offset, message) {
   return Object.assign(new TypeError(message), { code: codes[reason] ?? 'artifact-member-receiving-refused', reason,
@@ -210,11 +211,11 @@ function projectionResult(tar, profile, occurrences, extensions, manifestText, m
       if (group && (group.length !== 1 || group[0].localPath !== path || group[0].interpretedKind !== 'File')) throw refuse('conflict', group[0].headerOffset, 'manifest/bin alias forbidden');
     }
   }
-  const expandedSHA256 = sha256(tar);
-  const rawInventorySHA256 = sha256(JSON.stringify([1, profile, expandedSHA256, occurrences, extensions]));
+  const expandedSHA256 = sha256Hex(tar);
+  const rawInventorySHA256 = sha256Hex(JSON.stringify([1, profile, expandedSHA256, occurrences, extensions]));
   const targets = [...groups].filter(([, group]) => group[0].interpretedKind === 'File').map(([path, group]) => ({path, occurrenceOrdinals: group.map(x => x.ordinal), selectedOrdinal: group.at(-1).ordinal}));
   const projection = {version:1, profile, rawInventorySHA256, manifestText, members, targets};
-  projection.projectionSHA256 = sha256(JSON.stringify([1, profile, rawInventorySHA256, manifestText, members, targets]));
+  projection.projectionSHA256 = sha256Hex(JSON.stringify([1, profile, rawInventorySHA256, manifestText, members, targets]));
   return { sourceArchive: {version:1, expandedSHA256, profile, manifestText, occurrences, extensions, rawInventorySHA256}, projection };
 }
 function carrierPath(path, directory, offset) {
@@ -281,7 +282,7 @@ export function inspectPackedCarrierArchive(tar, limits, options = {}) {
         metadataPayloadBytes += raw.size;
         if (metadataPayloadBytes > limits.metadataBytes) throw refuse('limit', offset, 'total PAX metadata bound exceeded');
         pendingExtension = extensions.length;
-        const extension = {ordinal:pendingExtension, headerOffset:offset, rawHeaderHex:block.toString('hex'), payloadOffset:offset+BLOCK, payloadBytes:raw.size, payloadSHA256:sha256(payload), records:Object.entries(pax).map(([key,value]) => [key,String(value)])};
+        const extension = {ordinal:pendingExtension, headerOffset:offset, rawHeaderHex:block.toString('hex'), payloadOffset:offset+BLOCK, payloadBytes:raw.size, payloadSHA256:sha256Hex(payload), records:Object.entries(pax).map(([key,value]) => [key,String(value)])};
         retain(extension); extensions.push(extension);
       }
       extensionBytes += end - offset;
@@ -303,7 +304,7 @@ export function inspectPackedCarrierArchive(tar, limits, options = {}) {
     headers.push({ path: name, type: directory ? 'Directory' : 'File', mode: raw.mode, size });
     let repeated = false;
     if (legacy) {
-      const occurrence = {ordinal:occurrences.length, headerOffset:offset, rawHeaderHex:block.toString('hex'), rawName:raw.name, effectiveName:name, rawType:raw.type, interpretedKind:directory?'Directory':'File', layout:raw.layout, mode:raw.mode, rawSize:raw.size, effectiveSize:size, localPath:mapped.local, projectedPath:path, payloadSHA256:directory?null:sha256(tar.subarray(offset+BLOCK,offset+BLOCK+size)), extensionOrdinal:pendingExtension};
+      const occurrence = {ordinal:occurrences.length, headerOffset:offset, rawHeaderHex:block.toString('hex'), rawName:raw.name, effectiveName:name, rawType:raw.type, interpretedKind:directory?'Directory':'File', layout:raw.layout, mode:raw.mode, rawSize:raw.size, effectiveSize:size, localPath:mapped.local, projectedPath:path, payloadSHA256:directory?null:sha256Hex(tar.subarray(offset+BLOCK,offset+BLOCK+size)), extensionOrdinal:pendingExtension};
       pendingExtension = null;
       const group = groups.get(path) ?? [];
       if (group.length && (directory || group[0].interpretedKind !== 'File' || !equalOccurrence(group[0], occurrence, tar))) throw refuse('conflict', offset, 'non-idempotent registry occurrence');
@@ -313,7 +314,7 @@ export function inspectPackedCarrierArchive(tar, limits, options = {}) {
       payloadBytes += size;
       if (!Number.isSafeInteger(payloadBytes) || payloadBytes > limits.bytes) throw refuse('limit', offset, 'archive file payload bound exceeded');
       const body = tar.subarray(offset + BLOCK, offset + BLOCK + size);
-      if (!repeated) members.push({ path, kind: 'file', bytes: size, sha256: sha256(body), mode: raw.mode });
+      if (!repeated) members.push({ path, kind: 'file', bytes: size, sha256: sha256Hex(body), mode: raw.mode });
       // Intentionally propagate the native fatal manifest decoder error.
       if (path === 'package.json') manifestText = utf8.decode(body);
     }

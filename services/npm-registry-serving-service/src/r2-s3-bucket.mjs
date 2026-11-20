@@ -1,3 +1,4 @@
+import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
 import { Buffer } from "node:buffer";
 import { createHash } from "node:crypto";
 import { internals } from "@red-cup-engineering/cloudflare-r2-engineering-services-section/r2-sigv4";
@@ -18,11 +19,11 @@ export function createR2S3Bucket({ accountId, bucket, accessKeyId, secretAccessK
     if (typeof value !== "string" || value === "") throw new TypeError("R2 S3 bucket needs " + name);
   const origin = `https://${accountId}.r2.cloudflarestorage.com`, host = new URL(origin).host;
   const named = new Map(metadataNames.map(name => [name.toLowerCase(), name]));
-  const sha256 = bytes => createHash("sha256").update(bytes).digest("hex");
+  
 
   async function request(method, key, { body, headers = {} } = {}) {
     const path = internals.canonicalPath(bucket, key), now = clock();
-    const payloadHash = body === undefined ? internals.EMPTY_SHA256 : sha256(body);
+    const payloadHash = body === undefined ? internals.EMPTY_SHA256 : sha256Hex(body);
     const signed = Object.fromEntries(Object.entries({ host, "x-amz-content-sha256": payloadHash,
       "x-amz-date": now.toISOString().replace(/[:-]|\.\d{3}/gu, ""), ...headers })
       .filter(([, value]) => value !== undefined).map(([name, value]) => [name.toLowerCase(), String(value)]));
