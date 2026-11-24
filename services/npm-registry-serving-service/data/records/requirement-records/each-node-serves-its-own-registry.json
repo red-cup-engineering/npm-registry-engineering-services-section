@@ -1,0 +1,60 @@
+{
+  "id": "each-node-serves-its-own-registry",
+  "name": "Each node serves its own registry; peers replicate by content address; no central registry",
+  "kind": "requirement",
+  "raised-by": "emsenn",
+  "asks": [
+    "We don't want 'the house registry' we want decentralized registries that's the whole point. We can't wait an arbitrary 2 and a half hours because of our own bad engineering. Remember, this is all early alpha code. Obviously it is not well-constructed, right?",
+    "can bare cedar fog have its own registry? that kinda seems like part of what lagoon should provide.",
+    "We want the real fixes ... still use our own stuff ... but we need to get this stuff done"
+  ],
+  "met-when": [
+    {
+      "cell": "each-node-serves-its-own-registry:node-serves-itself",
+      "target": "held",
+      "says": "A node runs its own registry (bin/serve.mjs, the same software and store layout on every node) and every install and publish on that node is answered by it. On a node, the registry's name resolves to that node's own registry. No install or publish on a node needs the Cloudflare Worker, another node or a bucket to be reachable once the packages it needs are in its store or at the public uplink."
+    },
+    {
+      "cell": "each-node-serves-its-own-registry:no-canonical-copy",
+      "target": "held",
+      "says": "No node, Worker or bucket is the canonical registry. Cloudflare, an R2 bucket and another node's registry are peers: channels through which versions reach a node and through which it reaches the outside world. A configuration names peers; it does not name a center."
+    },
+    {
+      "cell": "each-node-serves-its-own-registry:replication-by-content-address",
+      "target": "held",
+      "says": "A node's store is filled from its peers and from its own publications. A tarball received from a peer is kept only if its bytes are the integrity and shasum its packument advertised, and is stored under the NI address of its own bytes, so the same bytes from any peer are one blob. A version the store already holds is never replaced."
+    },
+    {
+      "cell": "each-node-serves-its-own-registry:disagreement-is-a-fact",
+      "target": "held",
+      "says": "When two peers hold different bytes for one name and version, that is a recorded divergence for the nodes to reconcile, not a gate on serving or publishing. Neither peer's bytes replace the other's, and the journal's first-publication rule keeps the second out of every document. Conservation holds that assume one center are removed from the node registry; they remain only on the Worker/R2 channel until it is itself a peer."
+    },
+    {
+      "cell": "each-node-serves-its-own-registry:publish-on-own-node",
+      "target": "held",
+      "says": "A publish on a node is written to that node's registry and store only, built on the history its peers hold, and writes nothing to any peer. Other nodes receive it when they ask for it."
+    },
+    {
+      "cell": "each-node-serves-its-own-registry:public-names-cached-on-first-fetch",
+      "target": "held",
+      "says": "A public name is fetched from the public uplink on first use and served from the node's disk afterwards (tarballs); credentials are never sent upstream."
+    },
+    {
+      "cell": "each-node-serves-its-own-registry:lagoon-provides-the-unit",
+      "target": "held",
+      "says": "LAGOON provides each node's registry unit (house-npm-registry.service) under its existing auxiliary registry specifications; a node runs no second controller for it. Until LAGOON selects the unit on a node, the same bin/serve.mjs under a plain user unit is transitional and named as such."
+    }
+  ],
+  "owners": [
+    "red-cup-engineering/npm-registry-serving-service",
+    "red-cup-engineering/computer-deployment-engine"
+  ],
+  "x-provenance": {
+    "recorded-by": "Engineering release engineer (Claude session), recorded by the dispatcher's instruction",
+    "recorded-on": "2026-10-29",
+    "basis": "The asks are verbatim Leader messages of 2026-10-29. The met-when cells are inferences from them, open for the Leader to accept or strike; none is measured at the time of recording.",
+    "references": [
+      "https://github.com/red-cup-engineering/npm-registry-serving-service/issues/17"
+    ]
+  }
+}

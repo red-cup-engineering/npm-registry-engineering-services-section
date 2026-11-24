@@ -1,0 +1,55 @@
+{
+  "type": "OriginalHighLevelDesignGenerationReceiving",
+  "version": 1,
+  "authoredBy": "Hai Zhou, Codex /root",
+  "originalSource": {
+    "requirementSpecificationCommit": "46ff758c040089df9bdeb5b7b67abd43ff5ce87b",
+    "requirementRevision": "ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0",
+    "specificationRevision": "ni:///sha-256;h5NHsesOy07uUd-WsnL2noLTPZdzxMzai0JP5UZ489E",
+    "architectureRevision": "ni:///sha-256;a28925UM-HDQEqBX2OgZmuUXladAedyzEDfLppLteu4",
+    "originalNativePlanSha256": "ba98d798ddc6945da471d298cd03d8a8aec385991f06a97c330d3f03ec552f71",
+    "rawDeliverySha256": "6cebc9607cc383c303cd4a335f6cb1086561dea7005c7e5ad9148ca11ca5e995",
+    "rawDeliveryBytes": 10099,
+    "candidateSha256": "9a3b2cb3c011072d0dce62bdc7b9bc53078c8ebb2ca457c5e473b0226eb8b49f"
+  },
+  "originalOperation": {
+    "deliveryAt": "2026-10-29T01:31:18.144Z",
+    "requestSha256": "3ae4791bb13c3008e9f4f0002b3efc99db9ebbe28d4eb34826eab27d37e368ea",
+    "lot": {
+      "workLot": "urn:work-lot:inference:vCFzHm4RDMpHpBZiKqqup6Hz8IOdc9JDkhF_nP9-reU",
+      "provider": "urn:ame:nvidia-inference-team",
+      "taskClass": "code-fabrication",
+      "selectedOffer": "urn:offer:direct-endpoint:urn:ame:nvidia-inference-team:2fUXmpnthgNbciM9wayHgJGw1vwg7JkTMjaUeQmU24g:code-fabrication",
+      "receipt": "ni:///sha-256;5dqEJpp95bYG1dZwX-GzN7UBoxy1rI9G2YUyUWvqXsE",
+      "receiver": "actor:WWOM5azg-fTrn1Id0YVbz5AhppbnFny_W5Xl-rKgSs4",
+      "model": "private/nvidia/nemotron-3.5-super-120b-a12b",
+      "configurationIdentity": "ni:///sha-256;2fUXmpnthgNbciM9wayHgJGw1vwg7JkTMjaUeQmU24g"
+    },
+    "rawTextChanged": false,
+    "completeEvidenceOwner": "Original CIE work/receiving journal; only bounded coordinates are projected here."
+  },
+  "nativeReceiving": {
+    "generatorRevision": "db52af5115ce9cc12e027d3ec23c42fe5a2a1aa2",
+    "module": "src/engineering-design.mjs",
+    "moduleSha256": "af06370da48f9cae5c82c58c8866798da4403667dad3a3811527f7cf8b27d7dd",
+    "originalPlanSha256": "ba98d798ddc6945da471d298cd03d8a8aec385991f06a97c330d3f03ec552f71",
+    "observedAt": "2026-10-29T01:42:10.434Z",
+    "candidateType": "EngineeringDesignCandidate",
+    "candidateSha256": "9a3b2cb3c011072d0dce62bdc7b9bc53078c8ebb2ca457c5e473b0226eb8b49f",
+    "independentReceiptSha256": "da9ff82c030a9e24eeba4367ada9450ed05cc92140ee5fb7a286d223bbdcffdc",
+    "disposition": "accepted-for-original-low-level-design"
+  },
+  "lowLevelPlan": {
+    "path": "/home/emsenn/info/lib/emsenn/services/561-group/services/561-group-services-section/services/561-group-operations-services-section/services/cold-red-gate-services-section/data/state/registry-version-retirement-state/46ff758c0400/low-level-design-inputs/64a93a8c42a4efa66952235b923672f6188f121257e1e4cc354e2785cb0209e9/plan.json",
+    "sha256": "64a93a8c42a4efa66952235b923672f6188f121257e1e4cc354e2785cb0209e9",
+    "bytes": 220670,
+    "originalPlanUnchanged": true,
+    "modelDispatched": false
+  },
+  "limits": {
+    "coordinationAndCustodyMechanismsStillOwedInDetailedDesign": true,
+    "normativeSourceGenerated": false,
+    "archivesRetired": false,
+    "operatingReceiving": false
+  }
+}

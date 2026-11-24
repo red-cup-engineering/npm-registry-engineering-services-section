@@ -1,0 +1,72 @@
+{
+  "name": "@red-cup-engineering/npm-registry-serving-service",
+  "version": "0.2.13-dev.0",
+  "private": false,
+  "type": "module",
+  "description": "Serves the house's npm packages natively from their facts: an append-only journal per package and its tarballs by RFC 6920 NI address, projected to the npm registry protocol npm and pnpm speak (conditional requests, login tokens, search, audit), standalone or as a MetroPlat hosted application. Reads every published version statically and refuses one whose files, dependencies and imports do not hold together.",
+  "exports": {
+    ".": "./src/registry.mjs",
+    "./application": "./src/application.mjs",
+    "./prepared-publication": "./src/prepared-publication.mjs",
+    "./facts": "./src/facts.mjs",
+    "./projection": "./src/projection.mjs",
+    "./store": "./src/store.mjs",
+    "./reception": "./src/reception.mjs",
+    "./r2-registry": "./src/r2-registry.mjs",
+    "./peers": "./src/peers.mjs"
+  },
+  "dependencies": {
+    "@red-cup-engineering/computer-content-address-engineering-services-section": "^0.3.0",
+    "@red-cup-engineering/javascript-parser-service": "^0.2.0",
+    "@red-cup-engineering/uri-engineering-services-section": "^0.1.7",
+    "bcryptjs": "2.4.3",
+    "semver": "7.7.2",
+    "@red-cup-engineering/json-engine": "^0.5.0",
+    "@red-cup-engineering/cloudflare-r2-engineering-services-section": "^0.7.2",
+    "@red-cup-engineering/signcell": "^0.18.0 || 0.18.1-dev.0",
+    "@red-cup-engineering/semiotic-content-address-system": "^0.1.7 || 0.1.8-dev.0",
+    "@red-cup-engineering/parse-javascript-argv-service": "^0.3.0 || 0.3.1-dev.0",
+    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "0.3.8-dev.0"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "receivingTests": [
+    "test/hosted-guix-archives.test.mjs",
+    "test/guix-archive-bucket.test.mjs",
+    "test/peer-tarball-cache.test.mjs",
+    "test/publisher-admission-instance.test.mjs",
+    "test/store-lock.test.mjs",
+    "test/publish-gate-dependency-range.test.mjs"
+  ],
+  "softwareKind": "service",
+  "bin": {
+    "serve-house-registry": "./bin/serve.mjs",
+    "repair-scoped-publication-artifact": "./bin/repair-scoped-publication-artifact.mjs",
+    "receive-registry-store": "./bin/receive-store.mjs",
+    "serve-r2-publisher": "./bin/serve-r2-publisher.mjs",
+    "receive-from-peers": "./bin/receive-from-peers.mjs",
+    "admit-publisher": "./bin/admit-publisher.mjs",
+    "carry-held-to-canonical": "./bin/carry-held-to-canonical.mjs"
+  },
+  "files": [
+    "data/records/registry-identity-conservation-records",
+    "src",
+    "bin",
+    "scripts",
+    "deployment",
+    "README.md",
+    "deployment/r2-worker-build.json",
+    "test/hosted-guix-archives.test.mjs",
+    "test/guix-archive-bucket.test.mjs",
+    "test/peer-tarball-cache.test.mjs",
+    "test/publisher-admission-instance.test.mjs",
+    "test/store-lock.test.mjs",
+    "test/publish-gate-dependency-range.test.mjs"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/npm-registry-engineering-services-section.git",
+    "directory": "services/npm-registry-serving-service"
+  }
+}

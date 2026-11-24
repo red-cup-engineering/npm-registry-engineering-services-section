@@ -1,0 +1,52 @@
+{
+  "type": "IndependentArchitectureSemanticReceiving",
+  "version": 1,
+  "reviewedBy": "actor:NbEkNFALJ-DGHuaHksujM0a3w5aWbIkQ0wW6Jrmgslg",
+  "source": {
+    "rawDeliverySha256": "8aca2e2bb6d1faba0b96322b339ac1803af9be9b96fb6d9516930472b386fee4",
+    "rawDeliveryBytes": 16389,
+    "nativeGeneratorRevision": "db52af5115ce9cc12e027d3ec23c42fe5a2a1aa2",
+    "nativeGeneratorPath": "src/architecture-description.mjs",
+    "candidateRevision": "ni:///sha-256;a28925UM-HDQEqBX2OgZmuUXladAedyzEDfLppLteu4",
+    "requirementRevision": "ni:///sha-256;XQ_Z228ABHmF_yskGQ3rIEp4ZxViSELtjnegAvDAiq0",
+    "specificationRevision": "ni:///sha-256;h5NHsesOy07uUd-WsnL2noLTPZdzxMzai0JP5UZ489E"
+  },
+  "nativeReceiving": {
+    "outputSchema": "valid",
+    "originalArchitectureGenerator": "derived",
+    "originalHighLevelPlan": "planned"
+  },
+  "semanticReceiving": {
+    "modelsRead": [
+      "m-package-inventory",
+      "m-retired-identity",
+      "m-custody-lifecycle",
+      "m-edition-selection",
+      "m-retirement-graph",
+      "m-operator-cas",
+      "m-consumer-cutover",
+      "m-protection-graph",
+      "m-work-lineage",
+      "m-generation-chain"
+    ],
+    "decisionsRead": [
+      "d-data-custody",
+      "d-code-pipeline",
+      "d-networking-cutover",
+      "d-systems-lineage"
+    ],
+    "allElevenOriginalConditionsPreserved": true,
+    "contradictoryMechanismFound": false,
+    "nextStageObligations": [
+      "Retirement custody keys are distinct from publication-input keys; unsettled original inputs remain protected. Decision d-data-custody supplies no authority to delete those original publication inputs.",
+      "Every current dist-tag target remains protected; changed tags refuse affected candidates, never authorize removing a tag to permit retirement.",
+      "Compact tombstones bind canonical manifest/source commitment as well as archive integrity.",
+      "Archive keys come from admitted attachment/metadata ownership, never a guessed scoped-package basename.",
+      "Remove native house-version/archive bypass while preserving actual native authentication and public-uplink capabilities.",
+      "The full protected installed, incoming, tag, rollback, conflict and unsettled-publication dependency graph remains mandatory; no stable-version or newest-count shortcut."
+    ]
+  },
+  "disposition": "accepted-for-original-high-level-design",
+  "scope": "Independent Architecture semantic receiving and original pure HLD planning only; no retirement implementation, source adoption, archive deletion, production publication or consumer acceptance.",
+  "at": "2026-10-29T00:52:43.219Z"
+}

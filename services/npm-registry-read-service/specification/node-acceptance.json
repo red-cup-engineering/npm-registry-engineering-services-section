@@ -1,0 +1,21 @@
+{
+  "version": 1,
+  "basis": "A read-only npm snapshot serves GET and HEAD and projects complete package identities onto canonical npm tarball URLs.",
+  "cases": [
+    {
+      "id": "REGISTRY-READ-REFUSAL",
+      "role": "source",
+      "kind": "refusal",
+      "claim": "The registry accepts read methods and returns Method Not Allowed for POST.",
+      "file": "test/npm-registry-read-service.test.mjs",
+      "test": "serves npm ping and method semantics"
+    },
+    {
+      "id": "REGISTRY-READ-QUICKSTART",
+      "role": "consumer",
+      "kind": "example",
+      "claim": "An installed caller can project a canonical tarball URL while preserving the original metadata.",
+      "file": "examples/quickstart.test.mjs"
+    }
+  ]
+}

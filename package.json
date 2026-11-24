@@ -1,0 +1,53 @@
+{
+  "name": "@red-cup-engineering/npm-registry-engineering-services-section",
+  "version": "0.1.8-dev.0",
+  "description": "Holds the services for npm registries. Use when working on the private npm registry or reading any npm registry's packages, versions, and dependencies.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/red-cup-engineering/npm-registry-engineering-services-section.git"
+  },
+  "dependencies": {
+    "@red-cup-engineering/computer-file-engineering-services-section": "^0.8.8",
+    "@red-cup-engineering/json-engine": "^0.5.0",
+    "@red-cup-engineering/jsonl-engineering-services-section": "^0.1.4",
+    "@red-cup-engineering/inspect-installed-npm-package-service": "^0.3.3",
+    "@red-cup-engineering/jsdoc-engine": "^0.1.0",
+    "@red-cup-engineering/semiotic-content-address-system": "^0.1.7 || 0.1.8-dev.0",
+    "@red-cup-engineering/parse-javascript-argv-service": "^0.3.0 || 0.3.1-dev.0",
+    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "0.3.8-dev.0"
+  },
+  "exports": {
+    "./check-npm-registry-package-installations": "./scripts/check-npm-registry-package-installations.mjs",
+    "./npm-artifact-integrity-service": "./scripts/npm-artifact-integrity-service.mjs",
+    "./read-npm-registry-resource": "./scripts/read-npm-registry-resource.mjs",
+    "./select-npm-registry-packages": "./scripts/select-npm-registry-packages.mjs",
+    "./admit-npm-package-archive": "./scripts/admit-npm-package-archive.mjs",
+    "./packed-carrier-archive": "./scripts/packed-carrier-archive.mjs"
+  },
+  "scripts": {
+    "test": "run-package-tests",
+    "check": "check-package-syntax"
+  },
+  "devDependencies": {
+    "@red-cup-engineering/jsnode-package-engineering-services-section": "^0.6.2"
+  },
+  "files": [
+    "README.md",
+    "data",
+    "scripts"
+  ],
+  "license": "MIT",
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/561-group/.github/blob/main/TIPS.md"
+  },
+  "receivingTests": [
+    "test/check-npm-registry-package-installations.test.mjs",
+    "test/npm-artifact-integrity-service.test.mjs",
+    "test/read-npm-registry-resource.test.mjs",
+    "test/registry-cli-arguments.test.mjs",
+    "test/select-npm-registry-packages.test.mjs",
+    "test/admit-npm-package-archive.test.mjs",
+    "test/packed-carrier-archive.test.mjs"
+  ]
+}
