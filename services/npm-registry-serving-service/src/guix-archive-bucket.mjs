@@ -1,4 +1,5 @@
-import { createHash } from "node:crypto";
+import { subresourceIntegrity } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
+import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
 import { createReadStream } from "node:fs";
 import { link, lstat, mkdir, mkdtemp, open, readFile, realpath, rename, rm, unlink, writeFile } from "node:fs/promises";
 import { basename, dirname, isAbsolute, join } from "node:path";
@@ -6,7 +7,6 @@ import { Readable } from "node:stream";
 
 const archiveKey = /^(?:@[a-z0-9._-]+\/)?[a-z0-9._-]+\/-\/[^/\\\x00-\x1f]+\.tgz$/iu;
 const allocationName = /^archive-[a-z0-9]+$/iu;
-const digest = (algorithm, value, encoding) => createHash(algorithm).update(value).digest(encoding);
 const existsError = (error, code) => error && error.code === code;
 
 export function isPackageArchiveKey(key) {
@@ -23,9 +23,9 @@ async function syncDirectory(directory) {
 }
 
 async function fileIntegrity(path) {
-  const hash = createHash("sha512");
-  for await (const chunk of createReadStream(path)) hash.update(chunk);
-  return "sha512-" + hash.digest("base64");
+  const chunks = [];
+  for await (const chunk of createReadStream(path)) chunks.push(chunk);
+  return subresourceIntegrity("sha512", ...chunks);
 }
 
 /**
@@ -53,7 +53,7 @@ export async function createGuixArchiveBucket({
   const collectorRoot = allocation => collectorDirectory
     ? join(collectorDirectory, basename(allocation))
     : join(allocation, "archive");
-  const entry = key => join(keys, digest("sha256", key, "hex") + ".json");
+  const entry = key => join(keys, sha256Hex(key) + ".json");
 
   async function receipt(path, key) {
     let value;
@@ -116,7 +116,7 @@ export async function createGuixArchiveBucket({
     if (await receipt(entry(key), key) !== null) return null;
     const bytes = Buffer.from(value);
     if (bytes.length === 0) throw new TypeError("empty package archive");
-    const integrity = "sha512-" + digest("sha512", bytes, "base64");
+    const integrity = subresourceIntegrity("sha512", bytes);
     if (customMetadata.integrity !== undefined && customMetadata.integrity !== integrity)
       throw new TypeError("package archive bytes differ from the expected integrity");
     const allocation = await mkdtemp(join(allocations, "archive-"));
@@ -133,7 +133,7 @@ export async function createGuixArchiveBucket({
       await unlink(source);
       const stored = {
         key, allocation: basename(allocation), storePath, size: bytes.length,
-        etag: digest("sha256", bytes, "hex"), customMetadata: { ...customMetadata, integrity }, httpMetadata,
+        etag: sha256Hex(bytes), customMetadata: { ...customMetadata, integrity }, httpMetadata,
       };
       const staged = join(allocation, "receipt.json");
       await writeFile(staged, JSON.stringify(stored), { flag: "wx", mode: 0o600, flush: true });

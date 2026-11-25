@@ -1,7 +1,7 @@
-import { sha256 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
+import { sha256Base64Url } from "@red-cup-engineering/semiotic-content-address-system";
+import { protocolDigestHex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { isRecord } from "@red-cup-engineering/signcell/values";
 import { admittedName, admittedPublication, parsePackagePath as parse, repositoryOf, tarballName } from "./prepared-publication.mjs";
-import { createHash } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { dirname, join } from "node:path";
 import { Readable } from "node:stream";
@@ -106,7 +106,7 @@ export function createNpmRegistry({
   const refusal = (status, error) => json({ error }, status);
   // The Worker's refusal of a quarantined version, its tag and its archive (r2-registry.mjs refuseConflict).
   const quarantine = () => refusal(409, releasesOnly ? "package version is withheld: this registry holds releases only (no prerelease versions), and quarantines conflicting immutable identities" : "package version is quarantined for conflicting immutable identities");
-  const etagOf = (body) => `"${sha256(body).toString("base64url").slice(0, 32)}"`;
+  const etagOf = (body) => `"${sha256Base64Url(body).slice(0, 32)}"`;
   const revisionOf = (read) => `${read.rows.length}-${read.digest.slice(0, 32)}`;
 
   // House packages: their facts folded once per journal state, and each representation rendered once from that.
@@ -335,7 +335,7 @@ export function createNpmRegistry({
     if (heapPressure()) throw new Error("the registry is short of memory; retry");
     const bytes = Buffer.from(await response.arrayBuffer());
     if (bytes.length > maxUplinkTarballBytes) throw new Error(`${file} from the uplink is larger than the ${maxUplinkTarballBytes} bytes this registry holds in memory`);
-    if (source.sha && createHash("sha1").update(bytes).digest("hex") !== source.sha) throw new Error(`${file} from the uplink does not match its shasum`);
+    if (source.sha && protocolDigestHex("sha1", bytes) !== source.sha) throw new Error(`${file} from the uplink does not match its shasum`);
     if (cachePublicTarballs) await store.writeAtomic(path, bytes);
     return bytes;
   }

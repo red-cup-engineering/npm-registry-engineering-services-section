@@ -22,7 +22,8 @@
     "package.json"
   ],
   "dependencies": {
-    "@red-cup-engineering/parse-javascript-argv-service": "^0.3.0"
+    "@red-cup-engineering/parse-javascript-argv-service": "^0.3.0",
+    "@red-cup-engineering/semiotic-content-address-system": "0.1.9"
   },
   "publishConfig": {
     "access": "public"

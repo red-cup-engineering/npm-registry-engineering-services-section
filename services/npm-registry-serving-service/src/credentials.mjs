@@ -1,4 +1,4 @@
-import { sha256 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
+import { sha256Base64Url } from "@red-cup-engineering/semiotic-content-address-system";
 import { randomBase64Url } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
 
 import { appendFile, readFile, stat } from "node:fs/promises";
@@ -18,7 +18,7 @@ const TOKEN_ATTRIBUTE = "npm.token";
 export const TOKEN_PREFIX = "hnr_";
 
 export function createCredentials({ htpasswd, tokens, now = () => new Date() }) {
-  const digest = (token) => sha256(token).toString("base64url");
+  const digest = (token) => sha256Base64Url(token);
   const keyOf = async (path) => {
     try { const info = await stat(path); return `${info.ino}:${info.size}:${info.mtimeMs}`; }
     catch (error) { if (error.code === "ENOENT") return "absent"; throw error; }

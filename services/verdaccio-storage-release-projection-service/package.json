@@ -21,6 +21,7 @@
     "pack:dry-run": "npm pack --dry-run --ignore-scripts"
   },
   "dependencies": {
+    "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "0.3.8-dev.0",
     "semver": "7.7.2"
   },
   "engines": {

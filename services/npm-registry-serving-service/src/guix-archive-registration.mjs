@@ -1,4 +1,4 @@
-import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
+import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
 import {spawn} from "node:child_process";
 
 import {mkdir, mkdtemp, readFile, rm, writeFile} from "node:fs/promises";

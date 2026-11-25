@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { protocolDigestBase64 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { link, readFile } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -15,7 +15,7 @@ export async function repairScopedPublicationArtifact({ storage, name, version }
   if (decodeURIComponent(new URL(manifest.dist.tarball).pathname.split("/").pop()) !== leaf) throw new Error("published artifact identity differs");
   const source = join(directory, `${name}-${version}.tgz`);
   const bytes = await readFile(source);
-  const integrity = `sha512-${createHash("sha512").update(bytes).digest("base64")}`;
+  const integrity = `sha512-${protocolDigestBase64("sha512", bytes)}`;
   if (manifest.dist.integrity !== integrity) throw new Error("retained artifact differs from published SHA-512");
   const destination = join(directory, leaf);
   let changed = true;

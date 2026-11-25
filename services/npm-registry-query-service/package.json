@@ -34,7 +34,8 @@
   },
   "dependencies": {
     "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "^0.3.5",
-    "@red-cup-engineering/npm-registry-engineering-services-section": "^0.1.3"
+    "@red-cup-engineering/npm-registry-engineering-services-section": "^0.1.3",
+    "@red-cup-engineering/semiotic-content-address-system": "0.1.9"
   },
   "devDependencies": {
     "@red-cup-engineering/jsnode-package-engineering-services-section": "^0.6.2"

@@ -1,11 +1,12 @@
-import { sha256 as cryptographicSha256 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
+import { protocolDigestHex, subresourceIntegrity } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
+import { concatBytes, sha256Base64Url, isNiUri, makeNiUri } from "@red-cup-engineering/semiotic-content-address-system";
 import { sleep } from "@red-cup-engineering/parse-javascript-argv-service";
-import { createHash, randomUUID } from "node:crypto";
+import { randomUUID } from "node:crypto";
 import { createReadStream } from "node:fs";
 import { link, mkdir, open, readdir, readFile, rename, rm, rmdir, stat, symlink, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { niPathSegments } from "@red-cup-engineering/computer-content-address-engineering-services-section/ni-path";
-import { isNiUri, makeNiUri } from "@red-cup-engineering/uri-engineering-services-section/ni-uri";
+
 import { admittedRow, legacyRows } from "./facts.mjs";
 
 /**
@@ -43,7 +44,6 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
   const readBytes = async (path) => {
     try { return await readFile(path); } catch (error) { if (error.code === "ENOENT") return undefined; throw error; }
   };
-  const digest = (bytes) => cryptographicSha256(bytes).toString("base64url");
 
   /** What a package's documents are projected from now: its journal, else its earlier packument; with a key that
    *  changes whenever that file does. Undefined when the store holds neither. */
@@ -65,14 +65,14 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
     if (bytes === undefined) return read(name);
     if (source.kind === "layout") {
       const packument = JSON.parse(bytes.toString("utf8"));
-      return { kind: "layout", key: source.key, rows: legacyRows(name, packument), digest: digest(bytes), packument };
+      return { kind: "layout", key: source.key, rows: legacyRows(name, packument), digest: sha256Base64Url(bytes), packument };
     }
     const complete = bytes.subarray(0, bytes.lastIndexOf(NEWLINE) + 1);
     const rows = complete.toString("utf8").split("\n").filter((line) => line !== "").map((line, index) => {
       try { return admittedRow(JSON.parse(line)); }
       catch (error) { throw new TypeError(`${journalPath(name)}:${index + 1} is not a registry fact (${error.message})`); }
     });
-    return { kind: "journal", key: source.key, rows, digest: digest(complete) };
+    return { kind: "journal", key: source.key, rows, digest: sha256Base64Url(complete) };
   }
 
   /** Append rows to the package's journal and make them durable. The caller holds the package's lock. An earlier
@@ -162,13 +162,11 @@ export function createPackageStore({ storage, storeArchive, lockWaitMs = 30_000,
   /** A file's NI address, size, and npm's two digests (`integrity`, `shasum`), read once as a stream: a store of
    *  tarballs is measured without holding any of them. */
   async function measure(path) {
-    const sha256 = createHash("sha256"), sha512 = createHash("sha512"), sha1 = createHash("sha1");
+    const chunks = [];
     let size = 0;
-    for await (const chunk of createReadStream(path)) { sha256.update(chunk); sha512.update(chunk); sha1.update(chunk); size += chunk.length; }
-    // The shared primitive spells NI from bytes; this is its spelling of the same digest, checked by it.
-    const ni = `${NI_PREFIX}${sha256.digest("base64url")}`;
-    if (!isNiUri(ni)) throw new Error(`${path} measured to a malformed NI address`);
-    return { ni, size, integrity: `sha512-${sha512.digest("base64")}`, shasum: sha1.digest("hex") };
+    for await (const chunk of createReadStream(path)) { chunks.push(chunk); size += chunk.length; }
+    const bytes = concatBytes(...chunks);
+    return { ni: makeNiUri(bytes), size, integrity: subresourceIntegrity("sha512", bytes), shasum: protocolDigestHex("sha1", bytes) };
   }
 
   /** A file already in the store, measured, and kept in the blob store by hard link (no copy) unless `link` is

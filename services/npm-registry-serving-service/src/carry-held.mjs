@@ -1,5 +1,5 @@
+import { protocolDigestBase64 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { readFile } from "node:fs/promises";
-import { createHash } from "node:crypto";
 import { foldPackage } from "./projection.mjs";
 
 /**
@@ -27,7 +27,7 @@ export async function carryHeld(store, name, { canonical, authorization, fetch: 
     const located = await store.artifactPath(name, entry.artifact);
     const bytes = located === undefined ? undefined : await readFile(located.path);
     if (bytes === undefined || integrity === undefined
-        || "sha512-" + createHash("sha512").update(bytes).digest("base64") !== integrity) { report.unreadable.push(version); continue; }
+        || "sha512-" + protocolDigestBase64("sha512", bytes) !== integrity) { report.unreadable.push(version); continue; }
     // The npm wire form names the attached archive by its canonical file under the receiver; the receiver rewrites
     // the URL to its own origin. The manifest's identity (integrity, shasum, fields) is the stored one.
     const file = `${name.split("/").pop()}-${version}.tgz`;

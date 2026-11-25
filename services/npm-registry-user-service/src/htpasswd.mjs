@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { protocolDigestBase64 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 
 /**
  * htpasswd management in the {SHA} scheme (base64(sha1(password))) — one of
@@ -8,7 +8,7 @@ import { createHash } from "node:crypto";
  * local, auditable act.
  */
 function shaEntry(password) {
-  return "{SHA}" + createHash("sha1").update(password).digest("base64");
+  return "{SHA}" + protocolDigestBase64("sha1", password);
 }
 
 export function parseHtpasswd(content) {

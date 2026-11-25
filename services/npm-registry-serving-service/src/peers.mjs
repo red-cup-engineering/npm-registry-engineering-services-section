@@ -1,6 +1,6 @@
+import { protocolDigestBase64, protocolDigestHex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { isRecord } from "@red-cup-engineering/signcell/values";
 import { Buffer } from "node:buffer";
-import { createHash } from "node:crypto";
 import { DEPRECATION, DIST_TAG, PUBLICATION, artifactFile, legacyRows } from "./facts.mjs";
 import { foldPackage, renderStoreLayout } from "./projection.mjs";
 import { createR2S3Bucket } from "./r2-s3-bucket.mjs";
@@ -21,7 +21,7 @@ import { createR2S3Bucket } from "./r2-s3-bucket.mjs";
  */
 
 
-const measured = bytes => ({ integrity: "sha512-" + createHash("sha512").update(bytes).digest("base64"), shasum: createHash("sha1").update(bytes).digest("hex") });
+const measured = bytes => ({ integrity: "sha512-" + protocolDigestBase64("sha512", bytes), shasum: protocolDigestHex("sha1", bytes) });
 
 /** A peer that is an object bucket laid out as the registry's R2 profile lays it: `<name>/index.json` and `<name>/-/<file>`. */
 export function bucketPeer({ name = "bucket", bucket }) {

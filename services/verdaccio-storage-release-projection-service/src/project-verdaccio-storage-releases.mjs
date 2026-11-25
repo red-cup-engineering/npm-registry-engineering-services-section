@@ -1,5 +1,5 @@
+import { protocolDigestBase64, protocolDigestHex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { parse } from "semver";
-import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import { isDeepStrictEqual } from "node:util";
 import { gunzipSync } from "node:zlib";
@@ -44,8 +44,8 @@ function excluded({ name, version, reason, detail, manifest, artifactPath, measu
 function measure(bytes) {
   return Object.freeze({
     bytes: bytes.byteLength,
-    shasum: createHash("sha1").update(bytes).digest("hex"),
-    integrity: `sha512-${createHash("sha512").update(bytes).digest("base64")}`,
+    shasum: protocolDigestHex("sha1", bytes),
+    integrity: `sha512-${protocolDigestBase64("sha512", bytes)}`,
   });
 }
 

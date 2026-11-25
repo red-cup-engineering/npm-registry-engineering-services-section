@@ -1,6 +1,6 @@
+import { sha256Digest } from "@red-cup-engineering/semiotic-content-address-system";
 import { readFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
-import { sha256Digest, sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
 
 const SNAPSHOT_DEMAND = "PackageRegistrySnapshotDemand";
 const SCOPED_PACKAGE_NAME = /^@[a-z0-9-]+\/[a-z0-9._-]+$/u;

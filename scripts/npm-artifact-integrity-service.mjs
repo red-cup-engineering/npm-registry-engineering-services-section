@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { protocolDigestBase64, protocolDigestHex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { readFile } from "node:fs/promises";
 
 const MEASUREMENT_FIELDS = ["bytes", "shasum", "integrity"];
@@ -22,8 +22,8 @@ export function measureArtifactBytes(value) {
   const bytes = artifactBytes(value);
   return Object.freeze({
     bytes: bytes.byteLength,
-    shasum: createHash("sha1").update(bytes).digest("hex"),
-    integrity: `sha512-${createHash("sha512").update(bytes).digest("base64")}`,
+    shasum: protocolDigestHex("sha1", bytes),
+    integrity: `sha512-${protocolDigestBase64("sha512", bytes)}`,
   });
 }
 

@@ -1,5 +1,5 @@
+import { protocolDigestHex, subresourceIntegrity } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
 import { isRecord } from "@red-cup-engineering/signcell/values";
-import { createHash } from "node:crypto";
 import { Buffer } from "node:buffer";
 
 // Original native npm wire admission, shared by filesystem and R2 receiving.
@@ -19,7 +19,6 @@ export function parsePackagePath(pathname) {
 }
 
 const versionIdentity = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?(?:\+[0-9A-Za-z-]+(?:\.[0-9A-Za-z-]+)*)?$/u;
-const measured = (algorithm, bytes, encoding) => createHash(algorithm).update(bytes).digest(encoding);
 
 /** A package.json `repository` (any npm form: a URL, {url}, github:owner/name, owner/name) as owner/name, or null. */
 export function repositoryOf(reference) {
@@ -52,7 +51,7 @@ export function admittedPublication(name, body, state) {
     const bytes = Buffer.from(attachment.data, "base64");
     if (bytes.toString("base64") !== attachment.data) throw new TypeError("artifact data must be canonical base64");
     if (!Number.isSafeInteger(attachment.length) || attachment.length !== bytes.length) throw new TypeError("artifact length does not match its bytes");
-    const shasum = measured("sha1", bytes, "hex"), integrity = `sha512-${measured("sha512", bytes, "base64")}`;
+    const shasum = protocolDigestHex("sha1", bytes), integrity = subresourceIntegrity("sha512", bytes);
     if (manifest.dist.shasum !== undefined && manifest.dist.shasum !== shasum) throw new TypeError("artifact shasum does not match its bytes");
     if (manifest.dist.integrity !== undefined && manifest.dist.integrity !== integrity) throw new TypeError("artifact integrity does not match its bytes");
     if (manifest.dist.shasum === undefined && manifest.dist.integrity === undefined) throw new TypeError("artifact needs a declared integrity measurement");

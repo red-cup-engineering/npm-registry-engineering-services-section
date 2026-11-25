@@ -1,6 +1,8 @@
+import { subresourceIntegrity } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
+import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
 import { isRecord } from "@red-cup-engineering/signcell/values";
 import { Buffer } from "node:buffer";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { timingSafeEqual } from "node:crypto";
 import { isDeepStrictEqual } from "node:util";
 import semver from "semver";
 import { admittedName, admittedPublication, parsePackagePath } from "./prepared-publication.mjs";
@@ -13,8 +15,7 @@ const CUSTODY = "-/publication-inputs/";
 const POLICY = "native-authenticated-house-publishers-v1";
 const DEFAULT_UPLINK = "https://registry.npmjs.org";
 
-const digest = (algorithm, bytes, encoding = "hex") => createHash(algorithm).update(bytes).digest(encoding);
-const integrityOf = bytes => "sha512-" + digest("sha512", bytes, "base64");
+const integrityOf = bytes => subresourceIntegrity("sha512", bytes);
 /** A package path as the public registry spells it: each segment encoded, a scope's @ kept. */
 const uplinkPath = segments => "/" + segments.flatMap(part => part.split("/")).map(part => encodeURIComponent(part).replace(/^%40/u, "@")).join("/");
 const json = (value, status = 200, headers = {}) => Response.json(value, { status, headers });
@@ -150,7 +151,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     const changed = projected !== document;
     return { object, rawDocument, rawBytes, document: projected,
       bytes: changed ? Buffer.from(JSON.stringify(projected)) : bytes,
-      etag: changed ? '"' + digest("sha256", Buffer.from(JSON.stringify(projected))) + '"'
+      etag: changed ? '"' + sha256Hex(Buffer.from(JSON.stringify(projected))) + '"'
         : object.httpEtag ?? '"' + object.etag + '"' };
   }
 
@@ -253,7 +254,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       const object = await bucket.get(key);
       if (object === null) return { ...custody, state: "retired" };
       const original = await boundedBytes(object.body, config.maxPublishBytes, object.size);
-      const observedInputSha256 = digest("sha256", original);
+      const observedInputSha256 = sha256Hex(original);
       if (observedInputSha256 !== inputSha256 || object.customMetadata?.publisher !== publisher)
         return { state: "not-owned", key, requestedInputSha256: inputSha256, observedInputSha256 };
       await bucket.delete(key);
@@ -277,7 +278,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       if (body._id !== undefined && body._id !== name) throw new Refusal(400, "publication id differs from its package");
       const [submittedVersion] = Object.keys(body.versions);
       if (resume && (resume.version !== submittedVersion || !/^[a-f0-9]{64}$/u.test(resume.inputSha256 ?? "")
-          || digest("sha256", encoded) !== resume.inputSha256))
+          || sha256Hex(encoded) !== resume.inputSha256))
         throw new Refusal(400, "resume must select the exact original package/version/input bytes");
       if (config.publicationHold)
         throw new Refusal(423, "publication is held for immutable identity conservation", {
@@ -306,12 +307,12 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       if (reservation && !conservation.matches(published, reservation.identity))
         throw new Refusal(409, "native reservation cannot be transformed into another manifest", { reservation });
       const tags = body["dist-tags"] ?? {};
-      const inputSha256 = digest("sha256", encoded);
+      const inputSha256 = sha256Hex(encoded);
       const inputKey = CUSTODY + name + "/" + version + ".json";
       if (resume) {
         const original = await bucket.get(inputKey);
         if (original !== null) {
-          const actual = digest("sha256", await boundedBytes(original.body, config.maxPublishBytes, original.size));
+          const actual = sha256Hex(await boundedBytes(original.body, config.maxPublishBytes, original.size));
           if (actual !== inputSha256 || original.customMetadata?.publisher !== publisher
               || original.customMetadata?.inputSha256 !== inputSha256)
             throw new Refusal(409, "continuation does not own the retained original publication input", {
@@ -359,7 +360,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       };
       document.time.created ??= now;
       const { _rev: previousRevision, ...revisionContent } = document;
-      document._rev = "r2-" + digest("sha256", JSON.stringify(revisionContent));
+      document._rev = "r2-" + sha256Hex(JSON.stringify(revisionContent));
       const metadataBytes = Buffer.from(JSON.stringify(document));
       if (metadataBytes.length > config.maxMetadataBytes) throw new Refusal(413, "merged metadata exceeds its qualified receiving bound");
       custody = { state: "claim-unreceived", key: inputKey, requestedInputSha256: inputSha256 };
@@ -369,7 +370,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         // retained bytes. Ordinary PUT still refuses an occupied input.
         if (!resume || occupied.customMetadata?.publisher !== publisher
             || occupied.customMetadata?.inputSha256 !== inputSha256
-            || digest("sha256", await boundedBytes(occupied.body, config.maxPublishBytes, occupied.size)) !== inputSha256)
+            || sha256Hex(await boundedBytes(occupied.body, config.maxPublishBytes, occupied.size)) !== inputSha256)
           throw new Refusal(409, "this package/version has another unresolved original publication input", {
             custody: { state: "not-owned", key: inputKey, requestedInputSha256: inputSha256,
               observedInputSha256: occupied.customMetadata?.inputSha256 ?? null },
@@ -391,7 +392,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         }
       }
       const receivedInput = await bucket.get(inputKey);
-      if (receivedInput === null || digest("sha256", await boundedBytes(receivedInput.body, config.maxPublishBytes, receivedInput.size)) !== inputSha256
+      if (receivedInput === null || sha256Hex(await boundedBytes(receivedInput.body, config.maxPublishBytes, receivedInput.size)) !== inputSha256
           || receivedInput.customMetadata?.publisher !== publisher)
         throw new Refusal(502, "original publication input did not receive exact durable custody", { effectsUnknown: true });
       custody = { state: "retained", key: inputKey, inputSha256 };
@@ -454,7 +455,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       "dist-tags": { ...held.document["dist-tags"], [tag]: version },
       time: { ...held.document.time, modified: new Date().toISOString() },
     };
-    document._rev = "r2-" + digest("sha256", JSON.stringify(document));
+    document._rev = "r2-" + sha256Hex(JSON.stringify(document));
     const bytes = Buffer.from(JSON.stringify(document));
     if (bytes.length > config.maxMetadataBytes)
       throw new Refusal(413, "updated metadata exceeds its qualified receiving bound");
@@ -495,7 +496,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         const document = { ...before.document, versions: Object.fromEntries(left.map(version => [version, before.document.versions[version]])),
           "dist-tags": tags, time: { ...time, modified: new Date().toISOString() } };
         const { _rev: previousRevision, ...revisionContent } = document;
-        document._rev = "r2-" + digest("sha256", JSON.stringify(revisionContent));
+        document._rev = "r2-" + sha256Hex(JSON.stringify(revisionContent));
         const written = await bucket.put(metadataKey(name), Buffer.from(JSON.stringify(document)), {
           onlyIf: { etagMatches: before.object.etag },
           httpMetadata: { contentType: "application/json", cacheControl: "no-cache" },
@@ -640,7 +641,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         const version = Object.hasOwn(held.document.versions, selector) ? selector : held.document["dist-tags"]?.[selector];
         if (typeof version !== "string" || !Object.hasOwn(held.document.versions, version)) throw new Refusal(404, "version is not in this registry");
         bytes = Buffer.from(JSON.stringify(held.document.versions[version]));
-        etag = '"' + digest("sha256", bytes) + '"';
+        etag = '"' + sha256Hex(bytes) + '"';
       }
       if (unchanged(request, etag)) return new Response(null, { status: 304, headers: { etag, "cache-control": "no-cache" } });
       return new Response(method === "HEAD" ? null : bytes, {

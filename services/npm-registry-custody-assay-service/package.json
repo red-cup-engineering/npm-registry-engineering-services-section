@@ -20,6 +20,7 @@
   "dependencies": {
     "@red-cup-engineering/cryptographic-computer-data-engineering-services-section": "^0.3.3",
     "@red-cup-engineering/parse-javascript-argv-service": "^0.3.0",
+    "@red-cup-engineering/semiotic-content-address-system": "0.1.9",
     "@red-cup-engineering/semiotic-eavt-engineering-services-section": "^0.6.14",
     "@red-cup-engineering/time-data-engine": "^0.1.0"
   },

@@ -1,5 +1,5 @@
+import { sha256HexOfChunks } from "@red-cup-engineering/semiotic-content-address-system";
 import { execFile } from "node:child_process";
-import { createHash } from "node:crypto";
 import { readdir, readFile, rm } from "node:fs/promises";
 import { homedir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
@@ -63,15 +63,14 @@ export async function computeDirectoryContentDigest(directory) {
 
   await walk(base);
   const relatives = files.map((file) => normalize(resolve(file).slice(base.length + 1))).sort();
-  const hash = createHash("sha256");
-  hash.update(relatives.join("\n"));
+  const hashParts = [relatives.join("\n")];
   let bytes = 0;
   for (const relativePath of relatives) {
     const contents = await readFile(join(base, relativePath));
-    hash.update(contents);
+    hashParts.push(contents);
     bytes += contents.byteLength;
   }
-  return { digest: hash.digest("hex"), bytes, files: relatives.length };
+  return { digest: await sha256HexOfChunks(hashParts), bytes, files: relatives.length };
 }
 
 /**

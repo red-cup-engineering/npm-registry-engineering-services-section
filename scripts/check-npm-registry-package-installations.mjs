@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { sha256Hex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/integrity";
+import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
 import { execFile } from "node:child_process";
 
 import { once } from "node:events";

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { sha256 } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
+import { sha256Base64Url } from "@red-cup-engineering/semiotic-content-address-system";
 import { appendFile, mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { homedir } from "node:os";
@@ -63,6 +63,6 @@ await writeFile(partial, [...lines, `${user}:${hash}`].join("\n") + "\n", { mode
 await rename(partial, htpasswd);
 if (token) {
   const at = new Date().toISOString();
-  await appendFile(tokens, JSON.stringify({ e: `npm-token:${sha256(token).toString("base64url")}`, a: "npm.token", v: { user, created: at }, t: at }) + "\n", { mode: 0o600 });
+  await appendFile(tokens, JSON.stringify({ e: `npm-token:${sha256Base64Url(token)}`, a: "npm.token", v: { user, created: at }, t: at }) + "\n", { mode: 0o600 });
 }
 process.stdout.write(JSON.stringify({ admitted: user, password: passwordFrom ?? "none", tokenRegistered: Boolean(token), htpasswd, tokens }) + "\n");
