@@ -18,7 +18,6 @@ const TOKEN_ATTRIBUTE = "npm.token";
 export const TOKEN_PREFIX = "hnr_";
 
 export function createCredentials({ htpasswd, tokens, now = () => new Date() }) {
-  const digest = (token) => sha256Base64Url(token);
   const keyOf = async (path) => {
     try { const info = await stat(path); return `${info.ino}:${info.size}:${info.mtimeMs}`; }
     catch (error) { if (error.code === "ENOENT") return "absent"; throw error; }
@@ -63,7 +62,7 @@ export function createCredentials({ htpasswd, tokens, now = () => new Date() }) 
     held = { key, owners };
     return owners;
   }
-  const entity = (token) => `npm-token:${digest(token)}`;
+  const entity = (token) => `npm-token:${sha256Base64Url(token)}`;
   /** A new token for a publisher. Only its digest is kept. */
   async function issue(user) {
     const token = `${TOKEN_PREFIX}${randomBase64Url(32)}`;
