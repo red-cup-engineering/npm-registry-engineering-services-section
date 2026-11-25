@@ -1,4 +1,4 @@
-import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
+import { sha256Hex, semanticHex } from "@red-cup-engineering/semiotic-content-address-system";
 /** First-party framing recovered from PR24 a40a8655d656c2ffa8d75d90bdf99f700e1a90c3,
  * src/packed-carrier-archive.mjs blob c044915f3d0431ff9dd16c5239a507c3bccad1b1.
  * Retains its header/PAX/path and sorted-prefix conflict algorithms, evolved
@@ -212,10 +212,10 @@ function projectionResult(tar, profile, occurrences, extensions, manifestText, m
     }
   }
   const expandedSHA256 = sha256Hex(tar);
-  const rawInventorySHA256 = sha256Hex(JSON.stringify([1, profile, expandedSHA256, occurrences, extensions]));
+  const rawInventorySHA256 = semanticHex([1, profile, expandedSHA256, occurrences, extensions]);
   const targets = [...groups].filter(([, group]) => group[0].interpretedKind === 'File').map(([path, group]) => ({path, occurrenceOrdinals: group.map(x => x.ordinal), selectedOrdinal: group.at(-1).ordinal}));
   const projection = {version:1, profile, rawInventorySHA256, manifestText, members, targets};
-  projection.projectionSHA256 = sha256Hex(JSON.stringify([1, profile, rawInventorySHA256, manifestText, members, targets]));
+  projection.projectionSHA256 = semanticHex([1, profile, rawInventorySHA256, manifestText, members, targets]);
   return { sourceArchive: {version:1, expandedSHA256, profile, manifestText, occurrences, extensions, rawInventorySHA256}, projection };
 }
 function carrierPath(path, directory, offset) {

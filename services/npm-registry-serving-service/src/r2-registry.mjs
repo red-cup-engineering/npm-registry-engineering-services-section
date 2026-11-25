@@ -1,5 +1,5 @@
 import { subresourceIntegrity } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
-import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
+import { sha256Hex, semanticHex } from "@red-cup-engineering/semiotic-content-address-system";
 import { isRecord } from "@red-cup-engineering/signcell/values";
 import { Buffer } from "node:buffer";
 import { timingSafeEqual } from "node:crypto";
@@ -9,6 +9,9 @@ import { admittedName, admittedPublication, parsePackagePath } from "./prepared-
 import { checkPublication, DEFAULT_HOUSE_SCOPES } from "./publish-gate.mjs";
 import { registryIdentityConservation } from "./registry-identity-conservation.mjs";
 import { forwardGuixArchiveRequest, guixArchiveRequest, withoutGuixArchiveAuthority } from "./worker-guix-archive-route.mjs";
+
+/** The `_rev` of documents already served from the deployed R2 bucket: its exact computation is the external format. */
+const r2RegistryRevision = (value) => "r2-" + sha256Hex(JSON.stringify(value));
 
 
 const CUSTODY = "-/publication-inputs/";
@@ -151,7 +154,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
     const changed = projected !== document;
     return { object, rawDocument, rawBytes, document: projected,
       bytes: changed ? Buffer.from(JSON.stringify(projected)) : bytes,
-      etag: changed ? '"' + sha256Hex(Buffer.from(JSON.stringify(projected))) + '"'
+      etag: changed ? '"' + semanticHex(projected) + '"'
         : object.httpEtag ?? '"' + object.etag + '"' };
   }
 
@@ -360,7 +363,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       };
       document.time.created ??= now;
       const { _rev: previousRevision, ...revisionContent } = document;
-      document._rev = "r2-" + sha256Hex(JSON.stringify(revisionContent));
+      document._rev = r2RegistryRevision(revisionContent);
       const metadataBytes = Buffer.from(JSON.stringify(document));
       if (metadataBytes.length > config.maxMetadataBytes) throw new Refusal(413, "merged metadata exceeds its qualified receiving bound");
       custody = { state: "claim-unreceived", key: inputKey, requestedInputSha256: inputSha256 };
@@ -455,7 +458,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
       "dist-tags": { ...held.document["dist-tags"], [tag]: version },
       time: { ...held.document.time, modified: new Date().toISOString() },
     };
-    document._rev = "r2-" + sha256Hex(JSON.stringify(document));
+    document._rev = r2RegistryRevision(document);
     const bytes = Buffer.from(JSON.stringify(document));
     if (bytes.length > config.maxMetadataBytes)
       throw new Refusal(413, "updated metadata exceeds its qualified receiving bound");
@@ -496,7 +499,7 @@ export function createR2Registry({ bucket, configuration, nativeFetch = fetch, u
         const document = { ...before.document, versions: Object.fromEntries(left.map(version => [version, before.document.versions[version]])),
           "dist-tags": tags, time: { ...time, modified: new Date().toISOString() } };
         const { _rev: previousRevision, ...revisionContent } = document;
-        document._rev = "r2-" + sha256Hex(JSON.stringify(revisionContent));
+        document._rev = r2RegistryRevision(revisionContent);
         const written = await bucket.put(metadataKey(name), Buffer.from(JSON.stringify(document)), {
           onlyIf: { etagMatches: before.object.etag },
           httpMetadata: { contentType: "application/json", cacheControl: "no-cache" },

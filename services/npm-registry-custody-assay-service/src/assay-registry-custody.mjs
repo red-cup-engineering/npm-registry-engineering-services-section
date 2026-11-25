@@ -1,5 +1,5 @@
 import { protocolDigestBase64, protocolDigestHex } from "@red-cup-engineering/cryptographic-computer-data-engineering-services-section/hash";
-import { sha256Hex } from "@red-cup-engineering/semiotic-content-address-system";
+import { sha256Hex, semanticHex } from "@red-cup-engineering/semiotic-content-address-system";
 import { readdir, readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
 
@@ -15,7 +15,7 @@ export const DEFECT_KINDS = Object.freeze({
 });
 
 function defectId(kind, packageSurface, detailKey) {
-  return sha256Hex(`${kind}:${packageSurface}:${detailKey ?? ""}`);
+  return semanticHex([kind, packageSurface, detailKey ?? ""]);
 }
 
 function packageDirectory(storageRoot, name) {
