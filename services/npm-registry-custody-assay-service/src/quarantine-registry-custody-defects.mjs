@@ -1,39 +1,28 @@
-import { appendFile, mkdir, readFile } from "node:fs/promises";
-import { dirname } from "node:path";
+import { each, put } from "@red-cup-engineering/semiotic-eavt-engineering-services-section/store";
+import { nowInstantText } from "@red-cup-engineering/time-data-engine";
 
-// The ledger is append-only: quarantining a defect never touches the
-// registry storage, the index, or any line already written here. A defect
-// that stops reproducing simply stops being re-appended; nothing is deleted
-// to reflect that, so the ledger stays a durable record of every ownership
-// break this assay has ever observed, not just the currently-open ones.
-export async function readQuarantineLedger(ledgerPath) {
-  let text;
-  try {
-    text = await readFile(ledgerPath, "utf8");
-  } catch (error) {
-    if (error?.code === "ENOENT") return [];
-    throw error;
-  }
-  return text
-    .split("\n")
-    .filter((line) => line.length > 0)
-    .map((line) => JSON.parse(line));
+// Quarantining is an event, `quarantined`, one row-set per defect in the one store
+// (`data/records/registry-custody-defect-records/records.jsonl` under `dataRoot`).
+// It never touches the registry storage or the index, and a row is never changed or removed:
+// a defect that stops reproducing simply stops being re-recorded, so the file stays a record of
+// every ownership break this assay has ever observed.
+const KIND = "registry-custody-defect";
+
+/** Every quarantined defect, oldest first: `{event, time, subject, status, ...defect}`. */
+export function readQuarantine(dataRoot) {
+  return [...each(dataRoot, KIND)].map(({ record }) => record);
 }
 
-export async function quarantineRegistryCustodyDefects({ defects, ledgerPath, quarantinedAt }) {
+export function quarantineRegistryCustodyDefects({ defects, dataRoot, quarantinedAt }) {
   if (!Array.isArray(defects)) throw new TypeError("`defects` must be an array");
-  if (typeof ledgerPath !== "string" || ledgerPath === "") throw new TypeError("`ledgerPath` must be a non-empty string");
-  const stamp = quarantinedAt ?? new Date().toISOString();
-
-  const known = new Set((await readQuarantineLedger(ledgerPath)).map((entry) => entry.id));
+  if (typeof dataRoot !== "string" || dataRoot === "") throw new TypeError("`dataRoot` must be a non-empty string");
+  const time = quarantinedAt ?? nowInstantText();
+  const known = new Set(readQuarantine(dataRoot).map((row) => row.subject));
   const fresh = defects.filter((defect) => !known.has(defect.id));
-
-  if (fresh.length > 0) {
-    await mkdir(dirname(ledgerPath), { recursive: true });
-    const lines = fresh.map((defect) => JSON.stringify({ ...defect, quarantinedAt: stamp }));
-    await appendFile(ledgerPath, `${lines.map((line) => `${line}\n`).join("")}`, "utf8");
+  for (const defect of fresh) {
+    const { id, ...fields } = defect;
+    put(dataRoot, KIND, { event: "quarantined", time, subject: id, status: "quarantined", ...fields });
   }
-
   return Object.freeze({
     appended: Object.freeze(fresh.map((defect) => defect.id)),
     alreadyQuarantined: Object.freeze(defects.filter((defect) => known.has(defect.id)).map((defect) => defect.id)),

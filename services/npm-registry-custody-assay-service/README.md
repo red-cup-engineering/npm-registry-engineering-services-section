@@ -7,4 +7,4 @@
 [![Tips welcome](https://img.shields.io/badge/tips-welcome-d4a017)](https://github.com/561-group/.github/blob/main/TIPS.md)
 <!-- 561-group-standards:badges:end -->
 
-Measures a verdaccio registry's own storage against its published index and each package's attachment catalog, and quarantines the ownership defects it finds — packages the index claims that storage never received, tarball addresses that resolve to no attachment, and attachments whose bytes no longer hash to their recorded digest — into an append-only ledger.
+Measures a verdaccio registry's own storage against its published index and each package's attachment catalog, and quarantines the ownership defects it finds — packages the index claims that storage never received, tarball addresses that resolve to no attachment, and attachments whose bytes no longer hash to their recorded digest — as rows of the one store (`--data-root`).

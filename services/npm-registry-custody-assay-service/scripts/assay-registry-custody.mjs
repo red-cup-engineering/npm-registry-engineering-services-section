@@ -4,14 +4,14 @@ import { argument, repeatedArgument, requiredArgument } from "@red-cup-engineeri
 
 const storageRoot = requiredArgument("--storage-root");
 const ownedScopes = repeatedArgument("--owned-scope");
-const ledgerPath = argument("--ledger");
+const dataRoot = argument("--data-root");
 const dryRun = process.argv.includes("--dry-run");
 
 const graph = await assayRegistryCustody({ storageRoot, ownedScopes });
 
 let quarantine = null;
-if (ledgerPath !== undefined && !dryRun) {
-  quarantine = await quarantineRegistryCustodyDefects({ defects: graph.defects, ledgerPath });
+if (dataRoot !== undefined && !dryRun) {
+  quarantine = quarantineRegistryCustodyDefects({ defects: graph.defects, dataRoot });
 }
 
 process.stdout.write(`${JSON.stringify({
@@ -23,7 +23,7 @@ process.stdout.write(`${JSON.stringify({
       .sort()
       .map((kind) => [kind, graph.defects.filter((defect) => defect.kind === kind).length]),
   ),
-  quarantine: quarantine === null ? null : { ledgerPath, appended: quarantine.appended.length, alreadyQuarantined: quarantine.alreadyQuarantined.length },
+  quarantine: quarantine === null ? null : { dataRoot, appended: quarantine.appended.length, alreadyQuarantined: quarantine.alreadyQuarantined.length },
 }, null, 2)}\n`);
 
 if (graph.defects.length > 0) {
